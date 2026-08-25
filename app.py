@@ -9,8 +9,91 @@ import json
 import pandas as pd
 import streamlit as st
 
-st.set_page_config(page_title="FedEx Reprice Studio", page_icon="📦",
+st.set_page_config(page_title="FedEx Rate Garden", page_icon="🌸",
                    layout="wide")
+
+# ---------------------------------------------------------------- 淺色糖果風
+# 依 Animated Warehouse 的設計語言:淺粉→蜜桃漸層背景、
+# 大圓角分頁籤(選中 = 黃橘漸層)、白色圓潤卡片、軟陰影、圓體字。
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap');
+html, body, [class*="css"] {
+  font-family: "Baloo 2", "Segoe UI", "Microsoft JhengHei", sans-serif;
+}
+/* 底色:薰衣草 -> 粉 -> 蜜桃(照 Animated Warehouse) */
+.stApp {
+  background: linear-gradient(115deg, #EDD9F0 0%, #F8DAE7 45%, #FBE7DE 100%);
+}
+h1,h2,h3,h4 { color:#4A3A44 !important; font-family:"Baloo 2","Microsoft JhengHei",sans-serif; }
+
+/* 側欄:淺粉面板、深墨字 */
+[data-testid="stSidebar"] {
+  background: linear-gradient(180deg,#FBE9F1 0%,#F6DCE9 100%);
+  border-right: 1.5px solid #E8CFDD;
+}
+[data-testid="stSidebar"] * { color:#4A3A44 !important; }
+[data-testid="stSidebar"] .stDownloadButton button {
+  background:#FFF9F2 !important; border:2px solid #4A3A44 !important;
+  border-radius:14px !important;
+  box-shadow: 0 3px 0 rgba(74,58,68,.35) !important;
+}
+[data-testid="stSidebar"] [data-testid="stFileUploaderDropzone"] {
+  background:#FFFFFF !important; border:1.5px solid #C9B4C4 !important;
+  border-radius:16px !important;
+  box-shadow: 0 3px 8px rgba(74,58,68,.12);
+}
+
+/* 分頁:照 UPS / FedEx / USPS 那排 ——
+   沒選 = 紫灰渐層白字;選中 = 黃->蜜桃漸層深棕字 */
+[role="tablist"] { gap:12px !important; border-bottom:none !important; }
+[data-testid="stTab"], .stTabs [role="tab"] {
+  background: linear-gradient(180deg,#C6B2CF 0%,#AB96B9 100%) !important;
+  color:#FFFFFF !important;
+  border-radius:18px !important; border:1px solid #9C87AB !important;
+  padding:10px 28px !important; font-weight:800 !important;
+  box-shadow: 0 4px 8px rgba(107,79,120,.25) !important;
+}
+[data-testid="stTab"] p { font-size:15px !important; font-weight:800 !important; color:inherit !important; }
+[data-testid="stTab"][aria-selected="true"], .stTabs [role="tab"][aria-selected="true"] {
+  background: linear-gradient(180deg,#FFE7A6 0%,#FBA88E 100%) !important;
+  color:#6B4A2F !important; border:1px solid #E8B287 !important;
+  box-shadow: 0 4px 10px rgba(251,168,142,.45) !important;
+}
+[data-baseweb="tab-highlight"], [data-baseweb="tab-border"] { display:none !important; }
+
+/* 按鈕:照 Start the shift 那排 —— 圓角矩形、深色描邊、
+   下方一條硬陰影的卡通貼紙感;按下去會往下沉 */
+.stButton button, .stDownloadButton button {
+  border-radius:14px !important; border:2px solid #4A3A44 !important;
+  background:#FFF9F2; color:#4A3A44; font-weight:800;
+  box-shadow: 0 3px 0 rgba(74,58,68,.35) !important;
+  transition: transform .06s, box-shadow .06s;
+}
+.stButton button:hover, .stDownloadButton button:hover { background:#FFF3E6; }
+.stButton button:active, .stDownloadButton button:active {
+  transform: translateY(2px); box-shadow: 0 1px 0 rgba(74,58,68,.35) !important;
+}
+.stButton button[kind="primary"], .stDownloadButton button[kind="primary"] {
+  background: linear-gradient(180deg,#FFE7A6 0%,#FBA88E 100%) !important;
+  color:#6B4A2F !important; border:2px solid #8A5A38 !important;
+  box-shadow: 0 3px 0 rgba(138,90,56,.45) !important;
+}
+.stButton button[kind="primary"]:hover { filter:brightness(1.04); }
+
+/* 卡片:白底大圓角軟陰影 */
+[data-testid="stFileUploaderDropzone"] {
+  background:#FFFFFF; border:2px dashed #C9B4C4; border-radius:20px;
+  box-shadow: 0 3px 10px rgba(74,58,68,.10);
+}
+[data-testid="stDataFrame"], .stDataFrame {
+  border:1.5px solid #E8CFDD; border-radius:16px; background:#FFFFFF;
+  box-shadow: 0 3px 10px rgba(74,58,68,.10);
+}
+div[data-testid="stExpander"], .stAlert { border-radius:16px; }
+hr { border-color:#E8CFDD; }
+</style>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------- 密碼閘門
 # 在 Streamlit Cloud 的 Settings → Secrets 設 APP_PASSWORD = "你的密碼"
@@ -22,7 +105,8 @@ except Exception:
     _pw = ""
 if _pw:
     if not st.session_state.get("_authed"):
-        st.title("📦 FedEx Reprice Studio")
+        st.markdown("<h1 style='color:#A94E8B'>🌸 FedEx Rate Garden</h1>",
+                    unsafe_allow_html=True)
         got = st.text_input("請輸入密碼 Password", type="password")
         if st.button("登入 Sign in") or got:
             if got == _pw:
@@ -39,9 +123,12 @@ if "engine" not in st.session_state:
 app = st.session_state["engine"]
 
 st.markdown(
-    "<h2 style='color:#4D148C;margin-bottom:0'>📦 FedEx Reprice Studio</h2>"
-    "<p style='color:#888;margin-top:2px'>計價引擎與桌面版完全相同 · "
-    "設定檔 billing_tool_config.json 可雙向互通</p>",
+    "<div style='margin-bottom:2px'>"
+    "<span style='font-size:32px;font-weight:800;color:#4A3A44'>"
+    "FedEx Rate Garden</span>"
+    "<span style='font-size:20px'>&nbsp;🌸</span></div>"
+    "<p style='color:#8A6E7E;margin-top:0;font-weight:600'>3PL repricing studio · "
+    "計價引擎與桌面版完全相同 · 設定檔 billing_tool_config.json 可雙向互通</p>",
     unsafe_allow_html=True)
 
 TABLE_LABELS = {
@@ -58,6 +145,11 @@ TABLE_LABELS = {
 
 # ---------------------------------------------------------------- 側欄:設定檔
 with st.sidebar:
+    st.markdown(
+        "<div style='font-size:24px;font-weight:800'>FedEx Rate Garden</div>"
+        "<div style='font-size:12px;font-weight:700;letter-spacing:1px;"
+        "margin-bottom:14px;color:#8A6E7E !important'>3PL repricing studio ♡</div>",
+        unsafe_allow_html=True)
     st.subheader("⚙️ 設定檔")
     up = st.file_uploader("匯入設定 JSON(桌面版存的檔)", type=["json"],
                           key="cfg_up")

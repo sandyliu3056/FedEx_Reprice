@@ -272,15 +272,15 @@ class FedExRepricingTool:
             pass
 
         self.colors = {
-            "purple": "#7A4E85",
-            "deep": "#493151",
-            "orange": "#F1846B",
-            "ink": "#3B2D41",
-            "muted": "#8B778F",
-            "canvas": "#FFF8FB",
+            "purple": "#A94E8B",
+            "deep": "#663656",
+            "orange": "#FF8A76",
+            "ink": "#4B2942",
+            "muted": "#927184",
+            "canvas": "#FFF6FA",
             "card": "#FFFFFF",
-            "line": "#E9D9E8",
-            "soft": "#F9EAF5",
+            "line": "#F2CFE5",
+            "soft": "#FFE8F3",
         }
         self.root.title("FedEx Repricing Studio")
         self.root.geometry("1240x780")
@@ -295,25 +295,25 @@ class FedExRepricingTool:
         style.configure("TLabelframe.Label", background=self.colors["card"], foreground=self.colors["purple"], font=("Segoe UI", 10, "bold"))
         style.configure("TEntry", fieldbackground="#FFFFFF", foreground=self.colors["ink"], bordercolor=self.colors["line"], relief="solid", borderwidth=1)
         style.configure("TCombobox", fieldbackground="#FFFFFF", background="#FFFFFF", foreground=self.colors["ink"], bordercolor=self.colors["line"], arrowcolor=self.colors["purple"])
-        style.configure("TButton", padding=[8, 5], font=("Segoe UI", 9, "bold"), foreground=self.colors["purple"])
+        style.configure("TButton", padding=[9, 6], font=("Segoe UI", 9, "bold"), foreground=self.colors["purple"])
         style.configure("Accent.TButton", padding=[10, 6], font=("Segoe UI", 9, "bold"), foreground="#FFFFFF", background=self.colors["orange"])
         style.map("Accent.TButton", background=[("active", "#D95700")])
         style.configure("Treeview", background="#FFFFFF", foreground=self.colors["ink"], rowheight=24, fieldbackground="#FFFFFF", borderwidth=1, bordercolor=self.colors["line"], font=("Segoe UI", 9))
         style.configure("Treeview.Heading", background=self.colors["purple"], foreground="#FFFFFF", font=("Segoe UI", 9, "bold"), relief="flat")
         style.configure("TNotebook", background=self.colors["canvas"], borderwidth=0)
-        style.configure("TNotebook.Tab", background="#EEE8F2", foreground=self.colors["purple"], padding=[12, 7], font=("Segoe UI", 9, "bold"))
+        style.configure("TNotebook.Tab", background="#FBE5F2", foreground=self.colors["purple"], padding=[13, 8], font=("Segoe UI", 9, "bold"))
         style.map("TNotebook.Tab", background=[("selected", self.colors["purple"])], foreground=[("selected", "white")])
 
         shell = ctk.CTkFrame(self.root, fg_color=self.colors["canvas"], corner_radius=0)
         shell.pack(fill="both", expand=True)
 
-        sidebar = ctk.CTkFrame(shell, width=236, fg_color=self.colors["deep"], corner_radius=0)
+        sidebar = ctk.CTkFrame(shell, width=250, fg_color=self.colors["deep"], corner_radius=0)
         sidebar.pack(side="left", fill="y")
         sidebar.pack_propagate(False)
 
-        ctk.CTkLabel(sidebar, text="FEDEX", font=("Segoe UI", 19, "bold"), text_color="#FFFFFF").pack(anchor="w", padx=24, pady=(28, 0))
-        ctk.CTkLabel(sidebar, text="REPRICING STUDIO  ♡", font=("Segoe UI", 10, "bold"), text_color="#D8C6F0").pack(anchor="w", padx=24, pady=(0, 24))
-        ctk.CTkLabel(sidebar, text="WORKFLOW  ✦", font=("Segoe UI", 9, "bold"), text_color="#BCA8D2").pack(anchor="w", padx=24, pady=(0, 8))
+        ctk.CTkLabel(sidebar, text="FEDEX  ✦", font=("Segoe UI", 21, "bold"), text_color="#FFFFFF").pack(anchor="w", padx=24, pady=(30, 0))
+        ctk.CTkLabel(sidebar, text="RATE GARDEN  ♡", font=("Segoe UI", 10, "bold"), text_color="#FFD3E9").pack(anchor="w", padx=24, pady=(0, 28))
+        ctk.CTkLabel(sidebar, text="YOUR LITTLE WORKFLOW  ✧", font=("Segoe UI", 9, "bold"), text_color="#F5B8D7").pack(anchor="w", padx=24, pady=(0, 10))
 
         self.nav_buttons = {}
         self.pages = {}
@@ -333,26 +333,26 @@ class FedExRepricingTool:
         ]
         for name, label in nav_items:
             button = ctk.CTkButton(
-                sidebar, text=label, anchor="w", height=40, corner_radius=8,
-                font=("Segoe UI", 11, "bold"), fg_color="transparent", hover_color="#785380",
+                sidebar, text=label, anchor="w", height=46, corner_radius=14,
+                font=("Segoe UI", 11, "bold"), fg_color="transparent", hover_color="#865171",
                 text_color="#F6F0FF", command=lambda key=name: self._show_page(key)
             )
             button.pack(fill="x", padx=14, pady=3)
             self.nav_buttons[name] = button
 
-        sidebar_footer = ctk.CTkFrame(sidebar, fg_color="#604568", corner_radius=10)
+        sidebar_footer = ctk.CTkFrame(sidebar, fg_color="#814C71", corner_radius=16, border_width=1, border_color="#B8749D")
         sidebar_footer.pack(side="bottom", fill="x", padx=14, pady=18)
-        ctk.CTkLabel(sidebar_footer, text="TIP", font=("Segoe UI", 9, "bold"), text_color="#D8C6F0").pack(anchor="w", padx=12, pady=(10, 0))
-        ctk.CTkLabel(sidebar_footer, text="Save a configuration after updating any rate table.", wraplength=180, justify="left", font=("Segoe UI", 10), text_color="#FFFFFF").pack(anchor="w", padx=12, pady=(3, 11))
+        ctk.CTkLabel(sidebar_footer, text="SWEET TIP  ♡", font=("Segoe UI", 9, "bold"), text_color="#FFD9EA").pack(anchor="w", padx=14, pady=(12, 0))
+        ctk.CTkLabel(sidebar_footer, text="Save a configuration after updating any rate table.", wraplength=185, justify="left", font=("Segoe UI", 10), text_color="#FFFFFF").pack(anchor="w", padx=14, pady=(3, 13))
 
         body = ctk.CTkFrame(shell, fg_color=self.colors["canvas"], corner_radius=0)
         body.pack(side="left", fill="both", expand=True)
-        header = ctk.CTkFrame(body, fg_color="transparent", corner_radius=0)
-        header.pack(fill="x", padx=30, pady=(24, 8))
+        header = ctk.CTkFrame(body, fg_color="#FFE8F3", corner_radius=20, border_width=1, border_color="#F7C6DE")
+        header.pack(fill="x", padx=30, pady=(24, 12))
         self.page_title_label = ctk.CTkLabel(header, text="", font=("Segoe UI", 22, "bold"), text_color=self.colors["purple"])
-        self.page_title_label.pack(anchor="w")
+        self.page_title_label.pack(anchor="w", padx=20, pady=(14, 0))
         self.page_subtitle_label = ctk.CTkLabel(header, text="", font=("Segoe UI", 11), text_color=self.colors["muted"])
-        self.page_subtitle_label.pack(anchor="w", pady=(2, 0))
+        self.page_subtitle_label.pack(anchor="w", padx=20, pady=(2, 14))
 
         self.page_host = ctk.CTkFrame(body, fg_color="transparent", corner_radius=0)
         self.page_host.pack(fill="both", expand=True, padx=24, pady=(0, 20))
@@ -476,9 +476,22 @@ class FedExRepricingTool:
         self.base_rate_table.pack(fill="both", expand=True, padx=2, pady=2)
 
     def _build_surcharges_tab(self):
-        intro = ttk.LabelFrame(self.tab_surcharges, text="Accessorial charge library")
-        intro.pack(fill="x", padx=2, pady=(2, 8))
-        ttk.Label(intro, text="Use the category tabs to keep each surcharge table focused. Import or export templates without leaving the category you are working on.", style="Hint.TLabel").pack(anchor="w", padx=12, pady=10)
+        self.carrier_var = tk.StringVar(value="FedEx")
+        self.carrier_draft_rates = getattr(self, "carrier_draft_rates", {})
+        self.zone_editor_vars = {}
+
+        intro = ctk.CTkFrame(self.tab_surcharges, fg_color="#FFE6F1", corner_radius=20, border_width=1, border_color="#F5BED9")
+        intro.pack(fill="x", padx=3, pady=(3, 10))
+        ctk.CTkLabel(intro, text="Zone rate studio  ✦", font=("Segoe UI", 17, "bold"), text_color=self.colors["purple"]).pack(anchor="w", padx=18, pady=(14, 0))
+        ctk.CTkLabel(intro, text="Choose a carrier, then edit one surcharge type across every Zone in a single horizontal row.", font=("Segoe UI", 10), text_color=self.colors["muted"]).pack(anchor="w", padx=18, pady=(2, 12))
+        carrier_row = ctk.CTkFrame(intro, fg_color="transparent")
+        carrier_row.pack(fill="x", padx=18, pady=(0, 14))
+        ctk.CTkLabel(carrier_row, text="Carrier workspace", font=("Segoe UI", 10, "bold"), text_color=self.colors["ink"]).pack(side="left", padx=(0, 8))
+        carrier_combo = ttk.Combobox(carrier_row, textvariable=self.carrier_var, values=("FedEx", "UPS", "USPS"), state="readonly", width=15)
+        carrier_combo.pack(side="left")
+        carrier_combo.bind("<<ComboboxSelected>>", self._on_carrier_workspace_changed)
+        self.carrier_workspace_note = tk.StringVar(value="FedEx is connected to the current repricing engine.")
+        ttk.Label(carrier_row, textvariable=self.carrier_workspace_note, style="Hint.TLabel").pack(side="left", padx=14)
 
         book = ttk.Notebook(self.tab_surcharges)
         book.pack(fill="both", expand=True, padx=2, pady=2)
@@ -488,24 +501,33 @@ class FedExRepricingTool:
         tab_residential = ttk.Frame(book)
         tab_signature = ttk.Frame(book)
         tab_demand = ttk.Frame(book)
-        book.add(tab_ahs, text="AHS")
-        book.add(tab_das, text="DAS")
-        book.add(tab_oversize, text="Oversize")
+        book.add(tab_ahs, text="AHS ✦")
+        book.add(tab_das, text="DAS ♡")
+        book.add(tab_oversize, text="Oversize ✧")
         book.add(tab_residential, text="Residential")
         book.add(tab_signature, text="Signature")
         book.add(tab_demand, text="Demand periods")
 
-        self._add_template_toolbar(tab_ahs, self.export_ahs_rate_template, self.import_ahs_rate_template)
-        self.ahs_rate_table = RateTableFrame(tab_ahs, "Additional Handling Surcharge", ["Service", "AHS Type", "Zone", "Fee"], height=15)
-        self.ahs_rate_table.pack(fill="both", expand=True, padx=2, pady=2)
+        self._build_zone_rate_editor(
+            tab_ahs, "AHS by Zone", "ahs_rate_table", AHS_TYPES,
+            "AHS type", self.export_ahs_rate_template, self.import_ahs_rate_template
+        )
+        self.ahs_rate_table = RateTableFrame(tab_ahs, "AHS detail table", ["Service", "AHS Type", "Zone", "Fee"], height=7)
+        # Data source only: Zone cards are the primary editing interface.
 
-        self._add_template_toolbar(tab_das, self.export_das_rate_template, self.import_das_rate_template)
-        self.das_rate_table = RateTableFrame(tab_das, "Delivery Area Surcharge", ["Service", "DAS Type", "Zone", "Fee"], height=15)
-        self.das_rate_table.pack(fill="both", expand=True, padx=2, pady=2)
+        self._build_zone_rate_editor(
+            tab_das, "DAS by Zone", "das_rate_table", DAS_TYPES,
+            "DAS type", self.export_das_rate_template, self.import_das_rate_template
+        )
+        self.das_rate_table = RateTableFrame(tab_das, "DAS detail table", ["Service", "DAS Type", "Zone", "Fee"], height=7)
+        # Data source only: Zone cards are the primary editing interface.
 
-        self._add_template_toolbar(tab_oversize, self.export_oversize_rate_template, self.import_oversize_rate_template)
-        self.oversize_rate_table = RateTableFrame(tab_oversize, "Oversize fees", ["Service", "Zone", "Fee"], height=15)
-        self.oversize_rate_table.pack(fill="both", expand=True, padx=2, pady=2)
+        self._build_zone_rate_editor(
+            tab_oversize, "Oversize by Zone", "oversize_rate_table", ["Oversize"],
+            "Rate type", self.export_oversize_rate_template, self.import_oversize_rate_template
+        )
+        self.oversize_rate_table = RateTableFrame(tab_oversize, "Oversize detail table", ["Service", "Zone", "Fee"], height=7)
+        # Data source only: Zone cards are the primary editing interface.
 
         self._add_template_toolbar(tab_residential, self.export_residential_rate_template, self.import_residential_rate_template)
         self.residential_rate_table = RateTableFrame(tab_residential, "Residential fees", ["Service", "Fee"], height=15)
@@ -532,6 +554,143 @@ class FedExRepricingTool:
         self._add_template_toolbar(oversize_page, self.export_oversize_demand_template, self.import_oversize_demand_template)
         self.oversize_demand_table = RateTableFrame(oversize_page, "Oversize demand fees", ["Service", "Start Date", "End Date", "Fee"], height=13)
         self.oversize_demand_table.pack(fill="both", expand=True, padx=2, pady=2)
+
+    def _build_zone_rate_editor(self, parent, title, table_attr, type_values, type_label, export_cmd, import_cmd):
+        card = ctk.CTkFrame(parent, fg_color="#FFF9FC", corner_radius=20, border_width=1, border_color="#F1C9DE")
+        card.pack(fill="x", padx=3, pady=(3, 8))
+        head = ctk.CTkFrame(card, fg_color="transparent")
+        head.pack(fill="x", padx=18, pady=(14, 7))
+        ctk.CTkLabel(head, text=f"{title}  ♡", font=("Segoe UI", 15, "bold"), text_color=self.colors["purple"]).pack(side="left")
+        ttk.Button(head, text="Import template", command=import_cmd).pack(side="right", padx=3)
+        ttk.Button(head, text="Export template", command=export_cmd).pack(side="right", padx=3)
+
+        controls = ctk.CTkFrame(card, fg_color="#FCECF5", corner_radius=14)
+        controls.pack(fill="x", padx=18, pady=(2, 12))
+        service_var = tk.StringVar(value="Ground")
+        type_var = tk.StringVar(value=type_values[0])
+        ttk.Label(controls, text="Service", font=("Segoe UI", 9, "bold")).pack(side="left", padx=(12, 5), pady=8)
+        service_combo = ttk.Combobox(controls, textvariable=service_var, values=SERVICES, state="readonly", width=16)
+        service_combo.pack(side="left", padx=(0, 12), pady=8)
+        ttk.Label(controls, text=type_label, font=("Segoe UI", 9, "bold")).pack(side="left", padx=(0, 5), pady=8)
+        type_combo = ttk.Combobox(controls, textvariable=type_var, values=type_values, state="readonly", width=24)
+        type_combo.pack(side="left", padx=(0, 12), pady=8)
+        helper = ttk.Label(controls, text="Fill the pink cards →", style="Hint.TLabel")
+        helper.pack(side="left", pady=8)
+
+        zone_canvas = tk.Canvas(card, height=220, highlightthickness=0, background="#FFF9FC")
+        zone_scroll = ttk.Scrollbar(card, orient="horizontal", command=zone_canvas.xview)
+        zone_canvas.configure(xscrollcommand=zone_scroll.set)
+        zone_canvas.pack(fill="x", padx=18, pady=(0, 0))
+        zone_scroll.pack(fill="x", padx=18, pady=(0, 6))
+        cards = ctk.CTkFrame(zone_canvas, fg_color="transparent", corner_radius=0)
+        card_window = zone_canvas.create_window((0, 0), window=cards, anchor="nw")
+        fee_vars = {}
+        for index, zone in enumerate(ZONES):
+            fee_var = tk.StringVar(value="0")
+            fee_vars[zone] = fee_var
+            zone_card = ctk.CTkFrame(cards, width=156, height=184, fg_color="#FFFDFE" if index % 2 == 0 else "#FFEAF4", corner_radius=20, border_width=1, border_color="#F1C4DB")
+            zone_card.pack(side="left", padx=(0 if index == 0 else 12, 0), pady=12)
+            zone_card.pack_propagate(False)
+            ctk.CTkLabel(zone_card, text=f"ZONE {zone}  ✦", font=("Segoe UI", 13, "bold"), text_color=self.colors["purple"]).pack(pady=(24, 16))
+            fee_entry = ctk.CTkEntry(zone_card, textvariable=fee_var, width=112, height=44, justify="center", corner_radius=12, border_color="#E8A9CB", fg_color="#FFFFFF", text_color=self.colors["ink"], font=("Segoe UI", 15, "bold"))
+            fee_entry.pack(pady=(0, 12))
+
+        cards.bind("<Configure>", lambda _event: zone_canvas.configure(scrollregion=zone_canvas.bbox("all")))
+        zone_canvas.bind("<Configure>", lambda event: zone_canvas.itemconfigure(card_window, height=event.height))
+
+        editor_key = table_attr
+        self.zone_editor_vars[editor_key] = {
+            "service": service_var,
+            "type": type_var,
+            "fees": fee_vars,
+            "table_attr": table_attr,
+            "has_type": table_attr in ("ahs_rate_table", "das_rate_table"),
+        }
+        service_combo.bind("<<ComboboxSelected>>", lambda _event, key=editor_key: self._refresh_zone_editor(key))
+        type_combo.bind("<<ComboboxSelected>>", lambda _event, key=editor_key: self._refresh_zone_editor(key))
+        actions = ctk.CTkFrame(card, fg_color="transparent")
+        actions.pack(fill="x", padx=18, pady=(4, 14))
+        ttk.Label(actions, text="Tip: select a Carrier, Service and type before entering fee values.", style="Hint.TLabel").pack(side="left")
+        ctk.CTkButton(actions, text="Save all Zone fees  ♡", height=38, corner_radius=14, fg_color="#FF8FAF", hover_color="#E97698", font=("Segoe UI", 10, "bold"), command=lambda key=editor_key: self._save_zone_editor(key)).pack(side="right")
+
+    def _on_carrier_workspace_changed(self, _event=None):
+        carrier = self.carrier_var.get()
+        if carrier == "FedEx":
+            self.carrier_workspace_note.set("FedEx is connected to the current repricing engine.")
+        else:
+            self.carrier_workspace_note.set(f"{carrier} entries save as a separate workspace draft; the current engine remains FedEx-only.")
+        for key in self.zone_editor_vars:
+            self._refresh_zone_editor(key)
+
+    def _zone_draft_key(self, editor_key, zone):
+        data = self.zone_editor_vars[editor_key]
+        return "|".join([self.carrier_var.get(), editor_key, data["service"].get(), data["type"].get(), str(zone)])
+
+    def _refresh_zone_editor(self, editor_key):
+        data = self.zone_editor_vars[editor_key]
+        carrier = self.carrier_var.get()
+        table = getattr(self, data["table_attr"], None)
+        service = data["service"].get()
+        rate_type = data["type"].get()
+        rows = table.get_rows() if table else []
+        for zone, fee_var in data["fees"].items():
+            value = "0"
+            if carrier == "FedEx":
+                for row in rows:
+                    if data["has_type"]:
+                        if len(row) >= 4 and str(row[0]) == service and str(row[1]) == rate_type and str(row[2]) == str(zone):
+                            value = str(row[3]); break
+                    elif len(row) >= 3 and str(row[0]) == service and str(row[1]) == str(zone):
+                        value = str(row[2]); break
+            else:
+                value = str(self.carrier_draft_rates.get(self._zone_draft_key(editor_key, zone), "0"))
+            fee_var.set(value)
+
+    def _save_zone_editor(self, editor_key):
+        data = self.zone_editor_vars[editor_key]
+        carrier = self.carrier_var.get()
+        service = data["service"].get()
+        rate_type = data["type"].get()
+        normalized_fees = {}
+        try:
+            for zone, fee_var in data["fees"].items():
+                normalized_fees[zone] = str(round(self._normalize_numeric_cell(fee_var.get(), 0.0), 2))
+        except Exception:
+            messagebox.showerror("Fee needed", "Please enter numbers only in the Zone fee cards.")
+            return
+
+        if carrier != "FedEx":
+            for zone, fee in normalized_fees.items():
+                self.carrier_draft_rates[self._zone_draft_key(editor_key, zone)] = fee
+            messagebox.showinfo(
+                "Carrier draft saved",
+                f"{carrier} Zone fees were saved in this configuration workspace.\n\n"
+                "The current repricing engine will continue to use FedEx tables until carrier-specific calculation logic is added."
+            )
+            return
+
+        table = getattr(self, data["table_attr"])
+        rows = table.get_rows()
+        changed = set()
+        updated_rows = []
+        for row in rows:
+            if data["has_type"] and len(row) >= 4 and str(row[0]) == service and str(row[1]) == rate_type and str(row[2]) in {str(zone) for zone in ZONES}:
+                zone = int(float(row[2])); row = list(row); row[3] = normalized_fees[zone]; changed.add(zone)
+            elif not data["has_type"] and len(row) >= 3 and str(row[0]) == service and str(row[1]) in {str(zone) for zone in ZONES}:
+                zone = int(float(row[1])); row = list(row); row[2] = normalized_fees[zone]; changed.add(zone)
+            updated_rows.append(row)
+        for zone in ZONES:
+            if zone not in changed:
+                if data["has_type"]:
+                    updated_rows.append([service, rate_type, str(zone), normalized_fees[zone]])
+                else:
+                    updated_rows.append([service, str(zone), normalized_fees[zone]])
+        table.load_rows(updated_rows)
+        messagebox.showinfo(
+            "Zone fees saved",
+            f"FedEx · {service} · {rate_type}\n"
+            "All Zone cards are now synced with the detailed rate table."
+        )
 
     def _add_template_toolbar(self, parent, export_cmd, import_cmd):
         bar = ttk.Frame(parent)
@@ -635,6 +794,8 @@ class FedExRepricingTool:
         self.general_demand_table.load_rows([])
         self.ahs_demand_table.load_rows([])
         self.oversize_demand_table.load_rows([])
+        for editor_key in getattr(self, "zone_editor_vars", {}):
+            self._refresh_zone_editor(editor_key)
 
     @staticmethod
     def _normalize_numeric_cell(val, default=0.0):
@@ -1341,6 +1502,7 @@ class FedExRepricingTool:
             "general_demand_rows": self.general_demand_table.get_rows(),
             "ahs_demand_rows": self.ahs_demand_table.get_rows(),
             "oversize_demand_rows": self.oversize_demand_table.get_rows(),
+            "carrier_draft_rates": getattr(self, "carrier_draft_rates", {}),
         }
 
         path = self.config_path.get().strip() or DEFAULT_CONFIG_PATH
@@ -1397,6 +1559,7 @@ class FedExRepricingTool:
         self.general_demand_table.load_rows(cfg.get("general_demand_rows", []))
         self.ahs_demand_table.load_rows(cfg.get("ahs_demand_rows", []))
         self.oversize_demand_table.load_rows(cfg.get("oversize_demand_rows", []))
+        self.carrier_draft_rates = cfg.get("carrier_draft_rates", {})
 
         messagebox.showinfo("Done", f"Config loaded:\n{path}")
 
