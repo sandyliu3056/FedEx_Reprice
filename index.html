@@ -533,6 +533,31 @@ td.neg{color:var(--neg)}
 .pdot{display:inline-block;width:10px;height:10px;border-radius:3px;
   margin-right:7px;vertical-align:-1px}
 /* 已匯入的帳單:摘要三格、瀏覽器空間量表、就地攤開的預覽 */
+/* 「本期異常」——嚴重度靠左邊那條色帶說話,不是靠字。
+   高(紅)金額算錯、中(橘)單項算 0 或照原帳單轉嫁。 */
+.issbox .strow{margin:0}
+.issbox .stat{flex:1 1 250px;border-left:5px solid var(--muted);position:relative}
+.issbox .stat i{line-height:1.5;display:block}
+.issbox .stat b{display:block;font:800 17px "JetBrains Mono",Consolas,monospace;
+  color:var(--accent);margin-top:3px}
+.issbox .stat b .bu{font:600 12px var(--hand);opacity:.75}
+.issbox .stat s{display:block;text-decoration:none;font-size:11.5px;
+  color:var(--muted);margin-top:2px}
+.issbox .tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.5px;
+  border-radius:4px;padding:1px 6px;margin-right:7px;background:var(--muted);color:#fff}
+.issbox .stat.s3{border-left-color:var(--neg)}
+.issbox .stat.s3 b{color:var(--neg)}
+.issbox .stat.s3 .tag{background:var(--neg);color:#fff}
+.issbox .stat.s2{border-left-color:var(--tab)}
+.issbox .stat.s2 .tag{background:var(--tab);color:#fff}
+.issbox .isssub{font-size:12.5px;color:var(--muted);margin:0 0 11px}
+/* 每一級各自是什麼意思,說一次就好,放在卡片底下。 */
+.issbox .issleg{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:11px;
+  padding-top:9px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted)}
+.issbox .issleg b{display:inline-block;font-size:10.5px;letter-spacing:.5px;border-radius:4px;
+  padding:1px 6px;margin-right:5px;background:var(--muted);color:#fff}
+.issbox .issleg b.s3{background:var(--neg);color:#fff}
+.issbox .issleg b.s2{background:var(--tab);color:#fff}
 .strow{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px}
 .strow .stat{flex:1 1 150px;padding:10px 12px;border:2px solid var(--line);
   border-radius:10px;background:var(--panel)}
@@ -858,6 +883,15 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 .scene .puff{fill:rgb(90 86 96/.35);opacity:0}
 .scene ellipse{stroke:rgb(42 39 50/.30);stroke-width:.9}
 .scene .nostroke{stroke:none}
+/* 停下來辦事:整個動畫停住(位移、腳步、起伏一起停),身體蹲低一點,
+   尾巴翹起來。這個尺寸下姿勢做再細也看不出來,能讀出來的是「牠不動了」
+   加上地上多了一點東西。 */
+.scene .pet.stop,.scene .pet.stop .petbob,
+.scene .pet.stop .legA,.scene .pet.stop .legB{animation-play-state:paused}
+.scene .pet.stop .petbob{transform:translateY(1.1px)}
+.scene .pet.stop .tailw{animation:none;transform:rotate(-34deg)}
+.scene .mark{opacity:0;animation:sc-mark 14s ease-out forwards}
+@keyframes sc-mark{0%{opacity:0}6%{opacity:.85}72%{opacity:.85}100%{opacity:0}}
 /* 貓狗在人行道上走過。尺寸依場景比例:一扇門 30 單位 ≈ 2 公尺,
    所以狗肩高 7.5、貓肩高 4.5 單位,和門、樹、貨車擺在一起才不會像玩具。 */
 .scene .pet{transform:translateX(-40px)}
@@ -876,18 +910,20 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     100%{opacity:0;transform:translate(-26px,-14px) scale(1.5)}}
   /* 走路:身體上下一點點,前後腿反向擺,尾巴慢慢搖。幅度都很小 ——
      這個尺寸下多一格就變成在跳。 */
-  .scene .dogwalk{animation:sc-dogwalk 34s linear infinite;animation-delay:-4s}
+  .scene .dogwalk{animation:sc-dogwalk 72s linear infinite;animation-delay:-9s}
   @keyframes sc-dogwalk{0%{transform:translateX(-40px)}100%{transform:translateX(1250px)}}
-  .scene .catwalk{animation:sc-catwalk 27s linear infinite;animation-delay:-11s}
+  .scene .catwalk{animation:sc-catwalk 60s linear infinite;animation-delay:-24s}
   @keyframes sc-catwalk{0%{transform:translateX(1240px) scaleX(-1)}
     100%{transform:translateX(-50px) scaleX(-1)}}
-  .scene .petbob{animation:sc-petbob .5s ease-in-out infinite}
+  .scene .petbob{animation:sc-petbob .45s ease-in-out infinite}
   @keyframes sc-petbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-.7px)}}
+  /* 對角線的兩隻腳同相位(左前+右後),另外兩隻反相 —— 四足動物就是這樣走的。
+     擺幅在這個尺寸下要夠大才看得出來,但超過 20 度會變成在踢。 */
   .scene .legA{transform-box:fill-box;transform-origin:top center;
-    animation:sc-step .5s ease-in-out infinite}
+    animation:sc-step .9s ease-in-out infinite}
   .scene .legB{transform-box:fill-box;transform-origin:top center;
-    animation:sc-step .5s ease-in-out infinite;animation-delay:-.25s}
-  @keyframes sc-step{0%,100%{transform:rotate(11deg)}50%{transform:rotate(-11deg)}}
+    animation:sc-step .9s ease-in-out infinite;animation-delay:-.45s}
+  @keyframes sc-step{0%,100%{transform:rotate(17deg)}50%{transform:rotate(-17deg)}}
   .scene .tailw{transform-box:fill-box;transform-origin:right center;
     animation:sc-tail 1.3s ease-in-out infinite}
   @keyframes sc-tail{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(9deg)}}
@@ -987,7 +1023,8 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <rect x="10.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="16" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="36.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="42" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="62.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="68" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="88.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="94" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="114.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="120" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="140.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="146" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="166.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="172" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="192.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="198" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="218.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="224" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="244.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="250" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="270.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="276" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="296.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="302" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="322.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="328" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="348.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="354" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="374.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="380" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="400.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="406" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="426.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="432" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="452.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="458" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="478.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="484" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="504.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="510" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="530.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="536" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="556.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="562" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="582.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="588" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="608.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="614" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="634.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="640" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="660.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="666" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="686.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="692" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="712.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="718" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="738.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="744" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="764.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="770" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="790.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="796" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="816.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="822" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="842.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="848" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="868.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="874" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="894.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="900" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="920.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="926" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="946.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="952" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="972.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="978" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="998.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1004" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1024.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1030" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1050.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1056" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1076.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1082" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1102.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1108" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1128.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1134" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1154.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1160" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1180.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1186" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/>
     <rect x="0" y="154" width="1200" height="36" fill="#55535a"/>
     <rect x="10" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="62" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="114" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="166" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="218" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="270" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="322" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="374" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="426" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="478" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="530" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="582" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="634" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="686" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="738" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="790" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="842" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="894" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="946" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="998" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="1050" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="1102" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="1154" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/>
-    <g class="pet dogwalk"><g transform="translate(0,140) scale(.73) translate(0,-140)"><g class="petbob"><ellipse class="nostroke" cx="6" cy="140" rx="8" ry="1.5" fill="rgb(40 38 44/.22)"/><g class="legB"><rect x="-2.4" y="136" width="2.4" height="4.2" rx=".8" fill="#8a6242"/><rect x="9.6" y="136" width="2.4" height="4.2" rx=".8" fill="#8a6242"/></g><g class="legA"><rect x="0.8" y="136" width="2.4" height="4.2" rx=".8" fill="#a97a52"/><rect x="12.4" y="136" width="2.4" height="4.2" rx=".8" fill="#a97a52"/></g><rect x="-2.6" y="132.4" width="16" height="4.6" rx="1.4" fill="#a97a52" stroke="#8a6242" stroke-width="1.1"/><rect class="tailw" x="-6.2" y="130.4" width="4.6" height="2.1" rx="1" fill="#a97a52" stroke="#8a6242" stroke-width="1"/><rect x="10.6" y="128.4" width="6" height="5.4" rx="1.3" fill="#a97a52" stroke="#8a6242" stroke-width="1.1"/><rect x="15.8" y="131" width="3" height="2.4" rx=".9" fill="#c9a37c" stroke="#8a6242" stroke-width="1"/><circle cx="18.4" cy="131.8" r=".7" fill="#3a3038"/><rect x="10.9" y="126.6" width="2.2" height="2.6" rx=".7" fill="#8a6242"/><circle cx="14.4" cy="130.5" r=".7" fill="#3a3038"/><rect x="13" y="126.9" width="2.6" height="1.6" fill="#96693f"/><ellipse cx="14.3" cy="126.9" rx="1.3" ry=".62" fill="#c09468"/></g></g></g><g class="pet catwalk"><g transform="translate(0,140) scale(.54) translate(0,-140)"><g class="petbob"><ellipse class="nostroke" cx="4" cy="140" rx="5.6" ry="1.2" fill="rgb(40 38 44/.20)"/><g class="legB"><rect x="-1.4" y="137" width="1.7" height="3.2" rx=".6" fill="#6f6a74"/><rect x="5.6" y="137" width="1.7" height="3.2" rx=".6" fill="#6f6a74"/></g><g class="legA"><rect x="1" y="137" width="1.7" height="3.2" rx=".6" fill="#8d8794"/><rect x="7.4" y="137" width="1.7" height="3.2" rx=".6" fill="#8d8794"/></g><rect x="-1.6" y="134.4" width="11" height="3.2" rx="1.1" fill="#8d8794" stroke="#6f6a74" stroke-width="1"/><path class="tailw" d="M-1.6 135.6 q-4 .2 -4.2 -3.4" fill="none" stroke="#8d8794" stroke-width="1.9" stroke-linecap="round"/><rect x="7.4" y="131.2" width="4.4" height="4" rx="1.1" fill="#8d8794" stroke="#6f6a74" stroke-width="1"/><path d="M7.7 131.4 l.9 -2.1 1.1 2.1z" fill="#8d8794" stroke="#6f6a74" stroke-width=".8" stroke-linejoin="round"/><path d="M10 131.4 l1 -2.1 .8 2.1z" fill="#8d8794" stroke="#6f6a74" stroke-width=".8" stroke-linejoin="round"/><circle cx="9.4" cy="133.2" r=".6" fill="#3a3038"/><circle cx="11.3" cy="133.2" r=".6" fill="#3a3038"/><rect x="11.4" y="133.6" width="1.6" height="1.4" rx=".5" fill="#b6b0bb"/></g></g></g>
+    <g id="petMarks"></g>
+    <g class="pet dogwalk"><g transform="translate(0,140) scale(.73) translate(0,-140)"><g class="petbob"><ellipse class="nostroke" cx="6" cy="140" rx="8" ry="1.5" fill="rgb(40 38 44/.22)"/><rect class="legB" x="-2.4" y="136" width="2.4" height="4.2" rx=".8" fill="#8a6242"/><rect class="legA" x="9.6" y="136" width="2.4" height="4.2" rx=".8" fill="#8a6242"/><rect class="legA" x="0.8" y="136" width="2.4" height="4.2" rx=".8" fill="#a97a52"/><rect class="legB" x="12.4" y="136" width="2.4" height="4.2" rx=".8" fill="#a97a52"/><rect x="-2.6" y="132.4" width="16" height="4.6" rx="1.4" fill="#a97a52" stroke="#8a6242" stroke-width="1.1"/><rect class="tailw" x="-6.2" y="130.4" width="4.6" height="2.1" rx="1" fill="#a97a52" stroke="#8a6242" stroke-width="1"/><rect x="10.6" y="128.4" width="6" height="5.4" rx="1.3" fill="#a97a52" stroke="#8a6242" stroke-width="1.1"/><rect x="15.8" y="131" width="3" height="2.4" rx=".9" fill="#c9a37c" stroke="#8a6242" stroke-width="1"/><circle cx="18.4" cy="131.8" r=".7" fill="#3a3038"/><rect x="10.9" y="126.6" width="2.2" height="2.6" rx=".7" fill="#8a6242"/><circle cx="14.4" cy="130.5" r=".7" fill="#3a3038"/><rect x="13" y="126.9" width="2.6" height="1.6" fill="#96693f"/><ellipse cx="14.3" cy="126.9" rx="1.3" ry=".62" fill="#c09468"/></g></g></g><g class="pet catwalk"><g transform="translate(0,140) scale(.54) translate(0,-140)"><g class="petbob"><ellipse class="nostroke" cx="4" cy="140" rx="5.6" ry="1.2" fill="rgb(40 38 44/.20)"/><rect class="legB" x="-1.4" y="137" width="1.7" height="3.2" rx=".6" fill="#6f6a74"/><rect class="legA" x="5.6" y="137" width="1.7" height="3.2" rx=".6" fill="#6f6a74"/><rect class="legA" x="1" y="137" width="1.7" height="3.2" rx=".6" fill="#8d8794"/><rect class="legB" x="7.4" y="137" width="1.7" height="3.2" rx=".6" fill="#8d8794"/><rect x="-1.6" y="134.4" width="11" height="3.2" rx="1.1" fill="#8d8794" stroke="#6f6a74" stroke-width="1"/><path class="tailw" d="M-1.6 135.6 q-4 .2 -4.2 -3.4" fill="none" stroke="#8d8794" stroke-width="1.9" stroke-linecap="round"/><rect x="7.4" y="131.2" width="4.4" height="4" rx="1.1" fill="#8d8794" stroke="#6f6a74" stroke-width="1"/><path d="M7.7 131.4 l.9 -2.1 1.1 2.1z" fill="#8d8794" stroke="#6f6a74" stroke-width=".8" stroke-linejoin="round"/><path d="M10 131.4 l1 -2.1 .8 2.1z" fill="#8d8794" stroke="#6f6a74" stroke-width=".8" stroke-linejoin="round"/><circle cx="9.4" cy="133.2" r=".6" fill="#3a3038"/><circle cx="11.3" cy="133.2" r=".6" fill="#3a3038"/><rect x="11.4" y="133.6" width="1.6" height="1.4" rx=".5" fill="#b6b0bb"/></g></g></g>
     <g class="truckride">
       <ellipse class="nostroke" cx="94" cy="186" rx="100" ry="4" fill="rgb(40 38 44/.30)"/>
       <g class="bob">
@@ -3610,8 +3647,8 @@ async function exportResultWorkbook(results,customCols){
         const v=toFloat(res[c],0);
         cell={v,t:"n",s:{fmt:"0.00"}}; disp=v.toFixed(2);
       }else if(c==="Zone"){
-        if(res[c]===""||res[c]==null){ cell=""; disp=""; }
-        else{ const v=Math.trunc(toFloat(res[c],0)); cell={v,t:"n"}; disp=String(v); }
+        const v=Math.trunc(toFloat(res[c],0));
+        cell={v,t:"n"}; disp=String(v);
       }else{
         const v=res[c];
         if(typeof v==="number"&&isFinite(v)){ cell={v,t:"n"}; disp=String(v); }
@@ -5683,7 +5720,9 @@ function dashIssueCard(){
   const bad=iss.filter(g=>g.sev>=2).reduce((a,g)=>a+g.amt,0);
   return '<div class="dcard warn issbox" style="margin-top:12px">'
     +'<div class="ch"><h3>'+L("本期異常項目","Exceptions")+"</h3>"
-    +'<span class="cnote">'+L("依嚴重度排序","sorted by severity")+"</span></div>"
+    +'<span class="cnote">'+L("依嚴重度排序","sorted by severity")+"</span>"
+    +'<button class="act ghost sm" id="bIssXls">'
+    +L("下載明細 (.xlsx)","Download details (.xlsx)")+"</button></div>"
     +'<p class="isssub">'+L("本期異常 <b>"+iss.length+"</b> 組。其中 <b>"+nBad
       +"</b> 項影響計價金額,該部分 FedEx 實收 <b>"+money(bad)+"</b>",
       "<b>"+iss.length+"</b> exception group(s) this period. <b>"+nBad
@@ -5696,6 +5735,70 @@ function dashIssueCard(){
                  :L("單項算 0 或照原帳單轉嫁","that item prices to 0 or passes through"))
         +"</span>").join("")+"</div>"
     +"</div>";
+}
+/* 費用類別的排列順序與名字。順序照計價結果的欄位:先運費,再各項附加費,
+   最後燃油;認不出來的就用它自己的名字(那是原價轉嫁的費目)。 */
+const PR_ORDER=["Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
+  "Residential Fee","Signature Fee","General Demand Fee","AHS Demand Fee",
+  "Oversize Demand Fee","Fuel Fee"];
+const PR_LABEL={
+  "Base Rate":["基本運費","Base Rate"],
+  "Additional Handling Surcharge":["額外處理費 (AHS)","Additional Handling (AHS)"],
+  "DAS Fee":["偏遠地區附加費 (DAS)","Delivery Area (DAS)"],
+  "Oversize Fee":["超大件附加費","Oversize"],
+  "Residential Fee":["住宅地址附加費","Residential"],
+  "Signature Fee":["簽收服務費","Signature"],
+  "General Demand Fee":["旺季附加費","General Demand"],
+  "AHS Demand Fee":["旺季 AHS 附加費","AHS Demand"],
+  "Oversize Demand Fee":["旺季超大件附加費","Oversize Demand"],
+  "Fuel Fee":["燃油附加費","Fuel"],
+};
+function prLabel(k){ const t=PR_LABEL[k]; return t?t[LANG]:k; }
+/* 異常明細倒成 Excel。畫面上一組只寫得下一行摘要,檔案裡把牽涉到的
+   追蹤號與費目列出來 —— 會匯出的人是要拿去查的,不是要瞄一眼。 */
+async function exportIssues(){
+  const iss=dashIssues();
+  if(!iss.length){
+    showError(L("沒有異常可以匯出","No exceptions to export"),
+      L("這次計價沒有需要注意的項目。","Nothing needed attention in this run."));
+    return;
+  }
+  const cols=["Severity","Issue","Items","FedEx Billed","Detail"];
+  const HEAD={bold:true,fill:"D9EAF7"};
+  const rows=[cols.map(c=>({v:c,t:"s",s:HEAD}))];
+  for(const g of iss)
+    rows.push([{v:L(SEV_TAG[g.sev][0],SEV_TAG[g.sev][1]),t:"s"},
+      {v:L(g.zh,g.en),t:"s"},{v:g.n,t:"n"},
+      {v:r2(g.amt),t:"n",s:{fmt:"$#,##0.00"}},
+      {v:g.what||"",t:"s"}]);
+  const B={bold:true};
+  rows.push([{v:"TOTAL",t:"s",s:B},"",
+    {v:iss.reduce((a,g)=>a+g.n,0),t:"n",s:B},
+    {v:r2(iss.reduce((a,g)=>a+g.amt,0)),t:"n",s:{bold:true,fmt:"$#,##0.00"}},""]);
+  /* 第二張:沒有算出金額的附加費也要列 —— 「這一項是 0」和「這一項不存在」
+     不是同一件事,只印有金額的,少收的那幾項永遠不會被發現。 */
+  const billed=(LAST&&LAST.billedBuckets)||{};
+  const rep2=(LAST&&LAST.repricedBuckets)||{};
+  const keys=[...new Set(PR_ORDER.concat((LAST&&LAST.customCols)||[])
+    .concat(Object.keys(billed)).concat(Object.keys(rep2)))];
+  const d2=[["Charge","FedEx Billed","Repriced","Difference","Note"]
+    .map(c=>({v:c,t:"s",s:HEAD}))];
+  for(const k of keys){
+    const uv=r2(toFloat(billed[k],0)), rv=r2(toFloat(rep2[k],0));
+    const note=(uv!==0&&rv===0)?L("帳單有收,重算是 0","billed but repriced to 0")
+             :(uv===0&&rv!==0)?L("重算有收,帳單沒有","repriced but not on the invoice")
+             :(uv===0&&rv===0)?L("本期沒有出現","did not appear this period"):"";
+    d2.push([{v:prLabel(k),t:"s"},
+      {v:uv,t:"n",s:{fmt:"$#,##0.00"}},{v:rv,t:"n",s:{fmt:"$#,##0.00"}},
+      {v:r2(rv-uv),t:"n",s:{fmt:"$#,##0.00"}},{v:note,t:"s"}]);
+  }
+  await xlWrite([
+    {name:L("本期異常","Exceptions"),rows,
+     cols:[{w:10},{w:44},{w:9},{w:15},{w:46}],freeze:{r:1}},
+    {name:L("附加費對照","Surcharges"),rows:d2,
+     cols:[{w:30},{w:15},{w:15},{w:15},{w:34}],freeze:{r:1}},
+  ],"exceptions.xlsx");
+  toast(L("exceptions.xlsx 已下載","exceptions.xlsx downloaded"));
 }
 function renderResults(){
   const body=$("dashBody"); if(!body) return;
@@ -5751,6 +5854,8 @@ function renderResults(){
   if(re) re.onclick=()=>{ if(BILLING) runRepricing(); };
   const px=$("bPerXls");
   if(px) px.onclick=exportProfitReport;
+  const ix=$("bIssXls");
+  if(ix) ix.onclick=exportIssues;
   paintStatementBtn();
 }
 async function runRepricing(){
@@ -5971,6 +6076,57 @@ function paintScene(force){
         fill:"#fdf6d8"}));
     wl.appendChild(mk("rect",{class:"dimlayer",x:"0",y:"0",width:"1200",height:"192"}));
   }
+}
+/* ---------------------------------------------------------------------
+   貓狗偶爾停下來上廁所。停的時候整個動畫一起暫停(位移、腳步、起伏),
+   在牠當下的位置留一攤東西在人行道上,過一會兒自己淡掉 —— 不淡掉的話
+   走個十分鐘整條街都是。
+   痕跡要放在會位移的群組外面,否則它會跟著主人一起走。
+   ------------------------------------------------------------------ */
+function petMarkAt(kind,ux){
+  const box=$("petMarks"); if(!box) return;
+  const g=mk("g",{class:"mark"});
+  if(kind==="dog"){
+    /* 一小攤,不是一個圓 —— 圓看起來像掉了一顆珠子 */
+    g.appendChild(mk("ellipse",{cx:ux.toFixed(1),cy:"139.4",rx:"3.4",ry:"1.1",
+      fill:"#e8c25a",opacity:".75"}));
+    g.appendChild(mk("ellipse",{cx:(ux+2.2).toFixed(1),cy:"139.7",rx:"1.5",ry:".6",
+      fill:"#e8c25a",opacity:".55"}));
+  }else{
+    g.appendChild(mk("ellipse",{cx:ux.toFixed(1),cy:"139.3",rx:"1.1",ry:".8",fill:"#6b4a33"}));
+    g.appendChild(mk("ellipse",{cx:(ux+1.7).toFixed(1),cy:"139.6",rx:".9",ry:".65",fill:"#6b4a33"}));
+  }
+  box.appendChild(g);
+  setTimeout(()=>{ if(g.parentNode) g.parentNode.removeChild(g); },14500);
+}
+/* 牠現在走到哪裡(換算回 viewBox 的座標) */
+function petX(el){
+  const svg=document.querySelector(".scene svg");
+  if(!svg) return 0;
+  const r=el.getBoundingClientRect(), sr=svg.getBoundingClientRect();
+  if(!sr.width) return 0;
+  return (r.left+r.width/2-sr.left)/sr.width*1200;
+}
+function petStop(sel,kind){
+  const el=document.querySelector(".scene ."+sel);
+  if(!el) return;
+  const ux=petX(el);
+  /* 走到畫面外的時候不要辦事 —— 東西會留在看不到的地方 */
+  if(ux<30||ux>1170){ petSchedule(sel,kind,8000); return; }
+  el.classList.add("stop");
+  petMarkAt(kind,ux+(kind==="dog"?-4:3));
+  setTimeout(()=>{ el.classList.remove("stop"); },kind==="dog"?4200:3400);
+  petSchedule(sel,kind);
+}
+function petSchedule(sel,kind,ms){
+  const wait=ms!=null?ms:(kind==="dog"?26000:34000)+Math.random()*22000;
+  setTimeout(()=>petStop(sel,kind),wait);
+}
+function startPets(){
+  /* 使用者關掉動態效果時,整段動畫本來就沒有在跑,這裡也不該自己動起來 */
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  petSchedule("dogwalk","dog",9000+Math.random()*8000);
+  petSchedule("catwalk","cat",17000+Math.random()*9000);
 }
 /* 即時天氣是唯一會連網的地方。查的是時區對應的城市,不是使用者的實際位置。 */
 async function fetchWx(){
@@ -6380,6 +6536,7 @@ function init(){
   setInterval(drawClocks,1000);
   drawClocks(true);
   paintScene(true);
+  startPets();
   /* 即時天氣半小時查一次就夠 —— 天氣不會每分鐘變,而這是整份檔案唯一
      一個網路請求。 */
   fetchWx();
