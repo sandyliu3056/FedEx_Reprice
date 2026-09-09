@@ -666,10 +666,13 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 </div>
 
 <div class="tabstrip" role="tablist" id="tabs">
-  <button role="tab" aria-selected="true"  data-p="files" class="display" data-i18n="tab.files">匯入與設定</button>
-  <button role="tab" aria-selected="false" data-p="rules" class="display" data-i18n="tab.rules">計價規則</button>
-  <button role="tab" aria-selected="false" data-p="base"  class="display" data-i18n="tab.base">基本費率</button>
-  <button role="tab" aria-selected="false" data-p="sur"   class="display" data-i18n="tab.sur">附加費</button>
+  <button role="tab" aria-selected="true"  data-p="files"    class="display">📁 <span data-i18n="tab.files">Import Files</span></button>
+  <button role="tab" aria-selected="false" data-p="sur"      class="display">💲 <span data-i18n="tab.sur">Surcharge Setup</span></button>
+  <button role="tab" aria-selected="false" data-p="rules"    class="display">📏 <span data-i18n="tab.rules">Size Rules</span></button>
+  <button role="tab" aria-selected="false" data-p="base"     class="display">🚚 <span data-i18n="tab.base">Channels</span></button>
+  <button role="tab" aria-selected="false" data-p="demand"   class="display">⚡ <span data-i18n="tab.demand">Demand Surcharge</span></button>
+  <button role="tab" aria-selected="false" data-p="dash"     class="display">📊 <span data-i18n="tab.dash">Dashboard</span></button>
+  <button role="tab" aria-selected="false" data-p="settings" class="display">⚙️ <span data-i18n="tab.settings">Settings</span></button>
 </div>
 
 <main>
@@ -698,41 +701,10 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <span id="runStatus" class="savenote" data-i18n="st.ready">就緒 — 選好帳單、檢查費率,然後執行。</span>
     </div>
     <p class="note" id="runSummary" style="display:none"></p>
-    <div id="warnBox"></div>
   </div>
 
-  <details class="cfgfold lf sketch">
-    <summary><span class="em">💾</span><span data-i18n="hd.cfg">費率設定檔</span></summary>
-    <p class="hint" style="margin-top:10px" data-i18n="hint.cfg">與桌面版 billing_tool_config.json 完全互通;網頁上的改動會自動存在這個瀏覽器。</p>
-    <div class="row">
-      <button class="act ghost sm" id="bCfgLoad" data-i18n="btn.cfgload">載入設定 JSON</button>
-      <input type="file" id="fCfg" accept=".json">
-      <button class="act ghost sm" id="bCfgSave" data-i18n="btn.cfgsave">下載設定 JSON</button>
-      <button class="act danger sm" id="bCfgReset" data-i18n="btn.cfgreset">還原預設值</button>
-      <button class="act ghost sm" id="bSample" data-i18n="btn.sample">下載帳單範例</button>
-      <span id="cfgNote" class="savenote"></span>
-    </div>
-  </details>
 
-<div class="lf sketch" id="sumBox" hidden>
-    <h3 class="display"><span class="em">📊</span><span data-i18n="hd.sum">這次計價</span></h3>
-    <div class="tiles" id="tiles"></div>
-  </div>
-
-<div class="lf sketch" id="newBox" hidden>
-    <h3 class="display"><span class="em">🆕</span><span data-i18n="hd.new">本期新出現</span></h3>
-    <div id="newList"></div>
-  </div>
-
-<div class="lf sketch" id="prevBox" hidden>
-    <h3 class="display"><span class="em">🔍</span><span data-i18n="hd.prev">逐筆預覽</span></h3>
-    <p class="hint" id="prevNote" data-i18n="hint.prev">完整欄位(日期、追蹤號、各費項明細)在匯出的 Excel 裡。</p>
-    <div class="tablewrap" style="max-height:58vh">
-      <table id="tPrev"><thead></thead><tbody></tbody></table>
-    </div>
-  </div>
-
-  <!-- 樂高積木街景:FedEx 貨車穿過積木小鎮 -->
+<!-- 樂高積木街景:FedEx 貨車穿過積木小鎮 -->
   <div class="scene" aria-hidden="true">
   <svg viewBox="0 0 1200 192">
     <defs><pattern id="pb0" patternUnits="userSpaceOnUse" width="34" height="16"><rect width="34" height="16" fill="#b8483a"/><path d="M0 .6 H34 M0 8 H34 M17 0 V8 M8.5 8 V16 M25.5 8 V16" stroke="#a14339" stroke-width="1.7" fill="none"/></pattern><pattern id="pb1" patternUnits="userSpaceOnUse" width="34" height="16"><rect width="34" height="16" fill="#d2bc8e"/><path d="M0 .6 H34 M0 8 H34 M17 0 V8 M8.5 8 V16 M25.5 8 V16" stroke="#b7a47f" stroke-width="1.7" fill="none"/></pattern><pattern id="pb2" patternUnits="userSpaceOnUse" width="34" height="16"><rect width="34" height="16" fill="#4a7dae"/><path d="M0 .6 H34 M0 8 H34 M17 0 V8 M8.5 8 V16 M25.5 8 V16" stroke="#456f9a" stroke-width="1.7" fill="none"/></pattern><pattern id="pb3" patternUnits="userSpaceOnUse" width="34" height="16"><rect width="34" height="16" fill="#5b9a5e"/><path d="M0 .6 H34 M0 8 H34 M17 0 V8 M8.5 8 V16 M25.5 8 V16" stroke="#538857" stroke-width="1.7" fill="none"/></pattern><pattern id="pb4" patternUnits="userSpaceOnUse" width="34" height="16"><rect width="34" height="16" fill="#f0ede4"/><path d="M0 .6 H34 M0 8 H34 M17 0 V8 M8.5 8 V16 M25.5 8 V16" stroke="#d0cdc8" stroke-width="1.7" fill="none"/></pattern><pattern id="pb5" patternUnits="userSpaceOnUse" width="34" height="16"><rect width="34" height="16" fill="#d9aa3c"/><path d="M0 .6 H34 M0 8 H34 M17 0 V8 M8.5 8 V16 M25.5 8 V16" stroke="#bd953a" stroke-width="1.7" fill="none"/></pattern></defs>
@@ -891,7 +863,6 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <button data-s="os"   aria-selected="false" data-i18n="st.os">Oversize</button>
       <button data-s="resi" aria-selected="false" data-i18n="st.resi">Residential</button>
       <button data-s="sig"  aria-selected="false" data-i18n="st.sig">Signature</button>
-      <button data-s="dem"  aria-selected="false" data-i18n="st.dem">Demand 期間費</button>
     </div>
     <div class="subpanel">
 
@@ -994,7 +965,17 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
         </div>
       </div>
 
-      <div class="subpane" id="pane-dem">
+
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ==================== Demand Surcharge ==================== -->
+<section class="page" id="p-demand">
+  <div class="lf sketch">
+    <h3 class="display"><span class="em">⚡</span><span data-i18n="hd.demand">Demand Surcharge</span></h3>
         <p class="hint" data-i18n="hint.dem">旺季 / 需求期間的加價。出貨日落在期間內就收:一般 Demand 一律收;AHS Demand 只在該筆有收 AHS 時收;Oversize Demand 只在該筆有收 Oversize 時收。同服務多期重疊時取最高。</p>
         <div class="subtabs" id="demTabs">
           <button data-d="g" aria-selected="true"  data-i18n="dt.g">一般 Demand</button>
@@ -1037,8 +1018,43 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
             <input type="file" id="fDemImp-o" accept=".xlsx,.xls">
           </div>
         </div>
-      </div>
+  </div>
+</section>
 
+<!-- ==================== Dashboard ==================== -->
+<section class="page" id="p-dash">
+  <div id="warnBox"></div>
+<div class="lf sketch" id="sumBox" hidden>
+    <h3 class="display"><span class="em">📊</span><span data-i18n="hd.sum">這次計價</span></h3>
+    <div class="tiles" id="tiles"></div>
+  </div>
+
+<div class="lf sketch" id="newBox" hidden>
+    <h3 class="display"><span class="em">🆕</span><span data-i18n="hd.new">本期新出現</span></h3>
+    <div id="newList"></div>
+  </div>
+
+<div class="lf sketch" id="prevBox" hidden>
+    <h3 class="display"><span class="em">🔍</span><span data-i18n="hd.prev">逐筆預覽</span></h3>
+    <p class="hint" id="prevNote" data-i18n="hint.prev">完整欄位(日期、追蹤號、各費項明細)在匯出的 Excel 裡。</p>
+    <div class="tablewrap" style="max-height:58vh">
+      <table id="tPrev"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== Settings ==================== -->
+<section class="page" id="p-settings">
+  <div class="lf sketch">
+    <h3 class="display"><span class="em">💾</span><span data-i18n="hd.cfg">費率設定檔</span></h3>
+    <p class="hint" style="margin-top:10px" data-i18n="hint.cfg">與桌面版 billing_tool_config.json 完全互通;網頁上的改動會自動存在這個瀏覽器。</p>
+    <div class="row">
+      <button class="act ghost sm" id="bCfgLoad" data-i18n="btn.cfgload">載入設定 JSON</button>
+      <input type="file" id="fCfg" accept=".json">
+      <button class="act ghost sm" id="bCfgSave" data-i18n="btn.cfgsave">下載設定 JSON</button>
+      <button class="act danger sm" id="bCfgReset" data-i18n="btn.cfgreset">還原預設值</button>
+      <button class="act ghost sm" id="bSample" data-i18n="btn.sample">下載帳單範例</button>
+      <span id="cfgNote" class="savenote"></span>
     </div>
   </div>
 </section>
@@ -1226,10 +1242,14 @@ const esc=v=>String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;")
 let LANG=0; /* 0=中文 1=English */
 const L=(zh,en)=>LANG?en:zh;
 const I18N={
- "tab.files":["匯入與設定","Import & Setup"],
- "tab.rules":["計價規則","Rating Rules"],
- "tab.base":["基本費率","Base Rates"],
- "tab.sur":["附加費","Surcharges"],
+ "tab.files":["Import Files","Import Files"],
+ "tab.rules":["Size Rules","Size Rules"],
+ "tab.base":["Channels","Channels"],
+ "tab.sur":["Surcharge Setup","Surcharge Setup"],
+ "tab.demand":["Demand Surcharge","Demand Surcharge"],
+ "tab.settings":["Settings","Settings"],
+ "tab.dash":["Dashboard","Dashboard"],
+ "hd.demand":["Demand Surcharge","Demand Surcharge"],
  "tab.run":["重新計價","Reprice & Review"],
  "hd.files":["FedEx 帳單檔案","FedEx Billing File"],
  "lb.inv":["帳單 / 費用資料","Billing / invoice data"],
@@ -1486,28 +1506,34 @@ let BILLING=null;   /* {name, columns:[...], rows:[{col:val}]} */
 let LAST=null;      /* 上一次成功執行的結果,重新下載用 */
 
 function loadDefaultTables(){
+  /* 先掛上預設渠道(FedEx 官方服務),再依各渠道的 Zone 清單長表 */
+  CUSTOM_SERVICES=DEFAULT_CHANNELS.map(([n])=>n);
+  CUSTOM_SERVICE_ZONES={};
+  for(const[n,zs] of DEFAULT_CHANNELS) CUSTOM_SERVICE_ZONES[n]=zs.slice();
+  syncServices();
+  const zonesFor=s=>CUSTOM_SERVICE_ZONES[s]||ZONES;
   const base=[];
   for(const s of SERVICES)
     for(let w=BASE_RATE_MIN_WEIGHT;w<=BASE_RATE_MAX_WEIGHT;w++)
       base.push([s,String(w)].concat(ZONES.map(()=> "0")));
   TBL.base.rows=base;
   const ahs=[];
-  for(const s of SERVICES) for(const t of AHS_TYPES) for(const z of ZONES)
+  for(const s of SERVICES) for(const t of AHS_TYPES) for(const z of zonesFor(s))
     ahs.push([s,t,String(z),"0"]);
   TBL.ahs.rows=ahs;
   const das=[];
-  for(const s of SERVICES) for(const t of DAS_TYPES) for(const z of ZONES)
+  for(const s of SERVICES) for(const t of DAS_TYPES) for(const z of zonesFor(s))
     das.push([s,t,String(z),"0"]);
   TBL.das.rows=das;
   const os=[];
-  for(const s of SERVICES) for(const z of ZONES) os.push([s,String(z),"0"]);
+  for(const s of SERVICES) for(const z of zonesFor(s)) os.push([s,String(z),"0"]);
   TBL.oversize.rows=os;
-  TBL.residential.rows=[["Ground","2.58"],["Home Delivery","1.94"]];
+  TBL.residential.rows=[["Ground","2.58"],["Home Delivery","1.94"]]
+    .concat(CUSTOM_SERVICES.map(sv=>[sv,"0"]));
   TBL.signature.rows=[["Adult Signature","10.00"],["Direct Signature","5.70"],["Indirect Signature","5.70"]];
   TBL.gdemand.rows=[]; TBL.ademand.rows=[]; TBL.odemand.rows=[]; TBL.fuelp.rows=[];
   TBL.csur.rows=[];
   CARRIER_DRAFTS={};
-  CUSTOM_SERVICES=[]; syncServices();
 }
 
 let CUSTOM_SERVICE_ZONES={};   /* 渠道 → 使用的 Zone 清單(給種列與設定檔) */
@@ -1635,11 +1661,42 @@ const SERVICE_MAP=[
   ["international ground","International Ground"],
   ["international economy","International Economy"],
   ["international priority","International Priority"],
+  ["international first","International First"],
   ["ground economy","Ground Economy"],
   ["smartpost","Ground Economy"],
+  ["priority overnight","Priority Overnight"],
+  ["standard overnight","Standard Overnight"],
+  ["first overnight","First Overnight"],
+  ["2day a.m","2Day AM"],
+  ["2 day a.m","2Day AM"],
+  ["2day am","2Day AM"],
+  ["2day","2Day"],
+  ["2 day","2Day"],
+  ["express saver","Express Saver"],
   ["ground","Ground"],
 ];
 const SERVICE_CANON=new Set(SERVICE_MAP.map(([,c])=>c));
+/* FedEx 官方服務 → 預設渠道。本土快遞用 Zone 2–8,
+   Ground 家族與國際用全表 2–9、17(工具支援的 Zone 網格)。 */
+const DEFAULT_CHANNELS=[
+  ["Ground Economy",        [2,3,4,5,6,7,8,9,17]],
+  ["International Ground",  [2,3,4,5,6,7,8,9,17]],
+  ["International Economy", [2,3,4,5,6,7,8,9,17]],
+  ["International Priority",[2,3,4,5,6,7,8,9,17]],
+  ["Priority Overnight",    [2,3,4,5,6,7,8]],
+  ["Standard Overnight",    [2,3,4,5,6,7,8]],
+  ["First Overnight",       [2,3,4,5,6,7,8]],
+  ["2Day",                  [2,3,4,5,6,7,8]],
+  ["2Day AM",               [2,3,4,5,6,7,8]],
+  ["Express Saver",         [2,3,4,5,6,7,8]],
+];
+function restoreDefaultChannels(){
+  CUSTOM_SERVICES=DEFAULT_CHANNELS.map(([n])=>n);
+  CUSTOM_SERVICE_ZONES={};
+  for(const[n,zs] of DEFAULT_CHANNELS) CUSTOM_SERVICE_ZONES[n]=zs.slice();
+  syncServices();
+  for(const[n,zs] of DEFAULT_CHANNELS) seedServiceRows(n,zs);
+}
 function normalizeService(s){
   const v=String(s??"").trim().toLowerCase().split(/\s+/).join(" ");
   if(!v) return "";
@@ -2985,7 +3042,7 @@ function switchPage(name){
 function switchSur(name){
   document.querySelectorAll("#surTabs button").forEach(b=>
     b.setAttribute("aria-selected",b.dataset.s===name?"true":"false"));
-  ["ahs","das","os","resi","sig","dem"].forEach(k=>
+  ["ahs","das","os","resi","sig"].forEach(k=>
     $("pane-"+k).classList.toggle("on",k===name));
 }
 function switchDem(name){
@@ -3692,8 +3749,9 @@ async function runRepricing(){
     $("runSummary").textContent=(warnings.length
       ?L("略過 "+warnings.length+" 筆(Zone 未設定)。",
          "Skipped "+warnings.length+" row(s) with unconfigured zones. ")
-      :"")+L("統計與逐筆預覽在下方;完整欄位在匯出的 Excel 裡。",
-             "Summary and per-shipment preview below; full columns are in the exported workbook.");
+      :"")+L("統計與逐筆預覽在 Dashboard 分頁;完整欄位在匯出的 Excel 裡。",
+             "Summary and per-shipment preview are on the Dashboard tab; full columns are in the exported workbook.");
+    switchPage("dash");
     toast(L("重新計價完成","Repricing completed"));
   }catch(err){
     setStatus(L("失敗","Failed"));
@@ -4107,6 +4165,7 @@ window.__FEDEX_TEST={
   normalizeService,
   addChannel(n){CUSTOM_SERVICES.push(n);syncServices();seedServiceRows(n);},
   resetChannels(){CUSTOM_SERVICES.length=0;syncServices();},
+  restoreDefaultChannels,
   get SERVICES(){return SERVICES;},
   buildConfig,applyConfig,loadDefaultTables,renderAll,
   get TBL(){return TBL;},get RULES(){return RULES;},
