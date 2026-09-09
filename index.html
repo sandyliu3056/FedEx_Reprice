@@ -366,6 +366,11 @@ td.neg{color:var(--neg)}
 .zonecol .zh{width:88px;flex:none;text-align:center;font-size:11px;
   font-weight:700;color:var(--accent);white-space:nowrap}
 .flatgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px 14px}
+.dvgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px 16px}
+.dvgrid label{display:grid;grid-template-columns:1fr 96px;align-items:center;
+  gap:8px;font-size:12.5px}
+.dvgrid label>span{color:var(--text)}
+.dvgrid input.cell{width:100%}
 .flatitem{display:flex;align-items:center;gap:6px;font-size:12px}
 .flatitem .fl{flex:1;color:var(--text);line-height:1.25}
 .flatitem input.cell{width:86px;height:26px}
@@ -1212,6 +1217,11 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <div class="subhd" data-i18n="hd.flat">Flat amounts</div>
     <div id="accFlat" class="flatgrid"></div>
 
+    <div class="subhd" data-i18n="hd.dv">保價費(Declared Value)</div>
+    <p class="hint" style="margin:0 0 10px" data-i18n="hint.dv">申報金額讀帳單自己的 Declared Value 欄。六個數字沒填齊(至少要級距單位與每級距費率)之前,帳單上那筆保價費照原價轉嫁 —— 不會靜靜算成 0。</p>
+    <div id="dvGrid" class="dvgrid"></div>
+    <p class="hint" id="dvHow" style="margin:9px 0 0"></p>
+
   </div>
 </section>
 
@@ -1579,10 +1589,14 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
         <input id="csAlias" class="cell left" style="width:320px" placeholder="e.g. Address Correction, Addr Corr">
       </div>
       <div class="row" style="margin-top:10px">
+        <label class="inlab" style="margin-left:0" data-i18n="lb.cstype">計費方式</label>
+        <span class="selw"><select id="csType"></select></span>
+      </div>
+      <div class="row" style="margin-top:10px">
         <label class="inlab" style="margin-left:0" data-i18n="lb.csfee">費率</label>
         <input id="csFee" class="cell" style="width:110px" value="0">
       </div>
-      <p class="note" data-i18n="hint.csmodal">名稱與帳單 Charge Description 比對(包含即符合)。費率 0 = 先登記、金額照原帳單轉嫁。</p>
+      <p class="note" data-i18n="hint.csmodal">帳單費目名稱可填多個(用,分隔),任一出現即符合。</p>
     </div>
     <div class="modalft">
       <button class="act" id="bCsSave" data-i18n="btn.csadd">新增</button>
@@ -1740,11 +1754,12 @@ const I18N={
  "btn.csadd":["新增","Add"],
  "lb.csname":["表頭名稱","Display name"],
  "lb.csalias":["帳單費目名稱","Invoice charge names"],
+ "lb.cstype":["計費方式","How to charge"],
  "lb.csfee":["費率","Rate"],
- "hint.csmodal":["帳單費目名稱可填多個(用,分隔),任一出現即符合;表頭名稱是報表欄位名。費率 0 = 先登記、金額照原帳單轉嫁。",
-   "List one or more invoice charge names (comma-separated) — any match counts; the display name becomes the report column. Rate 0 = registered only; original amounts pass through."],
+ "hint.csmodal":["帳單費目名稱可填多個(用,分隔),任一出現即符合;表頭名稱是報表欄位名。計費方式:重算 = 用你設的費率(填 0 就真的是 0);照帳單轉嫁 = 原價帶過去;僅顯示 = 報表上列出金額但不計進總額。",
+   "List one or more invoice charge names (comma-separated) — any match counts; the display name becomes the report column. How to charge: Reprice uses your rate (0 really means 0); Copy invoice passes the billed amount through; Report only lists the amount without charging it."],
  "btn.csuradd":["Custom Surcharges…","Custom Surcharges…"],
- "hint.csur":["帳單費目名稱可填多個別名(,分隔),任一出現即符合;表頭名稱是結果 Excel 的欄位名。費率 0 = 先登記、照原帳單轉嫁;填費率後改收自訂費率並獨立一欄。",
+ "hint.csur":["帳單費目名稱可填多個別名(,分隔),任一出現即符合;表頭名稱是結果 Excel 的欄位名。計費方式決定怎麼算:重算用你設的費率、照帳單轉嫁帶原價、僅顯示只列不計費。",
    "Invoice charge names accept multiple aliases (comma-separated) — any match counts; the display name is the workbook column. Rate 0 = registered only (passthrough); set a rate to charge it with its own column."],
  "hd.cfg":["費率設定檔","Rate Configuration"],
  "hd.setting":["Settings","Settings"],
@@ -1869,6 +1884,9 @@ const I18N={
  "hint.base":["1–150 lb × 每個 Zone 的費率。可直接在格子裡改,或匯出範本到 Excel 填好再匯入(匯入只取代範本裡出現的服務)。",
    "1–150 lb by zone. Edit cells directly, or export the template, fill it in Excel, and import it back (import replaces only the services present in the file)."],
  "hd.zonestudio":["Surcharge Rates","Surcharge Rates"],
+ "hd.dv":["保價費(Declared Value)","Declared Value"],
+ "hint.dv":["申報金額讀帳單自己的 Declared Value 欄。六個數字沒填齊(至少要級距單位與每級距費率)之前,帳單上那筆保價費照原價轉嫁 —— 不會靜靜算成 0。",
+   "The declared amount comes from the invoice's own Declared Value column. Until the bands are filled in (the unit and the per-unit rate at minimum), the billed declared-value charge passes through at cost — it is not silently priced to 0."],
  "hd.flat":["Flat amounts","Flat amounts"],
  "hd.customlist":["Custom Surcharges","Custom Surcharges"],
  "lb.fuelsur":["Fuel Surcharge","Fuel Surcharge"],
@@ -2016,6 +2034,41 @@ let RULES={...RULE_DEFAULTS};
    0 或空 = 該條件不啟用(對應 UPS 空格的語意)。 */
 let SIZE_RULES={};
 let DIM_BY_CHAN={};   /* 渠道 → DIM 除數覆寫(空 = 用預設) */
+/* 保價費(Declared Value)級距,一條渠道一份。照 UPS 的做法:沒有「全域
+   預設」可以躲 —— 合約通常只有一條線有折扣,其餘照公告價,兩者都是明寫
+   出來的數字,不是繼承來的。沒設過的渠道就是沒設過:算不出級距時,帳單上
+   那筆保價費照原價轉嫁,不會拿別條線的費率悄悄頂上,也不會靜靜算成 0。 */
+let DV_BY_CHAN={};
+const DV_KEYS=["free","min","flat","unit","rate","max"];
+/* 五個數字合起來到底是什麼收法:
+     免費額度以內 → 0
+     免費額度以上、「固定費率適用至」以內 → 收最低收費
+     再往上 → ceil(申報金額 ÷ 級距單位) × 每級距費率
+     申報金額超過上限 → 照上限計費(超過的部分保不到,收了等於賣沒有的東西)
+   最容易踩到的是:沒填「固定費率適用至」時,平段止於
+     floor(最低收費 ÷ 每級距) × 級距單位 —— 是算出來的,不是填的。 */
+function dvBands(free,min,unit,rate,cap,flat){
+  if(unit<=0||rate<=0) return null;
+  const derived=Math.max(Math.floor(Number((min/rate).toFixed(6)))*unit,0);
+  return {free,min,unit,rate,cap,
+          flatEnd:flat>0?flat:derived, explicit:flat>0};
+}
+function dvQuote(b,v){
+  if(!b||v<=0) return 0;
+  if(b.cap>0&&v>b.cap) v=b.cap;
+  if(v<=b.free) return 0;
+  if(b.explicit&&v<=b.flatEnd) return r2(b.min);
+  const u=Math.ceil(Number((v/b.unit).toFixed(6)));
+  /* 明寫了固定區間就照級距走,不再拿最低收費墊底 —— 墊了的話那個區間
+     等於沒填,又會一路平到 floor(最低收費 ÷ 每級距) 那裡去。 */
+  return r2(b.explicit?u*b.rate:Math.max(b.min,u*b.rate));
+}
+function dvBandsFor(service){
+  const o=DV_BY_CHAN[service];
+  if(!o) return null;
+  const n=k=>toFloat(o[k],0);
+  return dvBands(n("free"),n("min"),n("unit"),n("rate"),n("max"),n("flat"));
+}
 const SIZE_FIELDS=[
   ["oversize_longest_side","use_oversize_longest"],
   ["oversize_actual_weight","use_oversize_weight"],
@@ -2052,7 +2105,7 @@ const TBL={
   ademand:    {cols:["Service","Start Date","End Date","Fee"], rows:[]},
   odemand:    {cols:["Service","Start Date","End Date","Fee"], rows:[]},
   fuelp:      {cols:["Start Date","End Date","Fuel %"], rows:[]},
-  csur:       {cols:["Display Name","Invoice Names","Fee"], rows:[]},
+  csur:       {cols:["Display Name","Invoice Names","Fee","Type"], rows:[]},
 };
 let CARRIER_DRAFTS={};
 let BILLING=null;   /* {name, columns:[...], rows:[{col:val}]} */
@@ -2152,6 +2205,7 @@ function buildConfig(){
   cfg.custom_service_enabled={...CUSTOM_SERVICE_ON};
   cfg.size_rules=JSON.parse(JSON.stringify(SIZE_RULES));
   cfg.dim_by_channel={...DIM_BY_CHAN};
+  cfg.declared_value_by_channel=JSON.parse(JSON.stringify(DV_BY_CHAN));
   return cfg;
 }
 function applyConfig(cfg){
@@ -2180,6 +2234,8 @@ function applyConfig(cfg){
     ? JSON.parse(JSON.stringify(cfg.size_rules)) : {};
   DIM_BY_CHAN=(cfg.dim_by_channel&&typeof cfg.dim_by_channel==="object")
     ? {...cfg.dim_by_channel} : {};
+  DV_BY_CHAN=(cfg.declared_value_by_channel&&typeof cfg.declared_value_by_channel==="object")
+    ? JSON.parse(JSON.stringify(cfg.declared_value_by_channel)) : {};
   for(const n of BASE_SERVICES)
     if(!CUSTOM_SERVICE_ZONES[n]) CUSTOM_SERVICE_ZONES[n]=BASE_ZONES.slice();
   syncServices();
@@ -2746,12 +2802,13 @@ function billedBucketOf(desc){
   if(has("oversize")) return "Oversize Fee";
   if(has("add'l handling")||has("additional handling")||has("ahs")) return "Additional Handling Surcharge";
   if(has("signature")) return "Signature Fee";
+  if(has("declared value")) return "Declared Value Fee";
   if(has("demand")||has("peak")) return "General Demand Fee";
   if(has("transportation charge")||has("performance pricing")
      ||has("earned discount")||has("discount")) return "Base Rate";
   return String(desc).trim()||"(unnamed charge)";
 }
-function collectPassThrough(row){
+function collectPassThrough(row,service){
   const excludedKeywords=[
     "fuel surcharge","fuel","variable handling charge","delivery area surcharge",
     /* DAS 用縮寫前綴比對,涵蓋帳單上的簡寫(DAS Resi、DAS Remote Comm…) */
@@ -2767,9 +2824,13 @@ function collectPassThrough(row){
   ];
   const activeCustom=[];
   for(const r of TBL.csur.rows){
-    const {aliases,fee}=csurEntry(r);
-    if(fee>0) for(const a of aliases) activeCustom.push(normChargeDesc(a));
+    const {aliases,type}=csurEntry(r);
+    /* 「照帳單轉嫁」的費目不擋 —— 擋下來它就不見了,那正是要它做的事。 */
+    if(type!=="invoice") for(const a of aliases) activeCustom.push(normChargeDesc(a));
   }
+  /* 這條渠道設過保價級距,保價費才由我們自己算 —— 沒設過就讓它照原價轉嫁,
+     不然畫面上會出現一個算成 0 的保價費,看不出是「沒設定」還是「真的 0」。 */
+  if(dvBandsFor(service)) excludedKeywords.push("declared value");
   const isExcludedName=name=>{
     const d=normChargeDesc(name);
     if(activeCustom.some(k=>d.includes(k))) return true;
@@ -2819,6 +2880,22 @@ function collectPassThrough(row){
 }
 
 /* 自訂附加費列解析:[表頭, 帳單別名(|、;、換行分隔), 費率];舊 2 欄相容 */
+/* 一筆自訂附加費怎麼算,照 UPS 分三種:
+     reprice —— 用我設的費率(填 0 就真的是 0,不是「沒設定」)
+     invoice —— 照帳單原價轉嫁
+     report  —— 只在報表上列出金額,不計進總額
+   舊檔沒有 Type 欄:費率 > 0 視為 reprice,費率 0 視為 invoice —— 那正是
+   以前「費率 0 = 照原帳單轉嫁」的規則,所以舊設定沿用不會變樣。 */
+const CSUR_TYPES=[["reprice",["重算(用設定費率)","Reprice (use my rate)"]],
+                  ["invoice",["照帳單轉嫁","Copy invoice"]],
+                  ["report",["僅顯示(不計費)","Report only"]]];
+function normCsurType(v,fee){
+  const t=String(v??"").trim().toLowerCase().replace(/[\s_-]+/g,"");
+  if(t==="reprice"||t==="template") return "reprice";
+  if(t==="invoice"||t==="copyinvoice"||t==="raw"||t==="copy") return "invoice";
+  if(t==="report"||t==="reportonly") return "report";
+  return toFloat(fee,0)>0?"reprice":"invoice";
+}
 function csurEntry(r){
   r=r||[];
   const three=r.length>=3;
@@ -2827,7 +2904,7 @@ function csurEntry(r){
   const fee=toFloat(three?r[2]:r[1],0);
   const aliases=aliasRaw.split(/[,|;\n]+/).map(x=>x.trim()).filter(Boolean);
   if(!aliases.length&&disp) aliases.push(disp);
-  return {disp,aliases,fee};
+  return {disp,aliases,fee,type:normCsurType(r[3],fee)};
 }
 
 /* 已知轉嫁費目目錄(取自實際 FedEx 帳單):
@@ -2848,7 +2925,8 @@ const FINAL_COLS=[
   "Service","Zone","Length","Width","Height","Actual Weight",
   "DIM Weight","Billable Weight",
   "Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
-  "Residential Fee","Signature Fee","General Demand Fee","AHS Demand Fee",
+  "Residential Fee","Signature Fee","Declared Value Fee",
+  "General Demand Fee","AHS Demand Fee",
   "Oversize Demand Fee","Fuel Fee","Repriced Total",
 ];
 function repriceCore(columns,rowsIn){
@@ -2927,7 +3005,8 @@ function repriceCore(columns,rowsIn){
         "Length":l,"Width":w,"Height":h,
         "Actual Weight":actualWeight,"DIM Weight":0,"Billable Weight":0,
         "Base Rate":0,"Additional Handling Surcharge":0,"DAS Fee":0,"Oversize Fee":0,
-        "Residential Fee":0,"Signature Fee":0,"General Demand Fee":0,"AHS Demand Fee":0,
+        "Residential Fee":0,"Signature Fee":0,"Declared Value Fee":0,
+        "General Demand Fee":0,"AHS Demand Fee":0,
         "Oversize Demand Fee":0,"Fuel Fee":0,
         "Repriced Total":r2(passTotal),
         "_billed":r2(passTotal),
@@ -2969,7 +3048,8 @@ function repriceCore(columns,rowsIn){
         "Length":l,"Width":w,"Height":h,
         "Actual Weight":actualWeight,"DIM Weight":0,"Billable Weight":0,
         "Base Rate":0,"Additional Handling Surcharge":0,"DAS Fee":0,"Oversize Fee":0,
-        "Residential Fee":0,"Signature Fee":0,"General Demand Fee":0,"AHS Demand Fee":0,
+        "Residential Fee":0,"Signature Fee":0,"Declared Value Fee":0,
+        "General Demand Fee":0,"AHS Demand Fee":0,
         "Oversize Demand Fee":0,"Fuel Fee":0,
         "Repriced Total":0,
         "_billed":r2(zeroBilled),
@@ -3024,7 +3104,12 @@ function repriceCore(columns,rowsIn){
     const ahsDemandFee=ahsFee>0?matchDemandFee(TBL.ademand.rows,service,effKey):0.0;
     const oversizeDemandFee=oversizeFee>0?matchDemandFee(TBL.odemand.rows,service,effKey):0.0;
 
-    const otherPass=collectPassThrough(row);
+    /* 保價費:申報金額在帳單自己的欄位裡,不是費用行 */
+    const declaredValue=toFloat(coalesce(row,
+      ["Declared Value","Declared Value Amount","Carriage Value"],0),0);
+    const dvB=dvBandsFor(service);
+    const declaredValueFee=dvB?dvQuote(dvB,declaredValue):0;
+    const otherPass=collectPassThrough(row,service);
     const otherPassTotal=Object.values(otherPass).reduce((a,b)=>a+b,0);
     for(const[k,v] of Object.entries(otherPass)){
       const st=passTotals.get(k)||{count:0,total:0};
@@ -3036,16 +3121,23 @@ function repriceCore(columns,rowsIn){
        舊 2 欄 [名稱,費率] 視為表頭=別名 */
     const custom={}; let customTotal=0;
     for(const r of TBL.csur.rows){
-      const {disp,aliases,fee}=csurEntry(r);
-      if(!disp) continue;
-      if(fee>0&&aliases.some(a=>hasChargeDesc(row,[a],false))){
-        custom[disp]=fee; customTotal+=fee;
+      const {disp,aliases,fee,type}=csurEntry(r);
+      if(!disp||type==="invoice") continue;
+      if(!aliases.some(a=>hasChargeDesc(row,[a],false))) continue;
+      if(type==="report"){
+        /* 只列出來,不計進總額 —— 金額用帳單上的原值,那才是要看的東西 */
+        let seen=0;
+        for(const[d,amt] of iterChargePairs(row))
+          if(aliases.some(a=>normChargeDesc(d).includes(normChargeDesc(a)))) seen+=amt;
+        if(seen) custom[disp]=r2(seen);
+        continue;
       }
+      custom[disp]=fee; customTotal+=fee;
     }
 
     const totalDemandFee=generalDemandFee+ahsDemandFee+oversizeDemandFee;
     const fuelBase=baseRate+ahsFee+dasFee+oversizeFee+residentialFee
-      +signatureFee+totalDemandFee+otherPassTotal+customTotal;
+      +signatureFee+declaredValueFee+totalDemandFee+otherPassTotal+customTotal;
     const fuelFee=fuelBase*fuelRateForDate(effKey)/100.0;
     const total=fuelBase+fuelFee;
 
@@ -3059,6 +3151,7 @@ function repriceCore(columns,rowsIn){
     addRep("Oversize Fee",oversizeFee);
     addRep("Residential Fee",residentialFee);
     addRep("Signature Fee",signatureFee);
+    addRep("Declared Value Fee",declaredValueFee);
     addRep("General Demand Fee",generalDemandFee);
     addRep("AHS Demand Fee",ahsDemandFee);
     addRep("Oversize Demand Fee",oversizeDemandFee);
@@ -3099,6 +3192,7 @@ function repriceCore(columns,rowsIn){
       "Oversize Fee":r2(oversizeFee),
       "Residential Fee":r2(residentialFee),
       "Signature Fee":r2(signatureFee),
+      "Declared Value Fee":r2(declaredValueFee),
       "General Demand Fee":r2(generalDemandFee),
       "AHS Demand Fee":r2(ahsDemandFee),
       "Oversize Demand Fee":r2(oversizeDemandFee),
@@ -3485,7 +3579,8 @@ async function dlBlob(blob,name){
    ===================================================================== */
 const CURRENCY_COLS=new Set([
   "Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
-  "Residential Fee","Signature Fee","General Demand Fee","AHS Demand Fee",
+  "Residential Fee","Signature Fee","Declared Value Fee",
+  "General Demand Fee","AHS Demand Fee",
   "Oversize Demand Fee","Fuel Fee","Repriced Total"]);
 const DATE_COLS=new Set(["Transaction Date","Invoice Date"]);
 const NUMERIC_COLS=new Set(["Length","Width","Height","Actual Weight","DIM Weight","Billable Weight"]);
@@ -4428,8 +4523,70 @@ function renderFlat(){
       +'" value="'+esc(toFloat(x.val,0)>0?x.val:"")+'"></div>').join("")
     :'<div class="empty">—</div>';
 }
+/* 保價級距的六個格子。標籤照 UPS 的講法,順序也照它:先講免費到哪裡,
+   再講最低收多少、平段收到哪裡,最後才是級距怎麼跳、上限在哪。 */
+const DV_LABELS={
+  free:["免費額度(申報金額 ≤)","Free up to"],
+  min: ["最低收費","Minimum charge"],
+  flat:["固定費率適用至","Fixed rate applies up to"],
+  unit:["級距單位","Per unit of"],
+  rate:["每級距費率","Rate per unit"],
+  max: ["申報金額上限","Maximum declared value"],
+};
+function renderDv(){
+  const host=$("dvGrid"); if(!host) return;
+  const svc=$("accChan")?$("accChan").value:SERVICES[0];
+  const o=DV_BY_CHAN[svc]||{};
+  host.innerHTML=DV_KEYS.map(k=>
+    '<label><span>'+esc(DV_LABELS[k][LANG])+"</span>"
+    +'<input class="cell num dv" data-k="'+k+'" value="'+esc(o[k]==null?"":String(o[k]))+'"></label>'
+  ).join("");
+  const how=$("dvHow"); if(!how) return;
+  const b=dvBandsFor(svc);
+  if(!b){
+    how.textContent=L("這條渠道還沒設級距 —— 帳單上的保價費照原價轉嫁。",
+      "No bands set for this channel — the billed declared-value charge passes through at cost.");
+    return;
+  }
+  /* 收法用實際的數字講一次。平段止於哪裡不是填的就是算的,印出來才看得到:
+     想收 $10 平段、$300 之後才跳,填最低收費 10 / 每級距 1.70 會一路平到
+     $500,因為 $10 要到第 6 級距才被超過。 */
+  const m=v=>"$"+r2(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const parts=[];
+  if(b.free>0) parts.push(L("申報 "+m(b.free)+" 以內免費","free up to "+m(b.free)));
+  if(b.flatEnd>b.free)
+    parts.push(L(m(b.free)+" 以上到 "+m(b.flatEnd)+" 收 "+m(b.min)
+        +(b.explicit?"":L("(平段止於此,是算出來的)"," (derived, not typed)")),
+      "over "+m(b.free)+" to "+m(b.flatEnd)+": "+m(b.min)
+        +(b.explicit?"":" (derived, not typed)")));
+  parts.push(L("再往上每 "+m(b.unit)+" 收 "+m(b.rate),
+    "above that, "+m(b.rate)+" per "+m(b.unit)));
+  if(b.cap>0) parts.push(L("申報超過 "+m(b.cap)+" 照上限計費",
+    "declared over "+m(b.cap)+" is charged at the cap"));
+  how.textContent=parts.join(L(";","; "))+"。";
+}
+function wireDv(){
+  const g=$("dvGrid"); if(!g) return;
+  g.addEventListener("change",e=>{
+    const el=e.target; if(!el.classList.contains("dv")) return;
+    const svc=$("accChan").value, k=el.dataset.k;
+    const raw=String(el.value).trim();
+    if(raw===""){
+      if(DV_BY_CHAN[svc]){
+        delete DV_BY_CHAN[svc][k];
+        if(!Object.keys(DV_BY_CHAN[svc]).length) delete DV_BY_CHAN[svc];
+      }
+    }else{
+      const n=Number(raw);
+      if(!isFinite(n)||n<0){ renderDv(); return; }
+      DV_BY_CHAN[svc]=DV_BY_CHAN[svc]||{};
+      DV_BY_CHAN[svc][k]=n;
+    }
+    markDirty(); renderDv();
+  });
+}
 function wireAcc(){
-  const redraw=()=>{ renderAcc(); renderFlat(); };
+  const redraw=()=>{ renderAcc(); renderFlat(); renderDv(); };
   $("accChan").addEventListener("change",redraw);
   $("accSearch").addEventListener("input",redraw);
   $("accZoneCols").addEventListener("change",e=>{
@@ -5433,23 +5590,34 @@ function wireChannels(){
 /* ===== 自訂附加費 ===== */
 function renderCsur(){
   const t=$("tCsur"); if(!t) return;
-  /* 舊 2 欄列就地升級成 3 欄 */
-  TBL.csur.rows=TBL.csur.rows.map(r=>(r&&r.length>=3)?r:[String(r?.[0]??""),String(r?.[0]??""),String(r?.[1]??"0")]);
+  /* 舊 2 欄列就地升級成 4 欄;Type 留白由 csurEntry 依費率推,舊行為不變 */
+  TBL.csur.rows=TBL.csur.rows.map(r=>{
+    const a=(r&&r.length>=3)?r.slice():[String(r?.[0]??""),String(r?.[0]??""),String(r?.[1]??"0")];
+    if(a.length<4||!String(a[3]??"").trim()) a[3]=normCsurType(a[3],a[2]);
+    return a;
+  });
   t.querySelector("thead").innerHTML="<tr><th>"+L("表頭名稱","Display name")
     +"</th><th>"+L("帳單費目名稱","Invoice charge names")
+    +"</th><th>"+L("計費方式","How to charge")
     +'</th><th class="num">'+L("費率","Rate")+"</th><th></th></tr>";
   const rows=TBL.csur.rows;
   t.querySelector("tbody").innerHTML=rows.length?rows.map((r,i)=>
     "<tr>"
     +'<td><input class="cell left cs-name" data-i="'+i+'" value="'+esc(r[0]??"")+'" style="width:200px"></td>'
     +'<td><input class="cell left cs-alias" data-i="'+i+'" value="'+esc(r[1]??"")+'" style="width:320px"></td>'
-    +'<td class="num"><input class="cell cs-fee" data-i="'+i+'" value="'+esc(r[2]??"")+'" style="width:90px"></td>'
+    +'<td><span class="selw"><select class="cs-type" data-i="'+i+'">'
+      +CSUR_TYPES.map(([v,lab])=>'<option value="'+v+'"'
+        +(normCsurType(r[3],r[2])===v?" selected":"")+">"+esc(lab[LANG])+"</option>").join("")
+      +"</select></span></td>"
+    +'<td class="num"><input class="cell cs-fee" data-i="'+i+'" value="'+esc(r[2]??"")+'" style="width:90px"'
+      +(normCsurType(r[3],r[2])==="reprice"?"":" disabled")+"></td>"
     +'<td><button class="act danger sm cs-del" data-i="'+i+'">'+L("刪除","Delete")+"</button></td>"
     +"</tr>").join("")
-    :'<tr><td class="empty" colspan="4">'+L("(尚無自訂費目)","(no custom surcharges yet)")+"</td></tr>";
+    :'<tr><td class="empty" colspan="5">'+L("(尚無自訂費目)","(no custom surcharges yet)")+"</td></tr>";
 }
 function openCsurModal(){
   $("csName").value=""; $("csAlias").value=""; $("csFee").value="0";
+  fillSelect("csType",CSUR_TYPES.map(([v,lab])=>[v,lab[LANG]]),"reprice");
   renderCsur();
   $("csurBg").style.display="flex";
   $("csName").focus();
@@ -5473,7 +5641,7 @@ function wireCsur(){
     catch(e){ showError(L("費率要是數字","Rate must be a number"),
       L("請確認費率欄位。","Please check the rate field.")); return; }
     const alias=$("csAlias").value.trim()||name;
-    TBL.csur.rows.push([name,alias,fee]);
+    TBL.csur.rows.push([name,alias,fee,$("csType").value||"reprice"]);
     renderCsur(); renderFlat(); markDirty();
     $("csName").value=""; $("csAlias").value=""; $("csFee").value="0"; $("csName").focus();
     toast(L("已新增費目:"+name,"Surcharge added: "+name));
@@ -5487,6 +5655,7 @@ function wireCsur(){
     if(el.classList.contains("cs-name")) row[0]=el.value.trim();
     else if(el.classList.contains("cs-alias")) row[1]=el.value.trim();
     else if(el.classList.contains("cs-fee")) row[2]=el.value.trim();
+    else if(el.classList.contains("cs-type")){ row[3]=el.value; markDirty(); renderCsur(); return; }
     else return;
     markDirty();
   });
@@ -5739,8 +5908,8 @@ function dashIssueCard(){
 /* 費用類別的排列順序與名字。順序照計價結果的欄位:先運費,再各項附加費,
    最後燃油;認不出來的就用它自己的名字(那是原價轉嫁的費目)。 */
 const PR_ORDER=["Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
-  "Residential Fee","Signature Fee","General Demand Fee","AHS Demand Fee",
-  "Oversize Demand Fee","Fuel Fee"];
+  "Residential Fee","Signature Fee","Declared Value Fee",
+  "General Demand Fee","AHS Demand Fee","Oversize Demand Fee","Fuel Fee"];
 const PR_LABEL={
   "Base Rate":["基本運費","Base Rate"],
   "Additional Handling Surcharge":["額外處理費 (AHS)","Additional Handling (AHS)"],
@@ -5748,12 +5917,15 @@ const PR_LABEL={
   "Oversize Fee":["超大件附加費","Oversize"],
   "Residential Fee":["住宅地址附加費","Residential"],
   "Signature Fee":["簽收服務費","Signature"],
+  "Declared Value Fee":["保價費","Declared Value"],
   "General Demand Fee":["旺季附加費","General Demand"],
   "AHS Demand Fee":["旺季 AHS 附加費","AHS Demand"],
   "Oversize Demand Fee":["旺季超大件附加費","Oversize Demand"],
   "Fuel Fee":["燃油附加費","Fuel"],
 };
 function prLabel(k){ const t=PR_LABEL[k]; return t?t[LANG]:k; }
+/* 匯出用的名字固定英文,不跟介面語言走 */
+function prLabelEn(k){ const t=PR_LABEL[k]; return t?t[1]:k; }
 /* 異常明細倒成 Excel。畫面上一組只寫得下一行摘要,檔案裡把牽涉到的
    追蹤號與費目列出來 —— 會匯出的人是要拿去查的,不是要瞄一眼。 */
 async function exportIssues(){
@@ -5767,8 +5939,8 @@ async function exportIssues(){
   const HEAD={bold:true,fill:"D9EAF7"};
   const rows=[cols.map(c=>({v:c,t:"s",s:HEAD}))];
   for(const g of iss)
-    rows.push([{v:L(SEV_TAG[g.sev][0],SEV_TAG[g.sev][1]),t:"s"},
-      {v:L(g.zh,g.en),t:"s"},{v:g.n,t:"n"},
+    rows.push([{v:SEV_TAG[g.sev][1],t:"s"},
+      {v:g.en,t:"s"},{v:g.n,t:"n"},
       {v:r2(g.amt),t:"n",s:{fmt:"$#,##0.00"}},
       {v:g.what||"",t:"s"}]);
   const B={bold:true};
@@ -5785,17 +5957,17 @@ async function exportIssues(){
     .map(c=>({v:c,t:"s",s:HEAD}))];
   for(const k of keys){
     const uv=r2(toFloat(billed[k],0)), rv=r2(toFloat(rep2[k],0));
-    const note=(uv!==0&&rv===0)?L("帳單有收,重算是 0","billed but repriced to 0")
-             :(uv===0&&rv!==0)?L("重算有收,帳單沒有","repriced but not on the invoice")
-             :(uv===0&&rv===0)?L("本期沒有出現","did not appear this period"):"";
-    d2.push([{v:prLabel(k),t:"s"},
+    const note=(uv!==0&&rv===0)?"billed but repriced to 0"
+             :(uv===0&&rv!==0)?"repriced but not on the invoice"
+             :(uv===0&&rv===0)?"did not appear this period":"";
+    d2.push([{v:prLabelEn(k),t:"s"},
       {v:uv,t:"n",s:{fmt:"$#,##0.00"}},{v:rv,t:"n",s:{fmt:"$#,##0.00"}},
       {v:r2(rv-uv),t:"n",s:{fmt:"$#,##0.00"}},{v:note,t:"s"}]);
   }
   await xlWrite([
-    {name:L("本期異常","Exceptions"),rows,
+    {name:"Exceptions",rows,
      cols:[{w:10},{w:44},{w:9},{w:15},{w:46}],freeze:{r:1}},
-    {name:L("附加費對照","Surcharges"),rows:d2,
+    {name:"Surcharges",rows:d2,
      cols:[{w:30},{w:15},{w:15},{w:15},{w:34}],freeze:{r:1}},
   ],"exceptions.xlsx");
   toast(L("exceptions.xlsx 已下載","exceptions.xlsx downloaded"));
@@ -6481,6 +6653,7 @@ function renderAll(){
   renderBaseTable();
   renderAcc();
   renderFlat();
+  renderDv();
   for(const k of Object.keys(DEM_TABLES)) renderDemand(k);
   refreshReady();
   if(LAST) renderResults();
@@ -6504,7 +6677,7 @@ function init(){
   loadDefaultTables();
   const restored=loadLocalConfig();
   /* UI */
-  wireRules(); wireFuel(); wireBaseTable(); wireAcc();
+  wireRules(); wireFuel(); wireBaseTable(); wireAcc(); wireDv();
   wireDemand(); wireFiles(); wireChannels(); wireCsur(); wireHist();
   $("bRunTop").addEventListener("click",runRepricing);
   $("bStatement").addEventListener("click",exportProfitReport);
@@ -6555,6 +6728,8 @@ window.__FEDEX_TEST={
   buildConfig,applyConfig,loadDefaultTables,renderAll,
   get TBL(){return TBL;},get RULES(){return RULES;},
   get SIZE_RULES(){return SIZE_RULES;},
+  get DV_BY_CHAN(){return DV_BY_CHAN;},
+  dvBands,dvQuote,csurEntry,normCsurType,
   set RULES(v){RULES=v;},
   UserInputError,
   setBaseRate(service,weight,zone,fee){
