@@ -5,283 +5,602 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FedEx Reprice Studio</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
 <style>
 /* =====================================================================
-   FedEx Reprice Studio — 網頁版
-   介面照 UPS Reprice Platform 的版式(標題列+大時鐘 / 分頁條 / 手繪面板 /
-   狀態列),配色換成 FedEx 紫橘。計價引擎逐行移植桌面版
-   FedEx_RepricingTool.py,設定檔 billing_tool_config.json 與桌面版雙向互通。
+   FedEx Reprice Studio — Command Console 設計系統
+   ---------------------------------------------------------------------
+   深紫 chrome(標題列 / 左側導航欄 / 狀態列)框住淺色分層卡片畫布;
+   FedEx 紫 #4D148C 是系統的骨架與墨色,橘 #FF6200 只配給訊號時刻 ——
+   導航的橘色鍵線、Run 主按鈕、輸入聚焦的餘燼光、以及 2px 的
+   「子午線」漸層髮絲線。手繪抖線退役;取而代之的是三階陰影
+   與 JetBrains Mono 的斜零數字紀律。
+   計價引擎與 DOM 結構不動:這一整套是純 CSS 的重新架構。
    ===================================================================== */
 :root{
-  --bg:#f4eefb; --panel:#fffdfe; --stripe:#f8f3fd; --line:#cfb5e8;
-  --select:#ffe3cd; --accent:#4d148c; --head:#4d148c; --tab:#ff6200;
-  --tabink:#4d148c; --brand:#ffb15e; --thfg:#ffffff; --btn:#ece0f9;
-  --run:#ff6200; --run-hover:#d14e00; --run2:#a94e8b; --run2-hover:#8d3a72;
-  --neg:#b3261e; --muted:#8b7a9e; --text:#2c1b3e;
-  --rad:9px; --ink:var(--text);
+  /* 深色 chrome(標題列 / 導航欄 / 狀態列) */
+  --chrome:#250A4D; --chrome-2:#3B0F73; --chrome-ink:#F3EDFF;
+  --chrome-mut:rgba(243,237,255,.62); --chrome-line:rgba(255,255,255,.10);
+  --chrome-chip:rgba(255,255,255,.08);
+  /* 工作畫布 */
+  --bg:#F6F4FA; --panel:#FFFFFF; --stripe:#F8F6FC; --line:#E7E2F1;
+  --select:#FFEAD9; --thead:#F3EFFA;
+  /* 墨色 */
+  --text:#241A36; --head:#4D148C; --muted:#6F6786; --thfg:#4D148C;
+  --ink:var(--text);
+  /* 品牌與動作 */
+  --accent:#4D148C; --accent-2:#7B2FBE; --tab:#FF6200; --tabink:#FFFFFF;
+  --brand:#FFB15E; --brand-ink:#C94F00;
+  --run:#FF6200; --run-hover:#E45400; --run2:#7B2FBE; --run2-hover:#661FA6;
+  --neg:#C62828; --ok:#0B7059; --warn:#965A00; --btn:#EFE7F9;
+  /* 漸層 */
+  --grad-brand:linear-gradient(135deg,#4D148C 0%,#7B2FBE 100%);
+  --grad-run:linear-gradient(180deg,#F96A00 0%,#E04E00 100%);
+  --grad-hair:linear-gradient(90deg,#FF6200,rgba(255,98,0,0) 70%);
+  --grad-text:linear-gradient(135deg,#4D148C 0%,#7B2FBE 100%);
+  /* 三階陰影(shadow-ink 是 "R G B") */
+  --shadow-ink:28 12 50;
+  --elev-1:0 1px 2px rgb(var(--shadow-ink)/.05),0 2px 8px rgb(var(--shadow-ink)/.06);
+  --elev-2:0 2px 6px rgb(var(--shadow-ink)/.08),0 12px 28px rgb(var(--shadow-ink)/.10);
+  --elev-3:0 8px 20px rgb(var(--shadow-ink)/.16),0 28px 64px rgb(var(--shadow-ink)/.22);
+  /* 衍生值(只在 :root,跟著 JS 主題變數走) */
+  --ring:0 0 0 3px color-mix(in srgb,var(--accent-2) 28%,transparent);
+  /* 幾何 */
+  --rad:14px; --rad-sm:8px; --rad-lg:16px;
+  --railw:208px; --titleh:56px; --statush:32px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;max-width:100%;overflow-x:hidden}
+/* 殼:body 就是格局 —— 高度用 100%,絕不用 dvh/vh:
+   applyZoom() 會設 body.style.zoom,視口單位 × zoom 在 125% 時
+   會把狀態列擠出畫面。 */
 body{
+  display:grid;
+  grid-template-columns:var(--railw) minmax(0,1fr);
+  grid-template-rows:var(--titleh) minmax(0,1fr) var(--statush);
+  height:100%;overflow:hidden;
   background:var(--bg);color:var(--text);
-  font-family:"Segoe UI","Microsoft JhengHei UI","Microsoft JhengHei",
-              "PingFang TC","Noto Sans TC",sans-serif;
-  font-size:14px;line-height:1.55;display:flex;flex-direction:column;
+  font-family:Inter,"Noto Sans TC","Segoe UI","Microsoft JhengHei UI",
+              "Microsoft JhengHei","PingFang TC",sans-serif;
+  font-size:13.5px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
 }
-.num,.mono,td.num{font-family:"Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
-  font-variant-numeric:tabular-nums}
+@media(max-width:1599px){:root{--railw:84px}}
+/* 斜零等寬數字:計價工具永遠不能把 0 看成 O */
+.num,.mono,td.num,input.cell,#tBase td:first-child,.tile .v,#clkBig,#stCount,#stSave{
+  font-family:"JetBrains Mono","Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
+  font-variant-numeric:tabular-nums;font-feature-settings:"zero"}
+input.cell.left,input[type=date].cell{
+  font-family:Inter,"Noto Sans TC","Segoe UI","Microsoft JhengHei UI",sans-serif}
 svg.defs{position:absolute;width:0;height:0}
-.display{letter-spacing:.6px}
+.display{letter-spacing:.02em}
 .hidden{display:none !important}
+/* 抖線退役(svg.defs 留著不再引用) */
+.sketch{position:relative;border:none}
+.sketch::before,.sketch-soft::before{display:none}
 
-/* 手繪抖線只給面板外框:整片套下去連輸入框和儲存格邊都會扭。 */
-.sketch{position:relative;border:none;border-radius:var(--rad);background:var(--stripe)}
-.sketch::before{content:"";position:absolute;inset:0;pointer-events:none;
-  border:2px solid var(--line);border-radius:var(--rad);filter:url(#wobble)}
-.sketch-soft{position:relative;border:none;border-radius:var(--rad);background:transparent}
-.sketch-soft::before{content:"";position:absolute;inset:0;pointer-events:none;
-  border:1.5px solid var(--line);border-radius:var(--rad);filter:url(#wobble-soft)}
-table,table *,input,select,.tablewrap{filter:none !important}
-
-/* ---- 標題列 ---- */
-.titlebar{background:var(--accent);color:#fff;flex-wrap:wrap;
-  padding:8px 18px;display:flex;align-items:center;gap:0;font-size:13px;flex:none}
-.titlebar #appTitle{font-size:21px;letter-spacing:4px;font-weight:700;color:var(--brand)}
-.titlebar .devby{font-size:10.5px;letter-spacing:2px;opacity:.6;margin-left:20px;cursor:help}
-.titlebar .ctrls{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
-.titlebar select{font:inherit;font-size:11.5px;background:transparent;color:var(--brand);
-  border:1px solid var(--brand);border-radius:5px;padding:3px 7px;cursor:pointer;opacity:.85;
-  caret-color:transparent}
-.titlebar select:hover{opacity:1}
-.titlebar select:focus{opacity:1;outline:2px solid var(--brand);outline-offset:1px}
+/* ---- 標題列(56px 深紫 chrome) ---- */
+.titlebar{
+  grid-column:1/-1;grid-row:1;
+  background:linear-gradient(90deg,var(--chrome),var(--chrome-2));
+  border-bottom:1px solid var(--chrome-line);
+  color:var(--chrome-ink);
+  display:flex;align-items:center;flex-wrap:nowrap;gap:0;
+  padding:0 18px;font-size:13px;min-width:0}
+/* FedEx 負空間箭頭章(純 CSS,不動 DOM) */
+.titlebar #appTitle{
+  position:relative;display:inline-flex;align-items:center;gap:10px;
+  font:800 13px Inter,"Noto Sans TC",sans-serif;text-transform:uppercase;
+  letter-spacing:.14em;color:var(--chrome-ink);white-space:nowrap}
+.titlebar #appTitle::before{content:"";flex:none;width:26px;height:26px;
+  border-radius:8px;background:var(--grad-run)}
+.titlebar #appTitle::after{content:"";position:absolute;left:6px;top:50%;
+  transform:translateY(-50%);width:14px;height:12px;background:#fff;
+  clip-path:polygon(0 30%,55% 30%,55% 8%,100% 50%,55% 92%,55% 70%,0 70%)}
+.titlebar .devby{font-size:10px;font-weight:600;letter-spacing:.18em;
+  color:var(--chrome-mut);margin-left:20px;cursor:help;white-space:nowrap}
+@media(max-width:1350px){.titlebar .devby{display:none}}
+.titlebar .ctrls{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:nowrap}
+.titlebar select{
+  height:28px;background:var(--chrome-chip);border:1px solid var(--chrome-line);
+  color:var(--chrome-ink);border-radius:8px;padding:0 8px;font:inherit;
+  font-size:11.5px;cursor:pointer;caret-color:transparent}
+.titlebar select{backdrop-filter:blur(8px)}
+.titlebar select:hover{border-color:rgba(255,255,255,.28)}
+.titlebar select:focus{outline:none;box-shadow:0 0 0 2px rgba(255,177,94,.5)}
 .titlebar select option{color:#000;background:#fff}
 .bigclock{display:flex;flex-direction:column;align-items:flex-end;
-  margin-left:30px;line-height:1.05}
-.bigclock #clkBig{font-size:30px;font-weight:700;letter-spacing:1px;color:#fff}
-.bigclock #clkSub{font-size:10.5px;opacity:.7;margin-top:3px;letter-spacing:.3px}
+  margin-left:26px;line-height:1.05;flex:none}
+.bigclock #clkBig{font-size:26px;font-weight:700;letter-spacing:.02em;
+  color:var(--chrome-ink);padding-bottom:3px;
+  background:linear-gradient(270deg,var(--tab),rgba(255,98,0,0) 70%) bottom/100% 2px no-repeat}
+.bigclock #clkSub{font-size:10.5px;font-weight:500;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--chrome-mut);margin-top:3px}
 
-/* ---- 分頁條:換行不橫捲,視窗窄的時候分頁不會被切掉 ---- */
-.tabstrip{background:var(--tab);border-bottom:2.5px solid var(--accent);
-  display:flex;flex-wrap:wrap;gap:4px 2px;padding:6px 10px 0;
-  flex:none;min-height:42px;align-items:flex-end}
-.tabstrip button{font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;
-  background:rgba(255,255,255,.5);color:var(--tabink);
-  border:1.5px solid var(--accent);border-bottom:none;
-  border-radius:8px 8px 0 0;padding:7px 15px 6px;white-space:nowrap;
-  filter:url(#wobble-soft)}
-.tabstrip button:hover{background:rgba(255,255,255,.78)}
-.tabstrip button[aria-selected=true]{background:var(--panel);padding-bottom:8px;margin-bottom:-2px}
-.tabstrip button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+/* ---- 導航欄(.tabstrip 重新排成左側 rail,五顆按鈕原封不動) ---- */
+.tabstrip{
+  grid-row:2;grid-column:1;min-height:0;
+  background:var(--chrome);border-right:1px solid var(--chrome-line);
+  display:flex;flex-direction:column;flex-wrap:nowrap;gap:4px;
+  padding:16px 12px;align-items:stretch;counter-reset:step;overflow-y:auto}
+.tabstrip button{
+  display:flex;align-items:center;gap:10px;width:100%;height:40px;
+  padding:0 12px;border:none;border-radius:10px;background:transparent;
+  color:var(--chrome-mut);cursor:pointer;
+  font:600 13px Inter,"Noto Sans TC","Microsoft JhengHei UI",sans-serif;
+  text-align:left;white-space:nowrap;filter:none;counter-increment:step;margin:0;
+  transition:background .12s,color .12s}
+.tabstrip button::before{content:"";width:18px;height:18px;flex:none;
+  background:currentColor;
+  -webkit-mask:var(--i) center/contain no-repeat;mask:var(--i) center/contain no-repeat}
+.tabstrip button[data-p=files]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 15v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4M3 15h5l2 3h4l2-3h5M12 3v8m0 0 3-3m-3 3-3-3'/%3E%3C/svg%3E")}
+.tabstrip button[data-p=rules]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6h8M16 6h4M4 12h3M11 12h9M4 18h11M19 18h1'/%3E%3Ccircle cx='14' cy='6' r='2'/%3E%3Ccircle cx='9' cy='12' r='2'/%3E%3Ccircle cx='17' cy='18' r='2'/%3E%3C/svg%3E")}
+.tabstrip button[data-p=fuel]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3s6.5 7.2 6.5 11.2a6.5 6.5 0 0 1-13 0C5.5 10.2 12 3 12 3z'/%3E%3C/svg%3E")}
+.tabstrip button[data-p=base]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M3 9h18M3 15h18M9 3v18M15 3v18'/%3E%3C/svg%3E")}
+.tabstrip button[data-p=sur]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2 2 12l8 8L20 10V2z'/%3E%3Ccircle cx='15' cy='7' r='1.5'/%3E%3C/svg%3E")}
+.tabstrip button[data-p=run]{--i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m10 8 6 4-6 4z'/%3E%3C/svg%3E")}
+/* 運單步驟編號 */
+.tabstrip button::after{content:counter(step,decimal-leading-zero);
+  margin-left:auto;font:600 10px "JetBrains Mono",Consolas,monospace;
+  letter-spacing:.08em;color:var(--chrome-mut);opacity:1}
+.tabstrip button:hover{background:rgba(255,255,255,.07);color:var(--chrome-ink)}
+.tabstrip button[aria-selected=true]{
+  background:linear-gradient(90deg,rgba(255,98,0,.16),rgba(255,98,0,0) 75%);
+  color:#fff;box-shadow:inset 3px 0 0 var(--tab);
+  padding-bottom:0;margin-bottom:0}
+.tabstrip button[aria-selected=true]::after{color:var(--brand);opacity:1}
+.tabstrip button:focus-visible{outline:none;box-shadow:var(--ring)}
+/* 窄視窗:圖示欄模式,留寬度給 150×9 大表 */
+@media(max-width:1599px){
+  .tabstrip{padding:16px 8px}
+  .tabstrip button{flex-direction:column;justify-content:center;height:56px;
+    gap:4px;padding:0 4px;font-size:10px;letter-spacing:0;text-align:center;
+    white-space:normal;line-height:1.15}
+  .tabstrip button::after{display:none}
+}
 
-main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:12px 10px 0}
+main{grid-row:2;grid-column:2;min-height:0;overflow-y:auto;overflow-x:hidden;
+  padding:24px 28px 12px;scrollbar-width:thin;
+  scrollbar-color:color-mix(in srgb,var(--accent) 22%,var(--line)) transparent}
 .page{display:none;max-width:none;margin:0;min-width:0}
 .page.on{display:block}
-.lf{padding:14px 16px;margin-bottom:14px;background:var(--stripe)}
-.lf>h3{margin:-4px 0 10px;font-size:14.5px;color:var(--head);
-  display:flex;align-items:center;gap:7px}
-.lf>h3 .em{font-size:16px}
+
+/* ---- 卡片系統:elev-1 卡片、elev-2 浮層、elev-3 視窗 —— 不做 hover 浮起 ---- */
+.lf{background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--rad);box-shadow:var(--elev-1);
+  padding:20px 22px;margin-bottom:20px}
+.lf>h3{display:flex;align-items:center;gap:10px;margin:0 0 8px;
+  font:700 15px Inter,"Noto Sans TC",sans-serif;color:var(--head)}
+.lf>h3 .em{display:grid;place-items:center;width:30px;height:30px;
+  font-size:15px;border-radius:9px;
+  background:color-mix(in srgb,var(--accent) 8%,var(--panel));
+  border:1px solid color-mix(in srgb,var(--accent) 14%,transparent)}
+.lf>h3 .em{filter:grayscale(1) sepia(.9) hue-rotate(225deg) saturate(3) brightness(.95)}
 .hint{color:var(--muted);font-size:12.5px;margin:0 0 10px;line-height:1.6}
 .subhd{font-weight:600;color:var(--head);font-size:13px;margin:14px 0 8px;
   border-bottom:1.5px solid var(--line);padding-bottom:4px}
 .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.inlab{font-size:12.5px;color:var(--head);font-weight:600;margin-left:12px}
-.note{margin:10px 0 0;font-size:12.5px;line-height:1.6;color:var(--muted)}
-.note.warn{color:var(--neg)}
+.inlab{font:600 11px Inter,"Noto Sans TC",sans-serif;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--head);margin-left:12px}
+.note{margin:10px 0 0;font-size:12.5px;line-height:1.6;color:var(--muted);
+  border-left:3px solid color-mix(in srgb,var(--accent) 30%,transparent);
+  padding-left:12px}
+.note.warn{color:var(--neg);border-left-color:color-mix(in srgb,var(--neg) 45%,transparent)}
 .note b{color:var(--ink)}
 
-/* 按鈕:一般 .act 淺紫底、深紫字;主要動作 .run 用 FedEx 橘實心;
-   .alt 用桌面版的玫紫;.ghost 空心;刪除走 --neg。 */
-button.act{font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;
-  border:2px solid var(--head);border-radius:7px;padding:7px 17px;
-  background:var(--btn);color:var(--text);letter-spacing:.2px}
-button.act:hover:not(:disabled){background:var(--head);color:#fff}
-button.act.run{background:var(--run);border-color:var(--run);color:#fff}
-button.act.run:hover:not(:disabled){background:var(--run-hover);border-color:var(--run-hover);color:#fff}
-button.act.alt{background:var(--run2);border-color:var(--run2);color:#fff}
-button.act.alt:hover:not(:disabled){background:var(--run2-hover);color:#fff}
-button.act.ghost{background:transparent;color:var(--head)}
-button.act.ghost:hover:not(:disabled){background:var(--select);color:var(--text)}
-button.act.sm{font-size:12px;padding:4px 11px;border-width:1.5px;border-radius:6px;letter-spacing:0}
-button.act.danger{color:var(--neg);border-color:var(--neg);background:transparent}
+/* ---- 按鈕 ---- */
+button.act,a.act{
+  text-decoration:none;height:34px;padding:0 16px;cursor:pointer;
+  border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
+  border-radius:10px;background:var(--btn);color:var(--head);
+  font:600 13px Inter,"Noto Sans TC","Microsoft JhengHei UI",sans-serif;
+  letter-spacing:.01em;display:inline-flex;align-items:center;gap:6px;
+  transition:transform .08s,box-shadow .12s,background .12s,border-color .12s,color .12s}
+button.act:hover:not(:disabled),a.act:hover{box-shadow:var(--elev-1);
+  background:color-mix(in srgb,var(--accent) 14%,var(--panel))}
+button.act.run{background:var(--grad-run);border:none;color:#fff;
+  height:40px;padding:0 22px;font-weight:700;text-shadow:0 1px 1px rgba(120,30,0,.35);
+  box-shadow:0 6px 16px color-mix(in srgb,var(--run) 35%,transparent),
+             inset 0 1px 0 rgba(255,255,255,.25)}
+button.act.run:hover:not(:disabled){filter:brightness(1.06);
+  background:var(--grad-run);
+  box-shadow:0 6px 16px color-mix(in srgb,var(--run) 35%,transparent),
+             inset 0 1px 0 rgba(255,255,255,.25)}
+button.act.alt,a.act.alt{background:linear-gradient(180deg,color-mix(in srgb,var(--run2) 92%,#fff),var(--run2));
+  border:none;color:#fff}
+button.act.alt:hover:not(:disabled),a.act.alt:hover{filter:brightness(1.05);color:#fff;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--run2) 92%,#fff),var(--run2))}
+button.act.ghost{background:transparent;border:1px solid var(--line);color:var(--head)}
+button.act.ghost:hover:not(:disabled){border-color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 6%,var(--panel))}
+button.act.danger{background:transparent;color:var(--neg);
+  border-color:color-mix(in srgb,var(--neg) 45%,transparent)}
 button.act.danger:hover:not(:disabled){background:var(--neg);color:#fff}
-button.act:disabled{opacity:.6;cursor:not-allowed;filter:saturate(.55)}
-button.act:focus-visible{outline:3px solid var(--run2);outline-offset:2px}
+button.act.sm{height:28px;padding:0 11px;font-size:12px;border-radius:8px}
+button.act:disabled{opacity:.45;transform:none;box-shadow:none;cursor:not-allowed}
+@media(prefers-reduced-motion:no-preference){
+  button.act:hover:not(:disabled){transform:translateY(-1px)}
+  button.act.run:active:not(:disabled){transform:translateY(1px);
+    box-shadow:0 2px 6px color-mix(in srgb,var(--run) 30%,transparent)}
+}
 
 /* 檔案輸入框不用 display:none:部分 Safari / WebView 對 display:none 的
    input 不肯開檔案選擇器。改成有版面但看不見。 */
 input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
   border:0;opacity:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-.readyrow{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px}
-.rdy{display:flex;align-items:center;gap:8px;font-size:12.5px;min-width:0}
-.rdy .k{color:var(--head);font-weight:600;white-space:nowrap}
-.pill{border:1.5px solid var(--line);border-radius:999px;padding:1px 9px;
-  font-size:11.5px;font-weight:600;white-space:nowrap}
-.pill.ok{color:var(--run2);border-color:var(--run2)}
-.pill.no{color:var(--neg);border-color:var(--neg)}
-.savenote{font-size:12.5px;color:var(--run2)}
+/* ---- 就緒狀態排(匯入頁) ---- */
+.readyrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.rdy{display:flex;align-items:center;gap:8px;font-size:12.5px;min-width:0;
+  padding:6px 12px;border-radius:10px;background:var(--stripe);
+  border:1px solid var(--line)}
+.rdy .k{font:600 11px Inter,"Noto Sans TC",sans-serif;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--head);white-space:nowrap}
+.pill{border:none;border-radius:999px;padding:3px 10px 3px 8px;
+  font-size:11.5px;font-weight:600;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:6px}
+.pill::before{content:"";width:7px;height:7px;border-radius:99px;background:currentColor}
+.pill.ok{color:color-mix(in srgb,var(--ok) 85%,black);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.pill.no{color:var(--neg);background:color-mix(in srgb,var(--neg) 10%,transparent)}
+.savenote{font-size:12.5px;color:var(--ok)}
 .savenote.bad{color:var(--neg)}
 
 .grid3{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center}
-.grid3 label{color:var(--head);font-weight:600;font-size:13.5px;white-space:nowrap}
-.grid3 input[readonly]{font:inherit;font-size:12.5px;padding:6px 10px;
-  border:1.5px solid var(--line);border-radius:6px;background:var(--panel);
-  color:var(--muted);min-width:0}
+.grid3 label{color:var(--head);font:600 11px Inter,"Noto Sans TC",sans-serif;
+  text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
+.grid3 input[readonly]{font:500 12.5px "JetBrains Mono",Consolas,monospace;
+  height:40px;padding:0 12px;min-width:0;color:var(--muted);
+  border:1.5px dashed color-mix(in srgb,var(--accent) 30%,var(--line));
+  border-radius:10px;background:var(--stripe)}
 @media(max-width:640px){.grid3{grid-template-columns:1fr}}
 
-input.cell{font:inherit;font-size:12.5px;width:74px;text-align:right;
-  padding:4px 7px;border:1.4px solid var(--line);border-radius:5px;
+/* ---- 輸入格 ---- */
+input.cell{height:32px;width:74px;padding:0 9px;text-align:right;
+  border:1px solid var(--line);border-radius:8px;
   background:var(--panel);color:var(--text);
-  font-family:Consolas,"Cascadia Mono",monospace}
-input.cell:focus{outline:2px solid var(--run2);outline-offset:1px}
+  font:600 12.5px "JetBrains Mono",Consolas,monospace;
+  transition:border-color .12s,box-shadow .12s,background .12s}
+input.cell:hover{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+input.cell:focus{outline:none;border-color:var(--accent-2);box-shadow:var(--ring)}
 input.cell:disabled{opacity:.6;background:transparent;border-style:dashed}
-input.cell.left{text-align:left;font-family:inherit}
-input[type=date].cell{width:150px;text-align:left;font-family:inherit}
+input.cell.left{text-align:left}
+input[type=date].cell{width:150px;text-align:left}
 
-/* 頁面內的下拉:全站同一個長相,不用作業系統原生樣式。 */
+/* ---- 下拉(保留雙三角箭頭技法,主題自動跟色) ---- */
 select:not(.titlebar select){
   appearance:none;-webkit-appearance:none;-moz-appearance:none;
-  font:inherit;font-size:13px;font-weight:600;color:var(--text);
-  background-color:var(--panel);
+  font:600 13px Inter,"Noto Sans TC","Microsoft JhengHei UI",sans-serif;
+  color:var(--text);background-color:var(--panel);
   background-image:linear-gradient(45deg,transparent 50%,var(--head) 50%),
                    linear-gradient(135deg,var(--head) 50%,transparent 50%);
   background-position:right 16px center,right 11px center;
   background-size:5px 5px,5px 5px;background-repeat:no-repeat;
-  border:2px solid var(--line);border-radius:11px;
-  padding:6px 30px 6px 12px;cursor:pointer;max-width:100%;
+  border:1px solid var(--line);border-radius:10px;
+  padding:7px 32px 7px 12px;cursor:pointer;max-width:100%;
   transition:background-color .14s,border-color .14s,box-shadow .14s}
-select:not(.titlebar select):hover{background-color:var(--select);border-color:var(--head)}
-select:not(.titlebar select):focus{outline:none;border-color:var(--run2);
-  box-shadow:0 0 0 3px color-mix(in srgb,var(--run2) 25%,transparent)}
-select:not(.titlebar select):focus-visible{outline:3px solid var(--run2);outline-offset:2px}
+select:not(.titlebar select):hover{border-color:var(--accent)}
+select:not(.titlebar select):focus{outline:none;border-color:var(--accent-2);
+  box-shadow:var(--ring)}
 select:not(.titlebar select) option{color:#000;background:#fff;font-weight:400}
 select{caret-color:transparent}
+#baseSvc,#carrierSel{font-size:15px;font-weight:700;color:var(--head);
+  box-shadow:var(--elev-1)}
 
-/* 勾選框自己畫,勾起來用主題色。 */
-label.chk{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;cursor:pointer;user-select:none}
+/* ---- 勾選框 ---- */
+label.chk{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;
+  cursor:pointer;user-select:none}
 label.chk input[type="checkbox"]{
   appearance:none;-webkit-appearance:none;flex:none;margin:0;
-  width:15px;height:15px;border:2px solid var(--line);border-radius:5px;
+  width:16px;height:16px;border:1.5px solid var(--line);border-radius:5px;
   background:var(--panel);cursor:pointer;position:relative;
   transition:background .12s,border-color .12s}
-label.chk input[type="checkbox"]:hover{border-color:var(--head)}
-label.chk input[type="checkbox"]:checked{background:var(--head);border-color:var(--head)}
+label.chk input[type="checkbox"]:hover{border-color:var(--accent)}
+label.chk input[type="checkbox"]:checked{background:var(--grad-brand);
+  border-color:var(--accent-2)}
 label.chk input[type="checkbox"]:checked::after{
-  content:"";position:absolute;left:3px;top:0;width:4px;height:8px;
+  content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;
   border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(42deg)}
-label.chk input[type="checkbox"]:focus-visible{outline:3px solid var(--run2);outline-offset:2px}
+label.chk input[type="checkbox"]:focus-visible{outline:none;box-shadow:var(--ring)}
 
-/* 統計卡 */
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.tile{padding:10px 12px}
-.tile .k{font-size:11.5px;color:var(--muted)}
-.tile .v{font-size:20px;font-weight:700;color:var(--head);
-  font-family:Consolas,"Cascadia Mono",monospace}
-.tile .v.neg{color:var(--neg)}
+/* ---- 統計卡 ---- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.tile{position:relative;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;padding:16px 18px 14px;box-shadow:var(--elev-1);overflow:hidden}
+.tile::after{content:"";position:absolute;inset:0 auto auto 0;width:100%;height:3px;
+  background:var(--grad-hair)}
+.tile .k{font:600 11px Inter,"Noto Sans TC",sans-serif;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.tile .v{font-size:26px;font-weight:700;color:var(--head)}
+@supports(-webkit-background-clip:text){
+  .tile .v{background:var(--grad-text);-webkit-background-clip:text;
+    background-clip:text;-webkit-text-fill-color:transparent}
+}
+.tile .v.neg{color:var(--neg);background:none;-webkit-text-fill-color:currentColor}
 
-/* 表格:深紫標題列反白字、斑馬紋、滑過亮起 */
-.tablewrap{overflow:auto;max-height:60vh;border-radius:6px;max-width:100%}
-table{border-collapse:collapse;width:100%;font-size:13px;background:var(--stripe)}
-th{background:var(--accent);color:var(--thfg);text-align:left;padding:7px 9px;
-  font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:1}
-td{padding:6px 9px;border-bottom:1px solid color-mix(in srgb,var(--line) 45%,transparent);
-  white-space:nowrap}
-tbody tr:nth-child(even){background:var(--stripe)}
-tbody tr:hover{background:color-mix(in srgb,var(--select) 45%,transparent)}
+/* ---- 表格:黏性淺紫表頭 + 滑過染色(斑馬紋退役,九欄數字配斑馬只剩噪音) ---- */
+.tablewrap{overflow:auto;max-height:60vh;border-radius:10px;max-width:100%;
+  contain:layout paint;scrollbar-width:thin;
+  scrollbar-color:color-mix(in srgb,var(--accent) 22%,var(--line)) transparent}
+.tablewrap::-webkit-scrollbar,main::-webkit-scrollbar{width:10px;height:10px}
+.tablewrap::-webkit-scrollbar-track,main::-webkit-scrollbar-track{background:transparent}
+.tablewrap::-webkit-scrollbar-thumb,main::-webkit-scrollbar-thumb{
+  background:color-mix(in srgb,var(--accent) 22%,var(--line));
+  border-radius:99px;border:2px solid var(--panel)}
+.tablewrap::-webkit-scrollbar-thumb:hover,main::-webkit-scrollbar-thumb:hover{
+  background:color-mix(in srgb,var(--accent) 40%,var(--line))}
+table{border-collapse:collapse;width:100%;font-size:13px;background:var(--panel)}
+th{background:var(--thead);color:var(--thfg);text-align:left;padding:9px 10px;
+  font:700 11px Inter,"Noto Sans TC",sans-serif;text-transform:uppercase;
+  letter-spacing:.07em;white-space:nowrap;position:sticky;top:0;z-index:1;
+  box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--accent) 25%,transparent)}
+td{padding:7px 10px;white-space:nowrap;
+  border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
 td.num,th.num{text-align:right}
+td.num{font-size:12.5px}
 td.neg{color:var(--neg)}
-.empty{color:var(--muted);text-align:center;padding:24px 10px;font-size:13px}
+.empty{color:var(--muted);font-style:italic;text-align:center;padding:24px 10px;font-size:13px}
 
-/* Zone 卡片編輯器(照 UPS 附加費的直欄網格) */
-.zonecols{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:10px}
-.zonecol{padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;
-  background:var(--panel);text-align:center}
-.zonecol .zt{font-size:12px;font-weight:700;color:var(--head);margin-bottom:7px;
-  letter-spacing:.06em}
-.zonecol input.cell{width:86px;font-size:14px;font-weight:600;text-align:center;padding:6px 7px}
-.zonecol:nth-child(even){background:color-mix(in srgb,var(--select) 30%,var(--panel))}
-.tplgrp{display:inline-flex;gap:8px;align-items:center;
-  border:1.6px dashed var(--line);border-radius:var(--rad);padding:4px 8px}
+/* ---- Zone power-up 卡片 ---- */
+.zonecols{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:12px}
+.zonecol{position:relative;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:14px 10px 12px;box-shadow:var(--elev-1);
+  text-align:center;overflow:hidden;
+  transition:border-color .12s,box-shadow .12s}
+.zonecol::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;
+  background:var(--grad-brand);opacity:.9}
+.zonecol .zt{font:700 11px Inter,sans-serif;letter-spacing:.07em;text-indent:.07em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.zonecol input.cell{width:100%;height:auto;border:none;
+  border-bottom:1.5px solid color-mix(in srgb,var(--accent) 28%,var(--line));border-radius:0;background:transparent;
+  text-align:center;font:700 17px "JetBrains Mono",Consolas,monospace;
+  color:var(--head);padding:4px 2px}
+.zonecol input.cell:focus{outline:none;border-bottom-color:var(--tab);
+  box-shadow:0 1.5px 0 var(--tab)}
+.zonecol::after{content:"USD";display:block;margin-top:6px;
+  font:600 9px Inter,sans-serif;letter-spacing:.24em;text-indent:.24em;color:var(--muted)}
+.zonecol:has(input:focus){
+  border-color:color-mix(in srgb,var(--tab) 45%,var(--line));box-shadow:var(--elev-2)}
+/* Zone 17 是離群值:橘色髮絲頂條 + 燒橙標籤 */
+.zonecol:last-child::before{background:var(--grad-brand)}
+.zonecol:last-child .zt{color:var(--head)}
+.tplgrp{display:inline-flex;gap:0;align-items:center;border:none;padding:0}
+.tplgrp>button.act{border-radius:10px 0 0 10px}
+.tplgrp>button.act+button.act{border-radius:0 10px 10px 0;margin-left:-1px}
 
-/* 附加費 / Demand 子分頁 */
-.subtabs{display:flex;gap:3px;margin:2px 0 0;padding:0 4px;
-  border-bottom:2px solid var(--accent);flex-wrap:wrap}
-.subtabs button{font:inherit;font-size:13px;cursor:pointer;padding:7px 16px 6px;
-  border:2px solid var(--accent);border-bottom:none;border-radius:8px 8px 0 0;
-  background:transparent;color:var(--head);margin-bottom:-2px;opacity:.62}
-.subtabs button:hover{opacity:.85;background:var(--select)}
-.subtabs button[aria-selected=true]{background:var(--tab);color:#fff;font-weight:600;opacity:1;padding-bottom:8px}
-.subpanel{border:2px solid var(--accent);border-top:none;border-radius:0 0 9px 9px;
-  padding:12px 14px;background:var(--panel)}
+/* ---- 子分頁:分段控制(#surTabs 與 #demTabs 共用) ---- */
+.subtabs{display:inline-flex;gap:2px;margin:2px 0 0;flex-wrap:wrap;
+  background:color-mix(in srgb,var(--accent) 7%,var(--panel));
+  border:1px solid var(--line);border-radius:12px;padding:3px}
+.subtabs button{font:600 13px Inter,"Noto Sans TC",sans-serif;cursor:pointer;
+  padding:7px 16px;border:none;border-radius:9px;background:transparent;
+  color:var(--muted);margin-bottom:0;opacity:1;transition:background .12s,color .12s}
+.subtabs button:hover{background:color-mix(in srgb,var(--panel) 65%,transparent);
+  color:var(--head)}
+.subtabs button[aria-selected=true]{background:color-mix(in srgb,#fff 10%,var(--panel));color:var(--head);
+  font-weight:700;padding-bottom:7px;
+  box-shadow:0 1px 3px rgb(var(--shadow-ink)/.14)}
+.subpanel{border:none;border-radius:0;padding:18px 2px 0;background:transparent}
 .subpanel .hint{margin:0 0 10px}
 .subpane{display:none}
 .subpane.on{display:block}
+#demTabs{margin-top:4px}
 
-details.dettbl{margin-top:12px}
-details.dettbl summary{cursor:pointer;font-size:12.5px;color:var(--muted);font-weight:600}
+/* ---- 明細折疊 ---- */
+details.dettbl{margin-top:14px}
+details.dettbl summary{list-style:none;display:flex;gap:8px;align-items:center;
+  font:600 12.5px Inter,"Noto Sans TC",sans-serif;color:var(--muted);
+  cursor:pointer;padding:8px 0}
+details.dettbl summary::-webkit-details-marker{display:none}
+details.dettbl summary::before{content:"";width:14px;height:14px;flex:none;
+  background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat;
+  transition:transform .15s}
+details.dettbl[open] summary::before{transform:rotate(90deg)}
 details.dettbl summary:hover{color:var(--head)}
-details.dettbl .tablewrap{margin-top:8px;max-height:36vh}
+details.dettbl .tablewrap{margin-top:8px;max-height:36vh;border:1px solid var(--line);max-width:860px}
+/* 明細表的 Zone / Fee 兩欄照全站的數字紀律:右對齊等寬斜零 */
+details.dettbl th:nth-last-child(-n+2),
+details.dettbl td:nth-last-child(-n+2):not(.empty){text-align:right}
+details.dettbl td:nth-last-child(-n+2):not(.empty){
+  font-family:"JetBrains Mono","Cascadia Mono",Consolas,monospace;
+  font-size:12.5px;font-weight:600;
+  font-variant-numeric:tabular-nums;font-feature-settings:"zero"}
 
-/* 基本費率大表:150 列輸入格 */
-#tBase input.cell{width:70px}
-#tBase td,#tBase th{padding-top:4px;padding-bottom:4px}
-#tBase td:first-child{font-family:Consolas,monospace;font-weight:700;color:var(--head);
-  text-align:center;width:64px}
+/* =====================================================================
+   第 1 頁 匯入與設定:帳單英雄卡橫跨全寬,設定檔與新手上路並排
+   ===================================================================== */
+#p-files{position:relative}
+#p-files.on{display:grid;grid-template-columns:1.35fr 1fr;gap:20px}
+#p-files.on>.lf{margin-bottom:0}
+.filesCard{grid-column:1/-1;padding-right:250px;
+  background-image:radial-gradient(color-mix(in srgb,var(--accent) 7%,transparent) 1px,transparent 1px);
+  background-size:18px 18px}
+@media(max-width:1100px){#p-files.on{grid-template-columns:1fr}}
+@media(max-width:900px){.filesCard{padding-right:22px}}
+.clockcard{position:absolute;top:0;right:6px;padding:0;z-index:5;
+  background:transparent;border:none;pointer-events:none}
+.clockbox{display:flex;gap:12px;align-items:flex-start;padding:10px;
+  border-radius:14px;background:color-mix(in srgb,var(--panel) 72%,transparent);
+  border:1px solid var(--line);box-shadow:var(--elev-1)}
+@media(max-width:820px){.clockcard{position:static;margin-bottom:12px;pointer-events:auto}}
+
+/* =====================================================================
+   第 2 頁 計價規則:三張卡自動排版,門檻做成晶片,關掉的門檻自動變虛
+   ===================================================================== */
+#p-rules.on{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));
+  gap:20px;align-items:start}
+#p-rules .lf{margin-bottom:0}
+#p-rules .row:has(>.row){display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+@media(min-width:1520px){#p-rules.on{grid-template-columns:.62fr 1.05fr 1.33fr}}
+#p-rules .row>.row{justify-content:space-between;background:var(--stripe);border:1px solid var(--line);
+  border-radius:10px;padding:8px 12px;gap:10px;margin:0}
+#p-rules .row>.row:has(input[type=checkbox]:not(:checked)){opacity:.7;border-style:dashed}
+#p-rules .row>.row input.cell{height:auto;border:none;border-radius:0;
+  border-bottom:1.5px solid var(--line);background:transparent;
+  font:600 13px "JetBrains Mono",Consolas,monospace;text-align:right;padding:2px 4px}
+#p-rules .row>.row input.cell:focus{outline:none;box-shadow:0 1.5px 0 var(--accent-2);
+  border-bottom-color:var(--accent-2)}
+
+/* =====================================================================
+   燃油附加費頁:大字費率儀表 + 預設值 + 官方查詢 + 快速試算
+   ===================================================================== */
+#p-fuel.on{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;align-items:stretch}
+#p-fuel .lf{margin-bottom:0}
+#fuelHeroCard{grid-row:span 2;display:flex;flex-direction:column;justify-content:center}
+@media(max-width:1100px){#p-fuel.on{grid-template-columns:1fr}#fuelHeroCard{grid-row:auto}}
+.fuelbig{display:flex;align-items:baseline;gap:6px;margin:6px 0 4px}
+.fuelbig #fuelBig{font:700 92px "JetBrains Mono",Consolas,monospace;
+  font-variant-numeric:tabular-nums;font-feature-settings:"zero";
+  color:var(--head);line-height:1}
+@supports(-webkit-background-clip:text){
+  .fuelbig #fuelBig{background:var(--grad-text);-webkit-background-clip:text;
+    background-clip:text;-webkit-text-fill-color:transparent}}
+.fuelbig .pct{font:700 30px "JetBrains Mono",Consolas,monospace;color:var(--brand-ink)}
+.fpresets{display:inline-flex;gap:2px;
+  background:color-mix(in srgb,var(--accent) 7%,var(--panel));
+  border:1px solid var(--line);border-radius:12px;padding:3px}
+.fpresets button{font:600 13px "JetBrains Mono",Consolas,monospace;cursor:pointer;
+  border:none;border-radius:9px;padding:7px 14px;background:transparent;
+  color:var(--muted);transition:background .12s,color .12s}
+.fpresets button:hover{background:color-mix(in srgb,var(--panel) 65%,transparent);
+  color:var(--head)}
+.fpresets button.on{background:var(--grad-brand);color:#fff;font-weight:700}
+.fcout{display:inline-flex;align-items:baseline;gap:8px;padding:8px 14px;
+  border-radius:10px;background:var(--stripe);border:1px solid var(--line)}
+.fcout span{font:600 11px Inter,"Noto Sans TC",sans-serif;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--muted)}
+.fcout b{font:700 16px "JetBrains Mono",Consolas,monospace;color:var(--head)}
+
+/* =====================================================================
+   第 3 頁 基本費率:表格接管整頁高度,格子就是輸入框,聚焦有餘燼光
+   ===================================================================== */
+#p-base.on{display:flex;flex-direction:column;height:100%}
+#p-base .lf{display:flex;flex-direction:column;flex:1;min-height:0;
+  margin-bottom:0;padding:0;overflow:hidden}
+#p-base .lf>h3{margin:0;padding:16px 22px 0}
+#p-base .lf>.row{margin:0 !important;padding:14px 22px;
+  border-bottom:1px solid var(--line);background:var(--panel)}
+#p-base .hint{margin:0;padding:10px 22px}
+#p-base .lf>.row .act.sm{height:34px;padding:0 16px;font-size:13px;border-radius:10px}
+#p-base .tablewrap{flex:1 1 auto;min-height:0;max-height:none !important;
+  border-radius:0}
+#baseCount{margin:0;padding:10px 22px;border-top:1px solid var(--line);
+  border-left:none;font:500 11.5px "JetBrains Mono",Consolas,monospace;
+  color:var(--muted)}
+#tBase td,#tBase th{padding-top:3px;padding-bottom:3px}
+#tBase th.num{padding-right:19px}
+#tBase input.cell{width:100%;min-width:72px;height:auto;
+  border:1px solid transparent;background:transparent;border-radius:6px;
+  padding:5px 8px;font:600 12.5px "JetBrains Mono",Consolas,monospace}
+#tBase tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
+#tBase input.cell:hover{border-color:var(--line);background:var(--panel)}
+#tBase input.cell:focus{outline:none;background:var(--panel);
+  border-color:var(--accent-2);
+  box-shadow:var(--ring),0 0 12px color-mix(in srgb,var(--tab) 35%,transparent),var(--elev-1)}
+#tBase tbody tr:focus-within{background:color-mix(in srgb,var(--accent) 6%,var(--panel))}
+/* 冷凍的重量欄:黏在左邊,任何水平捲動下都看得到 */
+#tBase td:first-child,#tBase th:first-child{position:sticky;left:0;z-index:2;
+  background:var(--thead);color:var(--head);box-shadow:1px 0 0 var(--line);
+  text-align:center;width:64px;font-weight:700}
+#tBase th:first-child{z-index:3}
+#tBase tbody tr:hover td:first-child{
+  background:color-mix(in srgb,var(--accent) 8%,var(--thead))}
+#tBase tbody tr:focus-within td:first-child{
+  background:color-mix(in srgb,var(--accent) 10%,var(--thead))}
+/* 每 5 磅一道刻度線,和滑過染色互不干擾 */
+#tBase tbody tr:nth-child(5n) td{
+  border-bottom:1px solid color-mix(in srgb,var(--accent) 16%,transparent)}
 
 /* 剛剛被填進去的欄位閃一下,不然值換了也看不出來。 */
-@keyframes justset{0%{background:var(--run2);color:#fff}100%{background:transparent;color:inherit}}
+@keyframes justset{0%{background:var(--accent-2);color:#fff}100%{background:transparent;color:inherit}}
 .justset{animation:justset 1.1s ease-out}
 @media (prefers-reduced-motion:reduce){
-  .justset{animation:none;outline:3px solid var(--run2);outline-offset:1px}}
+  .justset{animation:none;outline:3px solid var(--accent-2);outline-offset:1px}}
 
-/* 存檔/完成提示:從畫面上方落下,擋不掉。 */
-.toast{position:fixed;z-index:99;left:50%;top:18px;transform:translateX(-50%);
-  max-width:min(520px,92vw);padding:12px 20px;border:2px solid var(--ink);
-  border-radius:10px;background:var(--panel);color:var(--ink);
-  font-size:14px;font-weight:700;box-shadow:0 8px 22px rgba(0,0,0,.22);
+/* =====================================================================
+   第 5 頁 重新計價:LED 狀態、琥珀警告、漸層數字統計卡、橘章總額欄
+   ===================================================================== */
+#bRun,#bRunTop{height:44px}
+#runStatus{font:600 12px "JetBrains Mono",Consolas,monospace;
+  display:inline-flex;align-items:center;gap:8px}
+#runStatus::before{content:"";width:7px;height:7px;border-radius:99px;
+  background:currentColor;box-shadow:0 0 6px currentColor;flex:none}
+#warnBox>*{background:color-mix(in srgb,var(--warn) 9%,var(--panel));
+  border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);
+  border-left:3px solid var(--warn);border-radius:10px;
+  padding:10px 14px;margin-top:10px;color:var(--warn)}
+#prevBox .tablewrap{border:1px solid var(--line);border-radius:10px}
+#tPrev td:last-child{font-weight:700;color:var(--head);
+  background:color-mix(in srgb,var(--run) 6%,var(--panel));
+  border-left:2px solid color-mix(in srgb,var(--run) 40%,transparent)}
+#tPrev th:last-child{border-left:2px solid color-mix(in srgb,var(--run) 40%,transparent)}
+#tPrev td.neg{color:var(--neg)}
+
+/* ---- 狀態列(32px chrome,狀態 LED) ---- */
+.statusbar{grid-column:1/-1;grid-row:3;
+  background:var(--chrome);border-top:1px solid var(--chrome-line);
+  color:var(--chrome-mut);font-size:11.5px;padding:0 14px;
+  display:flex;align-items:center;gap:14px}
+.statusbar .sp{flex:1 1 auto}
+.statusbar b{color:var(--brand);font-weight:700}
+#stStatus{display:inline-flex;align-items:center;gap:8px}
+#stStatus::before{content:"";width:7px;height:7px;border-radius:99px;
+  background:var(--ok);box-shadow:0 0 6px var(--ok);flex:none}
+#stCount,#stSave{font-size:11px}
+
+/* ---- Toast:chrome 玻璃,落在標題列下方 ---- */
+.toast{position:fixed;z-index:99;left:50%;top:calc(var(--titleh) + 14px);
+  transform:translateX(-50%);max-width:min(520px,92vw);
+  padding:12px 20px;border:1px solid var(--chrome-line);
+  border-left:3px solid var(--tab);border-radius:12px;
+  background:var(--chrome);color:var(--chrome-ink);
+  font:600 13.5px Inter,"Noto Sans TC",sans-serif;box-shadow:var(--elev-3);
   display:flex;align-items:center;gap:10px;cursor:pointer}
-.toast.bad{border-color:var(--neg);color:var(--neg)}
+.toast{background:color-mix(in srgb,var(--chrome) 94%,transparent);
+  backdrop-filter:blur(12px)}
+.toast.bad{border-left-color:var(--neg);
+  color:color-mix(in srgb,var(--neg) 40%,var(--chrome-ink))}
 .toast .tk{font-size:17px}
 @media (prefers-reduced-motion:no-preference){
   .toast{animation:toastin .18s ease-out}
   @keyframes toastin{from{opacity:0;transform:translate(-50%,-10px)}
                      to{opacity:1;transform:translate(-50%,0)}}}
 
-/* 訊息視窗(錯誤 / 確認) */
-.modalbg{display:none;position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.35);
+/* ---- 訊息視窗:淺色卡,elev-3 ---- */
+.modalbg{display:none;position:fixed;inset:0;z-index:40;
+  background:rgb(15 8 28/.55);backdrop-filter:blur(4px);
   align-items:flex-start;justify-content:center;padding:26px 16px;overflow:auto}
 .modalbg.on{display:flex}
-.modal{width:min(640px,100%);background:var(--stripe);position:relative;
-  display:flex;flex-direction:column;border-radius:8px;overflow:hidden;
-  box-shadow:0 14px 40px rgba(0,0,0,.3)}
-.modalhd{background:var(--accent);color:#fff;padding:8px 14px;
+.modal{width:min(640px,100%);background:var(--panel);position:relative;
+  display:flex;flex-direction:column;border:1px solid var(--line);
+  border-radius:var(--rad-lg);overflow:hidden;box-shadow:var(--elev-3)}
+.modalhd{background:transparent;color:var(--head);padding:16px 18px 10px;
   display:flex;align-items:center;justify-content:space-between;
-  font-size:14px;font-weight:600}
-.modalhd .mx{font:inherit;background:transparent;border:none;color:#fff;
+  font:700 15px Inter,"Noto Sans TC",sans-serif;
+  border-bottom:1px solid var(--line)}
+.modalhd .mx{font:inherit;background:transparent;border:none;color:var(--muted);
   cursor:pointer;font-size:15px;padding:0 4px}
-.modalbody{padding:14px 16px;overflow:auto;flex:1;white-space:pre-wrap;
+.modalhd .mx:hover{color:var(--neg)}
+.modalbody{padding:14px 18px;overflow:auto;flex:1;white-space:pre-wrap;
   font-size:13.5px;line-height:1.65;max-height:60vh}
-.modalft{padding:10px 16px;display:flex;justify-content:flex-end;gap:8px;
-  border-top:1.5px solid var(--line)}
+.modalft{padding:12px 18px;display:flex;justify-content:flex-end;gap:8px;
+  border-top:1px solid var(--line);background:var(--stripe)}
 
-/* 時鐘卡(匯入頁右上) */
-.clockcard{position:absolute;top:12px;right:22px;padding:0;z-index:5;
-  background:transparent;border:none;pointer-events:none}
-.clockbox{display:flex;gap:12px;align-items:flex-start}
-#p-files{position:relative}
-.filesCard{padding-right:250px}
-@media(max-width:900px){.filesCard{padding-right:16px}}
-@media(max-width:820px){.clockcard{position:static;margin-bottom:12px;pointer-events:auto}}
-
-.statusbar{background:var(--accent);color:#fff;padding:5px 14px;
-  font-size:12px;display:flex;gap:14px;align-items:center;flex:none}
-.statusbar .sp{flex:1 1 auto}
-.statusbar b{color:var(--brand);font-weight:700}
-
-:focus-visible{outline:2px solid var(--run2);outline-offset:2px}
+:focus-visible{outline:none;box-shadow:var(--ring)}
 html{caret-color:transparent}
 input,textarea,[contenteditable="true"]{caret-color:auto}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+input.cell,.fpresets button,.fcout b,#runStatus,#baseCount,.grid3 input[readonly]{
+  font-variant-numeric:tabular-nums;font-feature-settings:"zero"}
+#runSummary{font-size:12px;opacity:.75;border-left-color:var(--line)}
+@media(prefers-reduced-motion:reduce){
+  *{transition:none!important}
+  button.act{transform:none!important}
+}
 </style>
 </head>
 <body>
@@ -311,6 +630,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto}
 <div class="tabstrip" role="tablist" id="tabs">
   <button role="tab" aria-selected="true"  data-p="files" class="display" data-i18n="tab.files">匯入與設定</button>
   <button role="tab" aria-selected="false" data-p="rules" class="display" data-i18n="tab.rules">計價規則</button>
+  <button role="tab" aria-selected="false" data-p="fuel"  class="display" data-i18n="tab.fuel">燃油附加費</button>
   <button role="tab" aria-selected="false" data-p="base"  class="display" data-i18n="tab.base">基本費率</button>
   <button role="tab" aria-selected="false" data-p="sur"   class="display" data-i18n="tab.sur">附加費</button>
   <button role="tab" aria-selected="false" data-p="run"   class="display" data-i18n="tab.run">重新計價</button>
@@ -372,11 +692,8 @@ input,textarea,[contenteditable="true"]{caret-color:auto}
       <label class="inlab" style="margin-left:0" data-i18n="lb.dim">DIM 除數</label>
       <input class="cell num" id="inDim" list="dimList" style="width:86px">
       <datalist id="dimList"><option value="139"><option value="166"></datalist>
-      <label class="inlab" data-i18n="lb.fuel">燃油附加費 (%)</label>
-      <input class="cell num" id="inFuel" list="fuelList" style="width:86px">
-      <datalist id="fuelList"><option value="15.00"><option value="18.75"><option value="20.00"><option value="22.00"></datalist>
     </div>
-    <p class="note" data-i18n="hint.core">DIM 重 = 長×寬×高 ÷ DIM 除數(無條件進位)。燃油以「基本費率 + 全部附加費」為基數計算。</p>
+    <p class="note" data-i18n="hint.core">DIM 重 = 長×寬×高 ÷ DIM 除數(無條件進位)。燃油費率請到「燃油附加費」頁設定。</p>
   </div>
 
   <div class="lf sketch">
@@ -407,6 +724,36 @@ input,textarea,[contenteditable="true"]{caret-color:auto}
       <span class="row" style="gap:8px"><label class="inlab" style="margin-left:0" data-i18n="lb.ahsminwt">AHS 最低計費重 (lb)</label><input class="cell num" id="inAhsMinWt"></span>
     </div>
     <p class="note" data-i18n="hint.ahs">多種 AHS 同時命中時只收最高的一種;最低計費重只在「尺寸型」AHS 觸發時套用(重量型 / 包裝型不套)。Oversize 成立時 AHS 一律不收。</p>
+  </div>
+</section>
+
+<!-- ==================== 燃油附加費 ==================== -->
+<section class="page" id="p-fuel">
+  <div class="lf sketch" id="fuelHeroCard">
+    <h3 class="display"><span class="em">⛽</span><span data-i18n="hd.fuelhero">目前燃油附加費率</span></h3>
+    <div class="fuelbig"><span id="fuelBig">18.75</span><span class="pct">%</span></div>
+    <p class="hint" data-i18n="hint.fuelhero">燃油以「基本費率 + 全部附加費」為基數計算,套用在每一筆重新計價。</p>
+    <div class="row" style="margin-top:10px">
+      <div class="fpresets" id="fuelPresets"></div>
+      <label class="inlab" data-i18n="lb.fuelcustom">自訂費率 (%)</label>
+      <input class="cell num" id="inFuel" list="fuelList" style="width:96px">
+      <datalist id="fuelList"><option value="15.00"><option value="18.75"><option value="20.00"><option value="22.00"></datalist>
+    </div>
+  </div>
+  <div class="lf sketch">
+    <h3 class="display"><span class="em">🔎</span><span data-i18n="hd.fuellookup">查 FedEx 官方燃油費率</span></h3>
+    <p class="hint" data-i18n="hint.fuellookup">FedEx 每週依 EIA 燃料價格指數更新 Ground 燃油附加費。開官方頁面查最新百分比,回來填進左邊即可。</p>
+    <a class="act alt" id="bFuelLookup" href="https://www.fedex.com/en-us/shipping/fuel-surcharge.html"
+       target="_blank" rel="noopener" data-i18n="btn.fuellookup">開啟 FedEx 燃油附加費頁面</a>
+  </div>
+  <div class="lf sketch">
+    <h3 class="display"><span class="em">🧮</span><span data-i18n="hd.fuelcalc">快速試算</span></h3>
+    <p class="hint" data-i18n="hint.fuelcalc">輸入費用小計(基本費率+附加費),看目前費率會加多少燃油。</p>
+    <div class="row">
+      <span class="row" style="gap:8px"><label class="inlab" style="margin-left:0" data-i18n="lb.fcbase">費用小計</label><input class="cell num" id="fcBase" value="100.00" style="width:110px"></span>
+      <span class="fcout"><span data-i18n="lb.fcfee">燃油</span><b id="fcFee">$18.75</b></span>
+      <span class="fcout"><span data-i18n="lb.fctotal">合計</span><b id="fcTotal">$118.75</b></span>
+    </div>
   </div>
 </section>
 
@@ -708,8 +1055,23 @@ const I18N={
  "hd.core":["核心參數","Core Calculations"],
  "lb.dim":["DIM 除數","DIM factor"],
  "lb.fuel":["燃油附加費 (%)","Fuel surcharge (%)"],
- "hint.core":["DIM 重 = 長×寬×高 ÷ DIM 除數(無條件進位)。燃油以「基本費率 + 全部附加費」為基數計算。",
-   "DIM weight = L×W×H ÷ DIM factor, rounded up. Fuel is charged on base rate plus every surcharge."],
+ "hint.core":["DIM 重 = 長×寬×高 ÷ DIM 除數(無條件進位)。燃油費率請到「燃油附加費」頁設定。",
+   "DIM weight = L×W×H ÷ DIM factor, rounded up. Set the fuel rate on the Fuel Surcharge page."],
+ "tab.fuel":["燃油附加費","Fuel Surcharge"],
+ "hd.fuelhero":["目前燃油附加費率","Current Fuel Surcharge"],
+ "hint.fuelhero":["燃油以「基本費率 + 全部附加費」為基數計算,套用在每一筆重新計價。",
+   "Fuel is charged on base rate plus every surcharge, applied to every repriced shipment."],
+ "lb.fuelcustom":["自訂費率 (%)","Custom rate (%)"],
+ "hd.fuellookup":["查 FedEx 官方燃油費率","Look Up FedEx's Official Rate"],
+ "hint.fuellookup":["FedEx 每週依 EIA 燃料價格指數更新 Ground 燃油附加費。開官方頁面查最新百分比,回來填進左邊即可。",
+   "FedEx updates the Ground fuel surcharge weekly from the EIA fuel price index. Open the official page, read the latest percentage, and enter it on the left."],
+ "btn.fuellookup":["開啟 FedEx 燃油附加費頁面","Open the FedEx fuel surcharge page"],
+ "hd.fuelcalc":["快速試算","Quick Check"],
+ "hint.fuelcalc":["輸入費用小計(基本費率+附加費),看目前費率會加多少燃油。",
+   "Enter a charge subtotal (base + surcharges) to see the fuel added at the current rate."],
+ "lb.fcbase":["費用小計","Charge subtotal"],
+ "lb.fcfee":["燃油","Fuel"],
+ "lb.fctotal":["合計","Total"],
  "hd.oversize":["Oversize 門檻","Oversize Thresholds"],
  "lb.oslongest":["最長邊 (in)","Longest side (in)"],
  "lb.osweight":["實重 (lb)","Actual weight (lb)"],
@@ -771,6 +1133,8 @@ function applyI18n(){
     const k=el.getAttribute("data-i18n");
     if(I18N[k]) el.textContent=I18N[k][LANG?1:0];
   });
+  /* 窄視窗的圖示欄模式:label 縮小後,tooltip 補全名 */
+  document.querySelectorAll("#tabs button").forEach(b=>{ b.title=b.textContent; });
   document.documentElement.lang=LANG?"en":"zh-Hant";
 }
 
@@ -778,22 +1142,60 @@ function applyI18n(){
    主題:三套配色 —— FedEx 紫橘(預設)、桌面版的 Studio 粉彩、暗夜紫。
    全部走 CSS 變數,切主題整頁跟著變。
    ===================================================================== */
+/* 每一套主題都定義「一模一樣的整組鍵值」—— applyTheme 逐鍵覆寫,
+   缺一個鍵就等於切換後殘留上一套的值。 */
 const THEMES={
- fedex:{zh:"FedEx 紫橘",en:"FedEx Purple",v:{
-   bg:"#f4eefb",panel:"#fffdfe",stripe:"#f8f3fd",line:"#cfb5e8",select:"#ffe3cd",
-   accent:"#4d148c",head:"#4d148c",tab:"#ff6200",tabink:"#4d148c",brand:"#ffb15e",
-   thfg:"#ffffff",btn:"#ece0f9",run:"#ff6200","run-hover":"#d14e00",
-   run2:"#a94e8b","run2-hover":"#8d3a72",neg:"#b3261e",muted:"#8b7a9e",text:"#2c1b3e"}},
+ fedex:{zh:"FedEx 指揮台",en:"FedEx Command",v:{
+   bg:"#F6F4FA",panel:"#FFFFFF",stripe:"#F8F6FC",line:"#E7E2F1",select:"#FFEAD9",
+   accent:"#4D148C",head:"#4D148C",tab:"#FF6200",tabink:"#FFFFFF",brand:"#FFB15E",
+   thfg:"#4D148C",btn:"#EFE7F9",run:"#FF6200","run-hover":"#E45400",
+   run2:"#7B2FBE","run2-hover":"#661FA6",neg:"#C62828",muted:"#6F6786",text:"#241A36",
+   chrome:"#250A4D","chrome-2":"#3B0F73","chrome-ink":"#F3EDFF",
+   "chrome-mut":"rgba(243,237,255,.62)","chrome-line":"rgba(255,255,255,.10)",
+   "chrome-chip":"rgba(255,255,255,.08)",thead:"#F3EFFA",
+   "accent-2":"#7B2FBE","brand-ink":"#C94F00",ok:"#0B7059",warn:"#965A00",
+   "shadow-ink":"28 12 50",
+   "grad-brand":"linear-gradient(135deg,#4D148C,#7B2FBE)",
+   "grad-run":"linear-gradient(180deg,#F96A00,#E04E00)",
+   "grad-hair":"linear-gradient(90deg,#FF6200,rgba(255,98,0,0) 70%)",
+   "grad-text":"linear-gradient(135deg,#4D148C,#7B2FBE)",
+   "elev-1":"0 1px 2px rgb(28 12 50/.05),0 2px 8px rgb(28 12 50/.06)",
+   "elev-2":"0 2px 6px rgb(28 12 50/.08),0 12px 28px rgb(28 12 50/.10)",
+   "elev-3":"0 8px 20px rgb(28 12 50/.16),0 28px 64px rgb(28 12 50/.22)"}},
  studio:{zh:"Studio 粉彩",en:"Studio Pastel",v:{
-   bg:"#fff6fa",panel:"#ffffff",stripe:"#fdf0f7",line:"#f2cfe5",select:"#ffe8f3",
-   accent:"#663656",head:"#a94e8b",tab:"#f2a9cd",tabink:"#663656",brand:"#ffd3e9",
-   thfg:"#ffffff",btn:"#fbe5f2",run:"#ff8a76","run-hover":"#d95700",
-   run2:"#a94e8b","run2-hover":"#8d3a72",neg:"#c2413b",muted:"#927184",text:"#4b2942"}},
- night:{zh:"暗夜紫",en:"Midnight Purple",v:{
-   bg:"#1c1428",panel:"#2a1f3d",stripe:"#241a33",line:"#4d3a68",select:"#3d2c58",
-   accent:"#3b2361",head:"#d9c2ff",tab:"#472a75",tabink:"#e8dcff",brand:"#ffb15e",
-   thfg:"#efe6ff",btn:"#3d2c58",run:"#ff7a2e","run-hover":"#ff9250",
-   run2:"#c77bd8","run2-hover":"#a95cba",neg:"#ff8a80",muted:"#a08fbf",text:"#efe7fa"}},
+   bg:"#FBF3F8",panel:"#FFFFFF",stripe:"#FCF6FA",line:"#F0DCE9",select:"#FFE8F3",
+   accent:"#8D3A72",head:"#8D3A72",tab:"#FF7A66",tabink:"#FFFFFF",brand:"#FFD3E9",
+   thfg:"#8D3A72",btn:"#F8E7F1",run:"#FF7A66","run-hover":"#E85C46",
+   run2:"#A94E8B","run2-hover":"#8D3A72",neg:"#C2413B",muted:"#8A6E80",text:"#43263A",
+   chrome:"#47203C","chrome-2":"#6B3358","chrome-ink":"#FFF2F9",
+   "chrome-mut":"rgba(255,242,249,.62)","chrome-line":"rgba(255,255,255,.12)",
+   "chrome-chip":"rgba(255,255,255,.09)",thead:"#F9EDF5",
+   "accent-2":"#C2588F","brand-ink":"#B44A34",ok:"#0C7560",warn:"#8F5700",
+   "shadow-ink":"70 30 56",
+   "grad-brand":"linear-gradient(135deg,#8D3A72,#C2588F)",
+   "grad-run":"linear-gradient(180deg,#F2624C,#D94A34)",
+   "grad-hair":"linear-gradient(90deg,#FF7A66,rgba(255,122,102,0) 70%)",
+   "grad-text":"linear-gradient(135deg,#8D3A72,#C2588F)",
+   "elev-1":"0 1px 2px rgb(70 30 56/.05),0 2px 8px rgb(70 30 56/.06)",
+   "elev-2":"0 2px 6px rgb(70 30 56/.08),0 12px 28px rgb(70 30 56/.10)",
+   "elev-3":"0 8px 20px rgb(70 30 56/.16),0 28px 64px rgb(70 30 56/.22)"}},
+ night:{zh:"暗夜紫",en:"Midnight",v:{
+   bg:"#140E20",panel:"#1F1631",stripe:"#251B3A",line:"#382A50",select:"#3D2C58",
+   accent:"#A879FF",head:"#D9C2FF",tab:"#FF7A2E",tabink:"#FFFFFF",brand:"#FFB15E",
+   thfg:"#D9C2FF",btn:"#33254F",run:"#FF7A2E","run-hover":"#FF9250",
+   run2:"#9C4BAE","run2-hover":"#8A3F9B",neg:"#FF8A80",muted:"#A08FBF",text:"#EFE7FA",
+   chrome:"#0E081A","chrome-2":"#1D1030","chrome-ink":"#EFE7FA",
+   "chrome-mut":"rgba(239,231,250,.58)","chrome-line":"rgba(255,255,255,.08)",
+   "chrome-chip":"rgba(255,255,255,.06)",thead:"#2A1E45",
+   "accent-2":"#C77BD8","brand-ink":"#FFB15E",ok:"#4AD6A9",warn:"#E8A84C",
+   "shadow-ink":"0 0 0",
+   "grad-brand":"linear-gradient(135deg,#7B2FBE,#9C4BAE)",
+   "grad-run":"linear-gradient(180deg,#FF8A3E,#F2600A)",
+   "grad-hair":"linear-gradient(90deg,#FF7A2E,rgba(255,122,46,0) 70%)",
+   "grad-text":"linear-gradient(135deg,#C9A6FF,#EBC8F5)",
+   "elev-1":"0 1px 2px rgb(0 0 0/.35),0 2px 10px rgb(0 0 0/.35)",
+   "elev-2":"0 4px 10px rgb(0 0 0/.45),0 14px 32px rgb(0 0 0/.40)",
+   "elev-3":"0 10px 24px rgb(0 0 0/.55),0 30px 70px rgb(0 0 0/.55)"}},
 };
 function applyTheme(name){
   const t=THEMES[name]||THEMES.fedex;
@@ -2174,6 +2576,7 @@ function wireRules(){
       const n=Number(String(e.target.value).trim());
       if(isFinite(n)&&String(e.target.value).trim()!==""){ RULES[key]=n; markDirty(); }
       e.target.value=String(RULES[key]);
+      renderFuel();
     });
   }
   for(const[id,key] of RULE_CHECKS){
@@ -2707,9 +3110,12 @@ async function runRepricing(){
     const done=L("完成:已處理 "+results.length+" 筆,repriced_result.xlsx 已下載。",
       "Done — "+results.length+" shipment(s) processed; repriced_result.xlsx downloaded.");
     setStatus(done);
-    $("runSummary").textContent=done+(warnings.length
-      ?L(" 略過 "+warnings.length+" 筆(Zone 未設定)。",
-         " Skipped "+warnings.length+" row(s) with unconfigured zones."):"");
+    /* 狀態句已經在上面那行 LED 顯示,這裡只放補充資訊,不重複同一句話 */
+    $("runSummary").textContent=(warnings.length
+      ?L("略過 "+warnings.length+" 筆(Zone 未設定)。",
+         "Skipped "+warnings.length+" row(s) with unconfigured zones. ")
+      :"")+L("統計與逐筆預覽在下方;完整欄位在匯出的 Excel 裡。",
+             "Summary and per-shipment preview below; full columns are in the exported workbook.");
     toast(L("重新計價完成","Repricing completed"));
   }catch(err){
     setStatus(L("失敗","Failed"));
@@ -2753,15 +3159,15 @@ function drawClocks(force){
     dc.width=W*dpr; dc.height=H*dpr; dc.style.width=W+"px"; dc.style.height=H+"px";
     const g=dc.getContext("2d"); g.scale(dpr,dpr);
     g.clearRect(0,0,W,H);
-    g.fillStyle=panel; g.strokeStyle=line; g.lineWidth=2;
+    g.fillStyle=panel; g.strokeStyle=line; g.lineWidth=1.5;
     g.beginPath(); g.roundRect(1,1,W-2,H-2,10); g.fill(); g.stroke();
-    g.fillStyle=orange;
+    g.fillStyle=themeVar("accent")||accent;
     g.beginPath(); g.roundRect(1,1,W-2,22,[10,10,0,0]); g.fill();
-    g.fillStyle="#fff"; g.font="700 11px Segoe UI,sans-serif"; g.textAlign="center";
+    g.fillStyle="#fff"; g.font="700 11px Inter,Segoe UI,sans-serif"; g.textAlign="center";
     g.fillText(MONTHS_EN[now.getMonth()]+" "+now.getFullYear(),W/2,16);
-    g.fillStyle=accent; g.font="700 34px Segoe UI,sans-serif";
+    g.fillStyle=orange; g.font="700 34px JetBrains Mono,Consolas,monospace";
     g.fillText(String(now.getDate()),W/2,60);
-    g.fillStyle=muted; g.font="600 10px Segoe UI,sans-serif";
+    g.fillStyle=muted; g.font="600 10px Inter,Segoe UI,sans-serif";
     g.fillText(LANG?WEEKDAYS_EN[now.getDay()]
       :"週"+"日一二三四五六"[now.getDay()],W/2,76);
   }
@@ -2772,7 +3178,7 @@ function drawClocks(force){
     cv.width=S*dpr; cv.height=S*dpr; cv.style.width=S+"px"; cv.style.height=S+"px";
     const g=cv.getContext("2d"); g.scale(dpr,dpr);
     g.clearRect(0,0,S,S);
-    g.fillStyle=panel; g.strokeStyle=line; g.lineWidth=2;
+    g.fillStyle=panel; g.strokeStyle=line; g.lineWidth=1.5;
     g.beginPath(); g.arc(c,c,c-2,0,Math.PI*2); g.fill(); g.stroke();
     g.strokeStyle=muted;
     for(let i=0;i<12;i++){
@@ -2807,8 +3213,33 @@ function fillSelect(id,options,value){
     '<option value="'+esc(v)+'">'+esc(label)+"</option>").join("");
   if(value!=null) $(id).value=value;
 }
+/* ---- 燃油附加費頁 ---- */
+const FUEL_PRESETS=[15.00,18.75,20.00,22.00];
+function renderFuel(){
+  if(!$("fuelBig")) return;
+  $("fuelBig").textContent=Number(RULES.fuel_percent).toFixed(2);
+  $("fuelPresets").querySelectorAll("button").forEach(b=>
+    b.classList.toggle("on",Math.abs(Number(b.dataset.v)-Number(RULES.fuel_percent))<1e-9));
+  const base=toFloat($("fcBase").value,0);
+  const fee=base*RULES.fuel_percent/100;
+  $("fcFee").textContent="$"+fee.toFixed(2);
+  $("fcTotal").textContent="$"+(base+fee).toFixed(2);
+}
+function wireFuel(){
+  $("fuelPresets").innerHTML=FUEL_PRESETS.map(v=>
+    '<button type="button" data-v="'+v+'">'+v.toFixed(2)+'%</button>').join("");
+  $("fuelPresets").addEventListener("click",e=>{
+    const b=e.target.closest("button");
+    if(!b) return;
+    RULES.fuel_percent=Number(b.dataset.v);
+    renderRules(); renderFuel(); markDirty();
+  });
+  $("fcBase").addEventListener("input",renderFuel);
+}
+
 function renderAll(){
   renderRules();
+  renderFuel();
   renderBaseTable();
   for(const k of Object.keys(ZONE_EDITORS)){ refreshZoneEditor(k); renderDetail(k); }
   renderResiSig();
@@ -2837,7 +3268,7 @@ function init(){
   loadDefaultTables();
   const restored=loadLocalConfig();
   /* UI */
-  wireRules(); wireBaseTable(); wireZoneEditors(); wireResiSig();
+  wireRules(); wireFuel(); wireBaseTable(); wireZoneEditors(); wireResiSig();
   wireDemand(); wireFiles();
   $("bRun").addEventListener("click",runRepricing);
   $("bRunTop").addEventListener("click",runRepricing);
