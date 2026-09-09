@@ -2731,25 +2731,25 @@ function oversizeHitFn(l,w,h,actualWeight,service){
   if(v("length_girth_limit")>0) conditions.push(lengthPlusGirth>v("length_girth_limit"));
   return conditions.some(Boolean);
 }
-function getBaseRateOrRaise(baseLookup,service,weight,zone){
+/* 查基本運費。查不到不丟錯 —— 回 {fee:0, gap:"..."},呼叫端把 gap 記進
+   異常清單,那一段算 0,其餘照算。 */
+function lookupBaseRate(baseLookup,service,weight,zone){
   if(weight>BASE_RATE_MAX_WEIGHT)
-    throw new UserInputError(
-      "Billable weight "+weight+" exceeds base rate limit "+BASE_RATE_MAX_WEIGHT
-      +".\nService="+service+"\nZone="+zone);
+    return {fee:0,gap:"weight",note:weight+" lb > "+BASE_RATE_MAX_WEIGHT+" lb"};
   const key=service+"|"+weight+"|"+zone;
-  if(!baseLookup.has(key))
-    throw new UserInputError(
-      "Missing base rate.\n\nService="+service+"\nWeight="+weight+"\nZone="+zone
-      +"\n\nPlease check Base Rate template.");
-  return baseLookup.get(key);
+  if(!baseLookup.has(key)) return {fee:0,gap:"cell",note:"Zone "+zone+" @ "+weight+" lb"};
+  const v=baseLookup.get(key);
+  /* 表格在,但那一格是 0。預設表把每一格都填 0,所以「查得到」不等於
+     「設過了」—— 這是最容易被漏掉的一種缺漏。 */
+  if(!(toFloat(v,0)>0)) return {fee:0,gap:"cell",note:"Zone "+zone+" @ "+weight+" lb = 0"};
+  return {fee:v,gap:""};
 }
-function getOversizeFeeOrRaise(osLookup,service,zone){
+function lookupOversizeFee(osLookup,service,zone){
   const key=service+"|"+zone;
-  if(!osLookup.has(key))
-    throw new UserInputError(
-      "Missing oversize fee.\n\nService="+service+"\nZone="+zone
-      +"\n\nPlease check Oversize template.");
-  return osLookup.get(key);
+  if(!osLookup.has(key)) return {fee:0,gap:"fee",note:"Oversize @ Zone "+zone};
+  const v=osLookup.get(key);
+  if(!(toFloat(v,0)>0)) return {fee:0,gap:"fee",note:"Oversize @ Zone "+zone+" = 0"};
+  return {fee:v,gap:""};
 }
 /* 燃油費率:出貨日命中「日期區間費率」就用該筆(重疊取開始日最新),
    否則用全域預設 fuel_percent —— 照 UPS Reprice 的日期區間做法。 */
@@ -2907,6 +2907,43 @@ function csurEntry(r){
   return {disp,aliases,fee,type:normCsurType(r[3],fee)};
 }
 
+/* 異常類別。嚴重度靠色帶說話:
+     高 —— 金額算錯(整條渠道沒有費率、費目沒登記所以完全沒算進去)
+     中 —— 單項算 0(Zone 沒涵蓋、計費重超表、費率格是 0、附加費沒匯費率)
+     低 —— 有算,但可能歸錯類(服務名稱認不出,照原價轉嫁) */
+const ISSUE_KIND={
+  channel:{sev:3,basis:"billed",zh:"費率表未涵蓋此渠道",
+           en:"Channel not covered by the rate table"},
+  unknown:{sev:3,basis:"billed",zh:"未登記的費目,未納入重算",
+           en:"Unregistered charge; not included in repricing"},
+  zone:   {sev:2,basis:"billed",zh:"費率表未涵蓋此 Zone",
+           en:"Zone not covered by the rate table"},
+  weight: {sev:2,basis:"billed",zh:"計費重超出費率表範圍",
+           en:"Billable weight outside the rate table range"},
+  cell:   {sev:2,basis:"billed",zh:"費率表對應欄位為 0",
+           en:"Rate table cell is zero"},
+  fee:    {sev:2,basis:"billed",zh:"此附加費未匯入費率",
+           en:"No rate imported for this surcharge"},
+  svc:    {sev:1,basis:"atrisk",zh:"服務名稱無法辨識,原價轉嫁",
+           en:"Service name unrecognised; passed through at cost"},
+};
+const SEV_TAG={3:["高","HIGH"],2:["中","MED"],1:["低","LOW"]};
+/* 這個費目登記過了嗎:目錄裡有,或自訂清單有一個別名對得上。
+   引擎和儀表板都問這個問題,各判一次遲早會不一致,所以只有這一份。 */
+function isKnownPassFee(name){
+  if(KNOWN_PASS_FEES.includes(name)) return true;
+  const nn=normChargeDesc(name);
+  return TBL.csur.rows.some(r=>{
+    const e=csurEntry(r);
+    return e.disp.toLowerCase()===String(name).toLowerCase()
+      ||e.aliases.some(a=>nn.includes(normChargeDesc(a)));
+  });
+}
+const SEV_NOTE={
+  3:["金額算錯","the amount is wrong"],
+  2:["單項算 0","that item prices to 0"],
+  1:["有算,但可能歸錯類","priced, but possibly classified wrong"],
+};
 /* 已知轉嫁費目目錄(取自實際 FedEx 帳單):
    這些費目固定出現在 Repriced 報表欄位(沒發生就留白),
    帳單出現目錄外的新費目時自動附加在後面。
@@ -2946,6 +2983,10 @@ function repriceCore(columns,rowsIn){
   const infoMap=new Map();       /* account-level / 未設費率渠道統計 */
   const passTotals=new Map();    /* 轉嫁費目 → {筆數,合計}(給「本期新出現」看) */
   const billedBuckets=new Map(); /* 帳單側逐類合計(給利潤報表和重算並排看) */
+  /* 逐列的異常紀錄。一列一個問題 —— 同一顆箱子上可以同時有查不到費率的
+     運費和沒登記的附加費,那是兩件事,各自指向不同的東西。整筆的問題
+     掛在運費那一行,不然沒有帳單列號可以指,而那正是要補的。 */
+  const issues=[];
   /* 重算側也要逐類累計,不能事後拿結果欄位加總:轉嫁的費目只存在
      Repriced Total 裡,沒有自己的欄位,漏掉它兩側的合計就對不起來。 */
   const repricedBuckets=new Map();
@@ -2982,6 +3023,22 @@ function repriceCore(columns,rowsIn){
       const label=isAccountLevel?"Account Level":(service||"Unknown Service");
       const st=infoMap.get(label)||{label,rows:0,total:0};
       st.rows+=1; st.total+=passTotal; infoMap.set(label,st);
+      if(!isAccountLevel){
+        /* 認不得的服務名稱 vs 認得但沒建費率表 —— 兩件事的補法不一樣:
+           前者要先新增渠道,後者只要把費率填進去。 */
+        const known=SERVICE_CANON.has(label)||SERVICES.includes(label);
+        issues.push({
+          kind:known?"svc":"channel",
+          trk:String(row["_Tracking Number"]??""),
+          inv:String(coalesce(row,["Invoice Number","Invoice No","Invoice #"],"")??""),
+          invDate:String(coalesce(row,["Invoice Date"],"")??""),
+          date:String(coalesce(row,["Shipment Date","Transaction Date","Tendered Date"],"")??""),
+          line:excelRow, code:"", billdesc:"Transportation Charge",
+          item:label, note:known?"no rate table":"unseen service name",
+          amt:r2(passTotal), repriced:r2(passTotal),
+          svcRaw:String(coalesce(row,["Service Type","Ground Service","Service"],"")??""),
+          chan:label, zone:ZONES.includes(zone)?zone:"", wt:actualWeight});
+      }
       const transactionDate=coalesce(row,["Shipment Date","Transaction Date","Tendered Date"],"");
       const invoiceDate=coalesce(row,["Invoice Date"],"");
       if(isAccountLevel){
@@ -3038,6 +3095,15 @@ function repriceCore(columns,rowsIn){
         billedBuckets.set(k,(billedBuckets.get(k)||0)+bamt);
         zeroBilled+=bamt;
       }
+      issues.push({
+        kind:"zone", trk:String(row["_Tracking Number"]??""),
+        inv:String(coalesce(row,["Invoice Number","Invoice No","Invoice #"],"")??""),
+        invDate:String(invoiceDate??""), date:String(transactionDate??""),
+        line:excelRow, code:"", billdesc:"Transportation Charge",
+        item:"Freight", note:"no zone anywhere on this tracking",
+        amt:r2(zeroBilled), repriced:0,
+        svcRaw:String(coalesce(row,["Service Type","Ground Service","Service"],"")??""),
+        chan:service, zone:"", wt:actualWeight});
       results.push({
         "Transaction Date":transactionDate,
         "Invoice Date":invoiceDate,
@@ -3082,14 +3148,43 @@ function repriceCore(columns,rowsIn){
          重量型與包裝型不套。 */
       billableWeight=Math.max(billableWeight,Math.ceil(sizeVal(service,"ahs_min_billable_weight")));
 
-    const baseRate=getBaseRateOrRaise(baseLookup,service,billableWeight,zone);
+    const transactionDate0=coalesce(row,["Shipment Date","Transaction Date","Tendered Date"],"");
+    const invoiceDate0=coalesce(row,["Invoice Date"],"");
+    /* 這一列的共同欄位。一列上可能記好幾個問題,各自只換 kind / item / note。 */
+    const at=(kind,item,note,amt,repriced,desc,code)=>({
+      kind, item, note,
+      trk:String(row["_Tracking Number"]??""),
+      inv:String(coalesce(row,["Invoice Number","Invoice No","Invoice #"],"")??""),
+      invDate:String(invoiceDate0??""), date:String(transactionDate0??""),
+      line:excelRow, code:String(code??""), billdesc:String(desc??""),
+      amt:r2(amt), repriced:r2(repriced),
+      svcRaw:String(coalesce(row,["Service Type","Ground Service","Service"],"")??""),
+      chan:service, zone, wt:billableWeight});
+    /* 這一列帳單各類收了多少 —— 判斷「FedEx 收了但我們算 0」要用它 */
+    const lineBilled={};
+    {
+      const tc0=toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
+      if(tc0) lineBilled["Base Rate"]=(lineBilled["Base Rate"]||0)+tc0;
+      for(const[bd,bamt] of iterChargePairs(row)){
+        if(!bamt) continue;
+        const k=billedBucketOf(bd);
+        lineBilled[k]=(lineBilled[k]||0)+bamt;
+      }
+    }
+    const baseGap=lookupBaseRate(baseLookup,service,billableWeight,zone);
+    const baseRate=baseGap.fee;
+    /* 只有 FedEx 真的收了運費才算漏 —— 純附加費的更正列本來就沒有運費要查。 */
+    if(baseGap.gap&&Math.abs(toFloat(lineBilled["Base Rate"],0))>=0.005)
+      issues.push(at(baseGap.gap,"Freight",baseGap.note,
+        lineBilled["Base Rate"],0,"Transportation Charge",""));
 
     const dasType=String(row["_Normalized DAS Type"]??"").trim();
     if(dasType&&!DAS_TYPES.includes(dasType))
       throw new UserInputError("Billing row "+excelRow+": DAS Type '"+dasType+"' is invalid.");
     const dasFee=!dasType?0.0:(dasLookup.get(service+"|"+dasType+"|"+zone)||0.0);
 
-    const oversizeFee=oversizeHit?getOversizeFeeOrRaise(osLookup,service,zone):0.0;
+    const osGap=oversizeHit?lookupOversizeFee(osLookup,service,zone):{fee:0,gap:""};
+    const oversizeFee=osGap.fee;
 
     let residentialFee=0.0;
     if(flagVal(row["_Normalized Residential"]??""))
@@ -3100,6 +3195,18 @@ function repriceCore(columns,rowsIn){
       throw new UserInputError("Billing row "+excelRow+": Signature Type '"+signatureType+"' is invalid.");
     const signatureFee=!signatureType?0.0:(sigLookup.get(signatureType)||0.0);
 
+    /* FedEx 收了這一類、我們卻算 0 —— 費率沒匯進來。這是最容易被漏掉的一種:
+       畫面上那一欄只是空的,不會有人來說它空著。 */
+    for(const[k,mine,lab] of [
+        ["Additional Handling Surcharge",ahsFee,"AHS"],
+        ["DAS Fee",dasFee,"DAS"],
+        ["Oversize Fee",oversizeFee,"Oversize"],
+        ["Residential Fee",residentialFee,"Residential"],
+        ["Signature Fee",signatureFee,"Signature"]]){
+      const billedHere=toFloat(lineBilled[k],0);
+      if(Math.abs(billedHere)>=0.005&&!(Math.abs(mine)>=0.005))
+        issues.push(at("fee",lab,lab+" @ "+service+" Zone "+zone,billedHere,0,lab,""));
+    }
     const generalDemandFee=matchDemandFee(TBL.gdemand.rows,service,effKey);
     const ahsDemandFee=ahsFee>0?matchDemandFee(TBL.ademand.rows,service,effKey):0.0;
     const oversizeDemandFee=oversizeFee>0?matchDemandFee(TBL.odemand.rows,service,effKey):0.0;
@@ -3110,6 +3217,13 @@ function repriceCore(columns,rowsIn){
     const dvB=dvBandsFor(service);
     const declaredValueFee=dvB?dvQuote(dvB,declaredValue):0;
     const otherPass=collectPassThrough(row,service);
+    /* 沒登記的費目:目錄和自訂清單都沒有它。金額照原帳單轉嫁了,但它沒有
+       自己的欄位、也沒有費率可以改 —— 要先登記才管得到。 */
+    for(const[pd,pv] of Object.entries(otherPass)){
+      if(Math.abs(pv)<0.005) continue;
+      if(isKnownPassFee(pd)) continue;
+      issues.push(at("unknown",pd,"not in the charge catalogue",pv,pv,pd,""));
+    }
     const otherPassTotal=Object.values(otherPass).reduce((a,b)=>a+b,0);
     for(const[k,v] of Object.entries(otherPass)){
       const st=passTotals.get(k)||{count:0,total:0};
@@ -3210,6 +3324,8 @@ function repriceCore(columns,rowsIn){
     infos:[...infoMap.values()].sort((a,b)=>b.total-a.total),
     accountRows,
     billedBuckets:Object.fromEntries(billedBuckets),
+    issues:issues.sort((a,b)=>((ISSUE_KIND[b.kind]||{}).sev||0)-((ISSUE_KIND[a.kind]||{}).sev||0)
+      ||Math.abs(b.amt)-Math.abs(a.amt)),
     repricedBuckets:Object.fromEntries(repricedBuckets),
     seenFees:[...passTotals.entries()]
       .map(([name,st])=>({name,rows:st.count,total:r2(st.total)}))
@@ -5745,6 +5861,27 @@ function wireFiles(){
 /* =====================================================================
    執行與結果呈現
    ===================================================================== */
+/* 費用類別的排列順序與名字。順序照計價結果的欄位:先運費,再各項附加費,
+   最後燃油;認不出來的就用它自己的名字(那是原價轉嫁的費目)。 */
+const PR_ORDER=["Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
+  "Residential Fee","Signature Fee","Declared Value Fee",
+  "General Demand Fee","AHS Demand Fee","Oversize Demand Fee","Fuel Fee"];
+const PR_LABEL={
+  "Base Rate":["基本運費","Base Rate"],
+  "Additional Handling Surcharge":["額外處理費 (AHS)","Additional Handling (AHS)"],
+  "DAS Fee":["偏遠地區附加費 (DAS)","Delivery Area (DAS)"],
+  "Oversize Fee":["超大件附加費","Oversize"],
+  "Residential Fee":["住宅地址附加費","Residential"],
+  "Signature Fee":["簽收服務費","Signature"],
+  "Declared Value Fee":["保價費","Declared Value"],
+  "General Demand Fee":["旺季附加費","General Demand"],
+  "AHS Demand Fee":["旺季 AHS 附加費","AHS Demand"],
+  "Oversize Demand Fee":["旺季超大件附加費","Oversize Demand"],
+  "Fuel Fee":["燃油附加費","Fuel"],
+};
+function prLabel(k){ const t=PR_LABEL[k]; return t?t[LANG]:k; }
+/* 匯出用的名字固定英文,不跟介面語言走 */
+function prLabelEn(k){ const t=PR_LABEL[k]; return t?t[1]:k; }
 function money(v){ return "$"+r2(v).toLocaleString(undefined,
   {minimumFractionDigits:2,maximumFractionDigits:2}); }
 /* 圓餅的配色。同一頁上最多七個顏色分得開,再多就開始猜 —— 所以超過七塊
@@ -5836,139 +5973,189 @@ function dashAgg(){
   return {n:res.length,repriced,billed,account,chanAgg,zoneAgg,
     buckets:LAST.repricedBuckets||{}, billedBuckets:LAST.billedBuckets||{}};
 }
-/* 本期異常:依嚴重度排序。高 = 金額算錯(整個渠道沒有費率);
-   中 = 單項算 0(附加費沒登記、追蹤號整批沒有 Zone)。 */
-function dashIssues(){
-  const out=[];
-  const infos=LAST.infos||[];
-  const newSvcs=infos.filter(x=>x.label!=="Account Level"
-    &&!SERVICE_CANON.has(x.label)&&!SERVICES.includes(x.label));
-  const unrated=infos.filter(x=>x.label!=="Account Level"
-    &&(SERVICE_CANON.has(x.label)||SERVICES.includes(x.label)));
-  const push=(sev,zh,en,n,amt,what)=>{ if(n) out.push({sev,zh,en,n,amt:r2(amt),what}); };
-  push(3,"費率表未涵蓋此渠道","Channel not covered by the rate table",
-    newSvcs.reduce((a,x)=>a+x.rows,0), newSvcs.reduce((a,x)=>a+x.total,0),
-    newSvcs.map(x=>x.label).slice(0,4).join("、"));
-  push(3,"服務名稱未設費率,原價轉嫁","Service has no rate table; passed through at cost",
-    unrated.reduce((a,x)=>a+x.rows,0), unrated.reduce((a,x)=>a+x.total,0),
-    unrated.map(x=>x.label).slice(0,4).join("、"));
-  const knownFee=n=>{
-    if(KNOWN_PASS_FEES.includes(n)) return true;
-    const nn=normChargeDesc(n);
-    return TBL.csur.rows.some(r=>{
-      const e=csurEntry(r);
-      return e.disp.toLowerCase()===n.toLowerCase()
-        ||e.aliases.some(a=>nn.includes(normChargeDesc(a)));
-    });
-  };
-  const newFees=(LAST.seenFees||[]).filter(f=>!knownFee(f.name));
-  push(2,"此附加費未登記,金額照原帳單轉嫁",
-    "Surcharge not registered; the original amount passes through",
-    newFees.reduce((a,f)=>a+f.rows,0), newFees.reduce((a,f)=>a+f.total,0),
-    newFees.map(f=>f.name).slice(0,4).join("、"));
-  const noZone=(LAST.results||[]).filter(r=>String(r["Zone"]??"").trim()==="");
-  push(2,"整個追蹤號都沒有 Zone,以 0 計價",
-    "No zone anywhere on the tracking number; priced at 0",
-    noZone.length, noZone.reduce((a,r)=>a+toFloat(r._billed,0),0));
-  push(2,"其他無法計價的列","Other rows that could not be priced",
-    (LAST.warnings||[]).length, 0,
-    (LAST.warnings||[]).slice(0,2).join(" / "));
-  return out.sort((a,b)=>b.sev-a.sev||Math.abs(b.amt)-Math.abs(a.amt));
+/* 同一種問題收成一組。畫面上要的是「哪一類、幾項、多少錢、在第幾列」。 */
+function issueGroups(rows){
+  const by={};
+  for(const r of rows||[]){
+    const k=ISSUE_KIND[r.kind]?r.kind:"cell";
+    (by[k]=by[k]||{kind:k,n:0,amt:0,lines:[],what:new Set()}).n++;
+    by[k].amt+=toFloat(r.amt,0);
+    if(r.line!=="") by[k].lines.push(r.line);
+    by[k].what.add(String(r.note||r.item||"").trim());
+  }
+  return Object.values(by).sort((a,b)=>
+    ISSUE_KIND[b.kind].sev-ISSUE_KIND[a.kind].sev||Math.abs(b.amt)-Math.abs(a.amt));
 }
-const SEV_TAG={3:["高","HIGH"],2:["中","MED"],1:["低","LOW"]};
 function dashIssueCard(){
-  const iss=dashIssues();
-  if(!iss.length) return "";
-  const chips=iss.map(g=>'<div class="stat sketch-soft s'+g.sev+'">'
-    +'<i><span class="tag">'+L(SEV_TAG[g.sev][0],SEV_TAG[g.sev][1])+"</span>"
-    +esc(L(g.zh,g.en))+"</i>"
-    +"<b>"+money(g.amt)+' <span class="bu">'+L("FedEx 收費","FedEx billed")+"</span></b>"
-    +"<s>"+L(g.n+" 項",g.n+(g.n>1?" charges":" charge"))
-    +(g.what?" · "+esc(g.what):"")+"</s></div>").join("");
-  const nBad=iss.filter(g=>g.sev>=2).reduce((a,g)=>a+g.n,0);
-  const bad=iss.filter(g=>g.sev>=2).reduce((a,g)=>a+g.amt,0);
+  const rows=(LAST&&LAST.issues)||[];
+  const groups=issueGroups(rows);
+  if(!groups.length) return "";
+  const chips=groups.map(gr=>{
+    const K=ISSUE_KIND[gr.kind];
+    const what=[...gr.what].filter(Boolean).slice(0,3).join("、");
+    /* 帳單列號用等寬字,一眼看得出是數字不是散文 —— 對帳的人要拿它去翻檔案。 */
+    const ln=gr.lines.slice(0,12);
+    const rowTxt=ln.length
+      ? L("帳單列 ","invoice rows ")+ln.join(", ")
+        +(gr.lines.length>ln.length?" … +"+(gr.lines.length-ln.length):"")
+      : "";
+    return '<div class="stat sketch-soft s'+K.sev+'">'
+      +'<i><span class="tag">'+L(SEV_TAG[K.sev][0],SEV_TAG[K.sev][1])+"</span>"
+      +esc(L(K.zh,K.en))+"</i>"
+      +"<b>"+money(gr.amt)+' <span class="bu">'
+      +(K.basis==="billed"?L("FedEx 收費","FedEx billed"):L("涉及金額","at risk"))
+      +"</span></b>"
+      +"<s>"+L(gr.n+" 項",gr.n+(gr.n>1?" charges":" charge"))
+      +(what?" · "+esc(what):"")+"</s>"
+      +(rowTxt?"<u>"+esc(rowTxt)+"</u>":"")
+      +"</div>";
+  }).join("");
+  const bad=groups.filter(g=>ISSUE_KIND[g.kind].sev>=2);
+  const nBad=bad.reduce((a,g)=>a+g.n,0);
+  const badAmt=bad.reduce((a,g)=>a+g.amt,0);
   return '<div class="dcard warn issbox" style="margin-top:12px">'
     +'<div class="ch"><h3>'+L("本期異常項目","Exceptions")+"</h3>"
-    +'<span class="cnote">'+L("依嚴重度排序","sorted by severity")+"</span>"
+    +'<span class="cnote">'+L("依嚴重度排序,各組標示對應之帳單列號",
+      "sorted by severity; each group lists its invoice rows")+"</span>"
     +'<button class="act ghost sm" id="bIssXls">'
     +L("下載明細 (.xlsx)","Download details (.xlsx)")+"</button></div>"
-    +'<p class="isssub">'+L("本期異常 <b>"+iss.length+"</b> 組。其中 <b>"+nBad
-      +"</b> 項影響計價金額,該部分 FedEx 實收 <b>"+money(bad)+"</b>",
-      "<b>"+iss.length+"</b> exception group(s) this period. <b>"+nBad
-      +"</b> of them affect the repriced amount; FedEx billed <b>"+money(bad)+"</b> on those")
+    +'<p class="isssub">'+L("本期異常 <b>"+rows.length+"</b> 項。其中 <b>"+nBad
+      +"</b> 項影響計價金額,該部分 FedEx 實收 <b>"+money(badAmt)+"</b>",
+      "<b>"+rows.length+"</b> exception(s) this period. <b>"+nBad
+      +"</b> of them affect the repriced amount; FedEx billed <b>"+money(badAmt)+"</b> on those")
     +"</p>"
     +'<div class="strow">'+chips+"</div>"
-    +'<div class="issleg">'+[...new Set(iss.map(g=>g.sev))].sort((a,b)=>b-a)
-      .map(v=>"<span><b class=\"s"+v+"\">"+L(SEV_TAG[v][0],SEV_TAG[v][1])+"</b> "
-        +esc(v>=3?L("金額算錯","the amount is wrong")
-                 :L("單項算 0 或照原帳單轉嫁","that item prices to 0 or passes through"))
-        +"</span>").join("")+"</div>"
+    +'<div class="issleg">'+[...new Set(groups.map(g=>ISSUE_KIND[g.kind].sev))]
+      .sort((a,b)=>b-a)
+      .map(v=>'<span><b class="s'+v+'">'+L(SEV_TAG[v][0],SEV_TAG[v][1])+"</b> "
+        +esc(L(SEV_NOTE[v][0],SEV_NOTE[v][1]))+"</span>").join("")+"</div>"
     +"</div>";
 }
-/* 費用類別的排列順序與名字。順序照計價結果的欄位:先運費,再各項附加費,
-   最後燃油;認不出來的就用它自己的名字(那是原價轉嫁的費目)。 */
-const PR_ORDER=["Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
-  "Residential Fee","Signature Fee","Declared Value Fee",
-  "General Demand Fee","AHS Demand Fee","Oversize Demand Fee","Fuel Fee"];
-const PR_LABEL={
-  "Base Rate":["基本運費","Base Rate"],
-  "Additional Handling Surcharge":["額外處理費 (AHS)","Additional Handling (AHS)"],
-  "DAS Fee":["偏遠地區附加費 (DAS)","Delivery Area (DAS)"],
-  "Oversize Fee":["超大件附加費","Oversize"],
-  "Residential Fee":["住宅地址附加費","Residential"],
-  "Signature Fee":["簽收服務費","Signature"],
-  "Declared Value Fee":["保價費","Declared Value"],
-  "General Demand Fee":["旺季附加費","General Demand"],
-  "AHS Demand Fee":["旺季 AHS 附加費","AHS Demand"],
-  "Oversize Demand Fee":["旺季超大件附加費","Oversize Demand"],
-  "Fuel Fee":["燃油附加費","Fuel"],
-};
-function prLabel(k){ const t=PR_LABEL[k]; return t?t[LANG]:k; }
-/* 匯出用的名字固定英文,不跟介面語言走 */
-function prLabelEn(k){ const t=PR_LABEL[k]; return t?t[1]:k; }
-/* 異常明細倒成 Excel。畫面上一組只寫得下一行摘要,檔案裡把牽涉到的
-   追蹤號與費目列出來 —— 會匯出的人是要拿去查的,不是要瞄一眼。 */
+/* 異常明細倒成 Excel,兩張分頁照 UPS:
+     ① 一列就是帳單的一列。同一個追蹤號出現好幾次是正常的 —— 一顆箱子上
+        可以同時有查不到費率的運費行和沒登記的附加費行,那是兩個不同的問題,
+        各自指向不同的列。這張表到渠道為止。
+     ② 一個追蹤號一列,每一種費用兩欄(FedEx / 重算)。第一張回答「哪一列
+        出問題」,這一張回答「這顆箱子整筆長什麼樣、我們和 FedEx 差在哪一項」。
+   欄名一律英文 —— 這份檔案是拿去和 FedEx 自己的帳單並排看的。 */
 async function exportIssues(){
-  const iss=dashIssues();
-  if(!iss.length){
+  const rows=(LAST&&LAST.issues)||[];
+  if(!rows.length){
     showError(L("沒有異常可以匯出","No exceptions to export"),
       L("這次計價沒有需要注意的項目。","Nothing needed attention in this run."));
     return;
   }
-  const cols=["Severity","Issue","Items","FedEx Billed","Detail"];
   const HEAD={bold:true,fill:"D9EAF7"};
-  const rows=[cols.map(c=>({v:c,t:"s",s:HEAD}))];
-  for(const g of iss)
-    rows.push([{v:SEV_TAG[g.sev][1],t:"s"},
-      {v:g.en,t:"s"},{v:g.n,t:"n"},
-      {v:r2(g.amt),t:"n",s:{fmt:"$#,##0.00"}},
-      {v:g.what||"",t:"s"}]);
-  const B={bold:true};
-  rows.push([{v:"TOTAL",t:"s",s:B},"",
-    {v:iss.reduce((a,g)=>a+g.n,0),t:"n",s:B},
-    {v:r2(iss.reduce((a,g)=>a+g.amt,0)),t:"n",s:{bold:true,fmt:"$#,##0.00"}},""]);
-  /* 第二張:沒有算出金額的附加費也要列 —— 「這一項是 0」和「這一項不存在」
-     不是同一件事,只印有金額的,少收的那幾項永遠不會被發現。 */
-  const billed=(LAST&&LAST.billedBuckets)||{};
-  const rep2=(LAST&&LAST.repricedBuckets)||{};
-  const keys=[...new Set(PR_ORDER.concat((LAST&&LAST.customCols)||[])
-    .concat(Object.keys(billed)).concat(Object.keys(rep2)))];
-  const d2=[["Charge","FedEx Billed","Repriced","Difference","Note"]
-    .map(c=>({v:c,t:"s",s:HEAD}))];
-  for(const k of keys){
-    const uv=r2(toFloat(billed[k],0)), rv=r2(toFloat(rep2[k],0));
-    const note=(uv!==0&&rv===0)?"billed but repriced to 0"
-             :(uv===0&&rv!==0)?"repriced but not on the invoice"
-             :(uv===0&&rv===0)?"did not appear this period":"";
-    d2.push([{v:prLabelEn(k),t:"s"},
-      {v:uv,t:"n",s:{fmt:"$#,##0.00"}},{v:rv,t:"n",s:{fmt:"$#,##0.00"}},
-      {v:r2(rv-uv),t:"n",s:{fmt:"$#,##0.00"}},{v:note,t:"s"}]);
+  const MONEY={fmt:"$#,##0.00"};
+  const head=cols=>cols.map(c=>({v:c,t:"s",s:HEAD}));
+
+  /* ---- ① 逐列 ---- */
+  const d1=[head(["Invoice","Invoice date","Transaction date","Invoice row","Tracking",
+    "Severity","Problem","Code","Billed as","Item","Detail","Amount","Repriced",
+    "Service on invoice","Channel (system)"])];
+  for(const x of rows){
+    const K=ISSUE_KIND[x.kind]||ISSUE_KIND.cell;
+    d1.push([{v:x.inv,t:"s"},{v:x.invDate,t:"s"},{v:x.date,t:"s"},
+      {v:toFloat(x.line,0),t:"n"},{v:x.trk,t:"s"},
+      {v:SEV_TAG[K.sev][1],t:"s"},{v:K.en,t:"s"},
+      {v:x.code||"",t:"s"},{v:x.billdesc||"",t:"s"},{v:x.item||"",t:"s"},
+      {v:x.note||"",t:"s"},
+      {v:r2(x.amt),t:"n",s:MONEY},{v:r2(x.repriced),t:"n",s:MONEY},
+      {v:x.svcRaw||"",t:"s"},{v:x.chan||"",t:"s"}]);
   }
+
+  /* ---- ② 一個追蹤號一列,每一種費用兩欄 ---- */
+  const trks=[...new Set(rows.map(x=>x.trk).filter(Boolean))];
+  const byTrk=new Map();
+  for(const r of (LAST.results||[])){
+    const t=String(r["Tracking Number"]||"").trim();
+    if(!t||!trks.includes(t)) continue;
+    let g=byTrk.get(t);
+    if(!g){ g={trk:t,inv:"",invDate:"",date:"",chan:"",svcRaw:"",zone:"",
+               ent:0,dim:0,bw:0,billed:0,repriced:0,rep:{},probs:new Set()}; byTrk.set(t,g); }
+    if(!g.inv) g.inv=String(r["Invoice Number"]||"");
+    if(!g.invDate) g.invDate=String(r["Invoice Date"]||"");
+    if(!g.date) g.date=String(r["Transaction Date"]||"");
+    if(!g.chan) g.chan=String(r["Service"]||"");
+    if(!g.zone) g.zone=String(r["Zone"]??"");
+    g.ent=Math.max(g.ent,toFloat(r["Actual Weight"],0));
+    g.dim=Math.max(g.dim,toFloat(r["DIM Weight"],0));
+    g.bw=Math.max(g.bw,toFloat(r["Billable Weight"],0));
+    g.billed=r2(g.billed+toFloat(r._billed,0));
+    g.repriced=r2(g.repriced+toFloat(r["Repriced Total"],0));
+    for(const k of PR_ORDER){
+      const v=toFloat(r[k],0);
+      if(v) g.rep[k]=r2((g.rep[k]||0)+v);
+    }
+    for(const[ck,cv] of Object.entries(r._custom||{}))
+      if(toFloat(cv,0)) g.rep[ck]=r2((g.rep[ck]||0)+toFloat(cv,0));
+  }
+  for(const x of rows){
+    const g=byTrk.get(x.trk);
+    if(g) g.probs.add(ISSUE_KIND[x.kind]?ISSUE_KIND[x.kind].en:x.kind);
+    if(!g&&x.trk){
+      /* 只出現在異常清單、結果列裡沒有的追蹤號(整列被當成帳戶層級或轉嫁) */
+      byTrk.set(x.trk,{trk:x.trk,inv:x.inv,invDate:x.invDate,date:x.date,chan:x.chan,
+        svcRaw:x.svcRaw,zone:x.zone,ent:0,dim:0,bw:toFloat(x.wt,0),
+        billed:r2(x.amt),repriced:r2(x.repriced),rep:{},
+        probs:new Set([ISSUE_KIND[x.kind]?ISSUE_KIND[x.kind].en:x.kind])});
+    }
+  }
+  const list=[...byTrk.values()];
+  /* 這一期真的出現過的費用類別才給欄位 —— 十幾個永遠空著的欄位只會讓人捲。 */
+  const seen=[];
+  const billedAll=(LAST.billedBuckets)||{};
+  for(const k of PR_ORDER.concat((LAST.customCols)||[]))
+    if(list.some(g=>g.rep[k])||toFloat(billedAll[k],0)) seen.push(k);
+
+  const fixed=["Tracking","Invoice","Invoice date","Transaction date","Channel (system)",
+    "Service on invoice","Zone","Entered wt","DIM wt","Billable wt"];
+  const h1=head(fixed.map(()=>"")).map((c,i)=>({v:fixed[i],t:"s",s:HEAD}));
+  const h2=fixed.map(()=>({v:"",t:"s",s:HEAD}));
+  const merges=fixed.map((_,i)=>({s:{r:0,c:i},e:{r:1,c:i}}));
+  let c=fixed.length;
+  for(const k of seen){
+    h1.push({v:prLabelEn(k),t:"s",s:{bold:true,fill:"E8E2D6",align:"center",border:true}});
+    h1.push({v:"",t:"s",s:{bold:true,fill:"E8E2D6",border:true}});
+    h2.push({v:"FedEx",t:"s",s:{bold:true,fill:"DDEBF7",align:"right",border:true}});
+    h2.push({v:"Repriced",t:"s",s:{bold:true,fill:"FCE4D6",align:"right",border:true}});
+    merges.push({s:{r:0,c},e:{r:0,c:c+1}});
+    c+=2;
+  }
+  for(const t of ["FedEx total","Repriced total","Difference","Problems"]){
+    h1.push({v:t,t:"s",s:HEAD}); h2.push({v:"",t:"s",s:HEAD});
+    merges.push({s:{r:0,c},e:{r:1,c}}); c++;
+  }
+  const d2=[h1,h2];
+  for(const g of list.sort((a,b)=>Math.abs(b.billed)-Math.abs(a.billed))){
+    const r=[{v:g.trk,t:"s"},{v:g.inv,t:"s"},{v:g.invDate,t:"s"},{v:g.date,t:"s"},
+      {v:g.chan,t:"s"},{v:g.svcRaw,t:"s"},{v:g.zone,t:"s"},
+      {v:r2(g.ent),t:"n"},{v:r2(g.dim),t:"n"},{v:r2(g.bw),t:"n"}];
+    for(const k of seen){
+      /* 帳單側逐列拆不到「這顆箱子的這一類收多少」—— 引擎只逐列記總額和
+         逐類總計。所以帳單那一欄只在異常本身指到這一類時才有數字,其餘留 0
+         而不是編一個出來。 */
+      const bilHere=rows.filter(x=>x.trk===g.trk&&billedBucketOf(x.billdesc||x.item)===k)
+        .reduce((a,x)=>a+toFloat(x.amt,0),0);
+      r.push({v:r2(bilHere),t:"n",s:MONEY});
+      r.push({v:r2(g.rep[k]||0),t:"n",s:MONEY});
+    }
+    r.push({v:r2(g.billed),t:"n",s:MONEY},{v:r2(g.repriced),t:"n",s:MONEY},
+      {v:r2(g.repriced-g.billed),t:"n",s:MONEY},
+      {v:[...g.probs].join("; "),t:"s"});
+    d2.push(r);
+  }
+
   await xlWrite([
-    {name:"Exceptions",rows,
-     cols:[{w:10},{w:44},{w:9},{w:15},{w:46}],freeze:{r:1}},
-    {name:"Surcharges",rows:d2,
-     cols:[{w:30},{w:15},{w:15},{w:15},{w:34}],freeze:{r:1}},
+    {name:"Exceptions",rows:d1,
+     cols:[{w:18},{w:13},{w:13},{w:11},{w:22},{w:10},{w:40},{w:9},{w:26},{w:22},
+           {w:34},{w:14},{w:14},{w:24},{w:20}],
+     freeze:{r:1},filter:"A1:O"+d1.length},
+    {name:"By Tracking",rows:d2,
+     cols:[{w:22},{w:18},{w:13},{w:13},{w:20},{w:24},{w:8},{w:11},{w:10},{w:12}]
+       .concat(seen.flatMap(()=>[{w:13},{w:13}]))
+       .concat([{w:15},{w:15},{w:14},{w:40}]),
+     merges,freeze:{r:2,c:1}},
   ],"exceptions.xlsx");
   toast(L("exceptions.xlsx 已下載","exceptions.xlsx downloaded"));
 }
@@ -6041,9 +6228,9 @@ async function runRepricing(){
   try{
     await new Promise(r=>setTimeout(r,30)); /* 讓狀態字先畫出來 */
     const {results,warnings,infos,accountRows,seenFees,customCols,
-           billedBuckets,repricedBuckets}=repriceCore(BILLING.columns,BILLING.rows);
+           billedBuckets,repricedBuckets,issues}=repriceCore(BILLING.columns,BILLING.rows);
     LAST={results,warnings,infos,accountRows,seenFees,customCols,
-          billedBuckets,repricedBuckets};
+          billedBuckets,repricedBuckets,issues};
     renderResults();
     await exportResultWorkbook(results,customCols);
     const done=L("完成:已處理 "+results.length+" 筆,repriced_result.xlsx 已下載。",
