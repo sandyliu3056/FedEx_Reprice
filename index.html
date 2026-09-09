@@ -83,7 +83,7 @@ svg.defs{position:absolute;width:0;height:0}
 /* 手繪抖線只給面板外框:整片套下去連輸入框和儲存格邊都會扭。 */
 .sketch{position:relative;border:none;border-radius:12px}
 .sketch::before{content:"";position:absolute;inset:0;pointer-events:none;
-  border:2px solid var(--line);border-radius:12px;filter:url(#wobble)}
+  border:2px solid color-mix(in srgb,var(--accent) 16%,var(--line));border-radius:12px;filter:url(#wobble)}
 .sketch-soft{position:relative;border:none;border-radius:12px}
 .sketch-soft::before{content:"";position:absolute;inset:0;pointer-events:none;
   border:1.5px solid var(--line);border-radius:12px;filter:url(#wobble-soft)}
@@ -129,6 +129,7 @@ table,table *,input,select,.tablewrap{filter:none !important}
 
 /* ---- 分頁條:上方橫向手繪頁籤(照 UPS 版式;換行不橫捲) ---- */
 .tabstrip{flex:none;background:var(--tab);border-bottom:2.5px solid var(--accent);
+  box-shadow:0 2px 10px rgb(var(--shadow-ink)/.12);position:relative;z-index:2;
   display:flex;flex-wrap:wrap;gap:4px 2px;padding:6px 10px 0;
   min-height:42px;align-items:flex-end}
 .tabstrip button{font:600 13.5px var(--hand);
@@ -142,26 +143,35 @@ table,table *,input,select,.tablewrap{filter:none !important}
 .tabstrip button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 
 main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
-  padding:24px 28px 12px;scrollbar-width:thin;
+  padding:24px 28px 12px;
+  background-image:
+    linear-gradient(180deg,color-mix(in srgb,#fff 26%,transparent),transparent 260px),
+    radial-gradient(color-mix(in srgb,var(--accent) 5%,transparent) 1px,transparent 1px);
+  background-size:100% 100%,22px 22px;scrollbar-width:thin;
   scrollbar-color:color-mix(in srgb,var(--accent) 22%,var(--line)) transparent}
 .page{display:none;max-width:none;margin:0;min-width:0}
 .page.on{display:block}
+@media(prefers-reduced-motion:no-preference){
+  .page.on{animation:pagein .18s ease-out}
+  @keyframes pagein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+}
 
 /* ---- 卡片系統:elev-1 卡片、elev-2 浮層、elev-3 視窗 —— 不做 hover 浮起 ---- */
 .lf{background:var(--panel);border:none;
   border-radius:12px;box-shadow:var(--elev-1);
   padding:20px 22px;margin-bottom:20px}
 .lf>h3{display:flex;align-items:center;gap:10px;margin:0 0 8px;
-  font:700 15px var(--hand);color:var(--head)}
-.lf>h3 .em,details.cfgfold summary .em{display:grid;place-items:center;width:30px;height:30px;
+  font:700 16px var(--hand);color:var(--head)}
+.lf>h3 .em,details.cfgfold summary .em{display:grid;place-items:center;width:32px;height:32px;
+  transform:rotate(-3deg);
   font-size:15px;border-radius:9px;
   background:color-mix(in srgb,var(--accent) 8%,var(--panel));
   border:1px solid color-mix(in srgb,var(--accent) 14%,transparent)}
-.hint{color:var(--muted);font-size:12.5px;margin:0 0 10px;line-height:1.6}
+.hint{color:var(--muted);font-size:12.5px;margin:0 0 10px;line-height:1.7}
 .subhd{font-weight:600;color:var(--head);font-size:13px;margin:14px 0 8px;
   border-bottom:1.5px solid var(--line);padding-bottom:4px}
 .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.inlab{font:600 11px var(--hand);text-transform:uppercase;
+.inlab{font:600 11px var(--round);text-transform:uppercase;
   letter-spacing:.07em;color:var(--head);margin-left:12px}
 .note{margin:10px 0 0;font-size:12.5px;line-height:1.6;color:var(--muted);
   border-left:3px solid color-mix(in srgb,var(--accent) 30%,transparent);
@@ -175,7 +185,7 @@ button.act,a.act{
   border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
   border-radius:10px;background:var(--btn);color:var(--head);
   font:600 13px var(--hand);
-  letter-spacing:.01em;display:inline-flex;align-items:center;gap:6px;
+  letter-spacing:.02em;display:inline-flex;align-items:center;gap:6px;
   transition:transform .08s,box-shadow .12s,background .12s,border-color .12s,color .12s}
 button.act:hover:not(:disabled),a.act:hover{box-shadow:var(--elev-1);
   background:color-mix(in srgb,var(--accent) 14%,var(--panel))}
@@ -215,7 +225,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
 .rdy{display:flex;align-items:center;gap:8px;font-size:12.5px;min-width:0;
   padding:6px 12px;border-radius:10px;background:var(--stripe);
   border:1px solid var(--line)}
-.rdy .k{font:600 11px var(--hand);text-transform:uppercase;
+.rdy .k{font:600 11px var(--round);text-transform:uppercase;
   letter-spacing:.07em;color:var(--head);white-space:nowrap}
 .pill{border:none;border-radius:999px;padding:3px 10px 3px 8px;
   font-size:11.5px;font-weight:600;white-space:nowrap;
@@ -227,7 +237,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
 .savenote.bad{color:var(--neg)}
 
 .grid3{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center}
-.grid3 label{color:var(--head);font:600 11px var(--hand);
+.grid3 label{color:var(--head);font:600 11px var(--round);
   text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
 .grid3 input[readonly]{font:500 11.5px "JetBrains Mono",Consolas,monospace;
   height:32px;padding:0 10px;min-width:0;color:var(--muted);
@@ -289,7 +299,7 @@ label.chk input[type="checkbox"]:focus-visible{outline:none;box-shadow:var(--rin
   border-radius:12px;padding:16px 18px 14px;box-shadow:var(--elev-1);overflow:hidden}
 .tile::after{content:"";position:absolute;inset:0 auto auto 0;width:100%;height:3px;
   background:var(--grad-hair)}
-.tile .k{font:600 11px var(--hand);letter-spacing:.07em;
+.tile .k{font:600 11px var(--round);letter-spacing:.07em;
   text-transform:uppercase;color:var(--muted);margin-bottom:6px}
 .tile .v{font-size:26px;font-weight:700;color:var(--head)}
 @supports(-webkit-background-clip:text){
@@ -311,7 +321,7 @@ label.chk input[type="checkbox"]:focus-visible{outline:none;box-shadow:var(--rin
   background:color-mix(in srgb,var(--accent) 40%,var(--line))}
 table{border-collapse:collapse;width:100%;font-size:13px;background:var(--panel)}
 th{background:var(--thead);color:var(--thfg);text-align:left;padding:9px 10px;
-  font:700 11px var(--hand);text-transform:uppercase;
+  font:700 11px var(--round);text-transform:uppercase;
   letter-spacing:.07em;white-space:nowrap;position:sticky;top:0;z-index:1;
   box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--accent) 25%,transparent)}
 td{padding:7px 10px;white-space:nowrap;
@@ -328,7 +338,7 @@ td.neg{color:var(--neg)}
 .zonecol{position:relative;background:var(--panel);border:1px solid var(--line);
   border-radius:9px;padding:7px 8px 8px;text-align:center;
   transition:border-color .12s,box-shadow .12s}
-.zonecol .zt{font:700 10px var(--hand);letter-spacing:.05em;text-indent:.05em;
+.zonecol .zt{font:700 10px var(--round);letter-spacing:.05em;text-indent:.05em;
   text-transform:uppercase;color:var(--muted);margin-bottom:3px}
 .zonecol input.cell{width:100%;height:auto;border:none;
   border-bottom:1.5px solid color-mix(in srgb,var(--accent) 28%,var(--line));border-radius:0;background:transparent;
@@ -336,8 +346,9 @@ td.neg{color:var(--neg)}
   color:var(--head);padding:2px 2px}
 .zonecol input.cell:focus{outline:none;border-bottom-color:var(--tab);
   box-shadow:0 1.5px 0 var(--tab)}
+.zonecol:hover{border-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
 .zonecol:has(input:focus){
-  border-color:color-mix(in srgb,var(--tab) 45%,var(--line));box-shadow:var(--elev-1)}
+  border-color:color-mix(in srgb,var(--tab) 55%,var(--line));box-shadow:var(--elev-1)}
 .tplgrp{display:inline-flex;gap:0;align-items:center;border:none;padding:0}
 .tplgrp>button.act{border-radius:10px 0 0 10px}
 .tplgrp>button.act+button.act{border-radius:0 10px 10px 0;margin-left:-1px}
@@ -352,7 +363,8 @@ td.neg{color:var(--neg)}
   transition:background .12s,opacity .12s}
 .subtabs button:hover{opacity:.85;background:var(--select)}
 .subtabs button[aria-selected=true]{background:var(--tab);color:#fff;
-  font-weight:700;opacity:1;padding-bottom:8px;box-shadow:none}
+  font-weight:700;opacity:1;padding-bottom:8px;
+  box-shadow:0 -2px 6px rgb(var(--shadow-ink)/.10)}
 .subpanel{border:2px solid var(--accent);border-top:none;
   border-radius:0 0 12px 12px;padding:14px 16px;background:var(--panel)}
 .subpanel .hint{margin:0 0 10px}
@@ -402,7 +414,7 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
 @media(max-width:900px){.filesCard{padding-right:18px}}
 .clockcard{position:absolute;top:2px;right:8px;padding:0;z-index:5;
   background:transparent;border:none;pointer-events:none}
-.clockbox{display:flex;gap:10px;align-items:flex-start;padding:7px;
+.clockbox{display:flex;gap:10px;align-items:flex-start;padding:7px;transform:rotate(-1.5deg);
   border-radius:14px;background:color-mix(in srgb,var(--panel) 72%,transparent);
   border:1px solid var(--line);box-shadow:var(--elev-1)}
 @media(max-width:820px){.clockcard{position:static;margin-bottom:12px;pointer-events:auto}}
@@ -430,6 +442,7 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
 
 /* kv 摘要(照 UPS .kv) */
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;margin:0}
+.kv dt{font-family:var(--round);font-size:12px}
 .kv dt{color:var(--muted)}
 .kv dd{margin:0;font-weight:700;color:var(--head)}
 /* 折後值金色徽章(照 UPS .effchip) */
@@ -455,10 +468,10 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
 .dpHead,.dpGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .dpHead{margin-bottom:6px}
 .dpHead span{text-align:center;font-size:12.5px;color:var(--muted);font-weight:600}
-.dpGrid button{font:600 13.5px var(--hand);cursor:pointer;padding:7px 0;
-  border:2px solid var(--accent);border-radius:6px;
-  background:var(--select);color:var(--head)}
-.dpGrid button:hover{background:var(--panel)}
+.dpGrid button{font:600 13.5px var(--round);cursor:pointer;padding:7px 0;
+  border:1.5px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:8px;
+  background:var(--panel);color:var(--head)}
+.dpGrid button:hover{background:var(--select)}
 .dpGrid button.today{outline:2px solid var(--run2);outline-offset:1px}
 .dpGrid button.on{background:var(--accent);color:#fff}
 .dpGrid .pad{visibility:hidden}
@@ -512,7 +525,7 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
 /* =====================================================================
    第 5 頁 重新計價:LED 狀態、琥珀警告、漸層數字統計卡、橘章總額欄
    ===================================================================== */
-#bRun,#bRunTop{height:36px;padding:0 18px;font-size:12.5px}
+#bRunTop{height:38px;padding:0 30px;font-size:13.5px;letter-spacing:.04em}
 #runStatus{font:600 12px "JetBrains Mono",Consolas,monospace;
   display:inline-flex;align-items:center;gap:8px}
 #runStatus::before{content:"";width:7px;height:7px;border-radius:99px;
@@ -619,7 +632,6 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   <button role="tab" aria-selected="false" data-p="rules" class="display" data-i18n="tab.rules">計價規則</button>
   <button role="tab" aria-selected="false" data-p="base"  class="display" data-i18n="tab.base">基本費率</button>
   <button role="tab" aria-selected="false" data-p="sur"   class="display" data-i18n="tab.sur">附加費</button>
-  <button role="tab" aria-selected="false" data-p="run"   class="display" data-i18n="tab.run">重新計價</button>
 </div>
 
 <main>
@@ -642,10 +654,13 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <input type="file" id="fInv" accept=".csv,.xlsx,.xls">
     </div>
     <p class="hint" id="invNote" style="margin-top:8px" data-i18n="hint.inv">支援簡化欄位(Service, Zone, Length, Width, Height, Actual Weight)或 FedEx 原始帳單欄位(Zone Code, Dim Length…)。檔案只在瀏覽器裡計算,不會上傳到任何伺服器。</p>
-    <div class="row" style="margin-top:14px">
-      <button class="act run" id="bRunTop" data-i18n="btn.run" disabled>執行重新計價並匯出報表</button>
-      <span id="runNoteTop" class="savenote"></span>
+    <div class="row" style="margin-top:12px">
+      <button class="act run" id="bRunTop" data-i18n="btn.run" disabled>Reprice</button>
+      <button class="act ghost sm" id="bReExport" data-i18n="btn.reexport" disabled>重新下載結果 Excel</button>
+      <span id="runStatus" class="savenote" data-i18n="st.ready">就緒 — 選好帳單、檢查費率,然後執行。</span>
     </div>
+    <p class="note" id="runSummary" style="display:none"></p>
+    <div id="warnBox"></div>
   </div>
 
   <details class="cfgfold lf sketch">
@@ -660,6 +675,19 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <span id="cfgNote" class="savenote"></span>
     </div>
   </details>
+
+<div class="lf sketch" id="sumBox" hidden>
+    <h3 class="display"><span class="em">📊</span><span data-i18n="hd.sum">這次計價</span></h3>
+    <div class="tiles" id="tiles"></div>
+  </div>
+
+<div class="lf sketch" id="prevBox" hidden>
+    <h3 class="display"><span class="em">🔍</span><span data-i18n="hd.prev">逐筆預覽</span></h3>
+    <p class="hint" id="prevNote" data-i18n="hint.prev">完整欄位(日期、追蹤號、各費項明細)在匯出的 Excel 裡。</p>
+    <div class="tablewrap" style="max-height:58vh">
+      <table id="tPrev"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
 </section>
 
 <!-- ==================== 計價規則 ==================== -->
@@ -909,33 +937,6 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   </div>
 </section>
 
-<!-- ==================== 重新計價 ==================== -->
-<section class="page" id="p-run">
-  <div class="lf sketch">
-    <h3 class="display"><span class="em">▶️</span><span data-i18n="hd.run">執行</span></h3>
-    <div class="row">
-      <button class="act run" id="bRun" data-i18n="btn.run" disabled>執行重新計價並匯出報表</button>
-      <button class="act ghost" id="bReExport" data-i18n="btn.reexport" disabled>重新下載結果 Excel</button>
-      <span id="runStatus" class="savenote" data-i18n="st.ready">就緒 — 選好帳單、檢查費率,然後執行。</span>
-    </div>
-    <p class="note" id="runSummary" data-i18n="hint.runsum">成功執行後,下方會出現統計與逐筆預覽。</p>
-    <div id="warnBox"></div>
-  </div>
-
-  <div class="lf sketch" id="sumBox" hidden>
-    <h3 class="display"><span class="em">📊</span><span data-i18n="hd.sum">這次計價</span></h3>
-    <div class="tiles" id="tiles"></div>
-  </div>
-
-  <div class="lf sketch" id="prevBox" hidden>
-    <h3 class="display"><span class="em">🔍</span><span data-i18n="hd.prev">逐筆預覽</span></h3>
-    <p class="hint" id="prevNote" data-i18n="hint.prev">完整欄位(日期、追蹤號、各費項明細)在匯出的 Excel 裡。</p>
-    <div class="tablewrap" style="max-height:58vh">
-      <table id="tPrev"><thead></thead><tbody></tbody></table>
-    </div>
-  </div>
-</section>
-
 </main>
 
 <div class="statusbar">
@@ -1070,7 +1071,7 @@ const I18N={
  "btn.browse":["選擇檔案","Browse"],
  "hint.inv":["支援簡化欄位(Service, Zone, Length, Width, Height, Actual Weight)或 FedEx 原始帳單欄位(Zone Code, Dim Length…)。檔案只在瀏覽器裡計算,不會上傳到任何伺服器。",
    "Accepts the simplified columns (Service, Zone, Length, Width, Height, Actual Weight) or raw FedEx invoice columns (Zone Code, Dim Length…). Everything is computed in your browser — nothing is uploaded anywhere."],
- "btn.run":["執行重新計價並匯出報表","Run repricing & export workbook"],
+ "btn.run":["Reprice","Reprice"],
  "hd.cfg":["費率設定檔","Rate Configuration"],
  "hint.cfg":["與桌面版 billing_tool_config.json 完全互通;網頁上的改動會自動存在這個瀏覽器。",
    "Fully interchangeable with the desktop billing_tool_config.json; edits auto-save in this browser."],
@@ -3058,7 +3059,7 @@ function refreshReady(){
   $("stCount").textContent=BILLING
     ?BILLING.name+" · "+BILLING.rows.length+L(" 列"," rows"):"";
   const can=!!BILLING;
-  $("bRun").disabled=!can; $("bRunTop").disabled=!can;
+  $("bRunTop").disabled=!can;
   $("bReExport").disabled=!LAST;
 }
 async function pickBilling(file){
@@ -3177,18 +3178,18 @@ async function runRepricing(){
     return;
   }
   setStatus(L("計算中…","Repricing…"));
-  $("bRun").disabled=true; $("bRunTop").disabled=true;
+  $("bRunTop").disabled=true;
   try{
     await new Promise(r=>setTimeout(r,30)); /* 讓狀態字先畫出來 */
     const {results,warnings}=repriceCore(BILLING.columns,BILLING.rows);
     LAST={results,warnings};
     renderResults();
     await exportResultWorkbook(results);
-    switchPage("run");
     const done=L("完成:已處理 "+results.length+" 筆,repriced_result.xlsx 已下載。",
       "Done — "+results.length+" shipment(s) processed; repriced_result.xlsx downloaded.");
     setStatus(done);
     /* 狀態句已經在上面那行 LED 顯示,這裡只放補充資訊,不重複同一句話 */
+    $("runSummary").style.display="block";
     $("runSummary").textContent=(warnings.length
       ?L("略過 "+warnings.length+" 筆(Zone 未設定)。",
          "Skipped "+warnings.length+" row(s) with unconfigured zones. ")
@@ -3202,7 +3203,7 @@ async function runRepricing(){
     else
       showError(L("非預期錯誤","Unexpected error"),(err&&err.stack)||String(err));
   }finally{
-    $("bRun").disabled=!BILLING; $("bRunTop").disabled=!BILLING;
+    $("bRunTop").disabled=!BILLING;
     refreshReady();
   }
 }
@@ -3564,7 +3565,6 @@ function init(){
   /* UI */
   wireRules(); wireFuel(); wireBaseTable(); wireZoneEditors(); wireResiSig();
   wireDemand(); wireFiles();
-  $("bRun").addEventListener("click",runRepricing);
   $("bRunTop").addEventListener("click",runRepricing);
   $("bReExport").addEventListener("click",async()=>{
     if(LAST){ await exportResultWorkbook(LAST.results);
