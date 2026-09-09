@@ -829,11 +829,21 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 /* ===== 樂高積木街景 ===== */
 .scene{overflow:hidden;border-radius:20px;pointer-events:none;margin:-6px -4px 0;line-height:0;
   background:linear-gradient(180deg,#a9cbe4 0%,#d3e6f2 58%,#e4ecee 100%)}
-.scene svg{width:100%;height:auto;display:block}
+.scene svg{width:100%;height:auto;display:block;shape-rendering:geometricPrecision}
+/* 這些是會動的圖層。不先聲明的話,瀏覽器可能照未縮放的尺寸光柵化一次再放大,
+   靜止時看不出來,一動起來整個糊掉(截圖是重新算過的,所以截圖反而是清楚的)。 */
+.scene .truckride,.scene .bob,.scene .wheel,.scene .puff,
+.scene .cloudA,.scene .cloudB,.scene .pet,.scene .petbob,
+.scene .legA,.scene .legB,.scene .tailw{will-change:transform}
 .scene .truckride{transform:translateX(480px)}
 .scene .puff{fill:rgb(90 86 96/.35);opacity:0}
 .scene ellipse{stroke:rgb(42 39 50/.30);stroke-width:.9}
 .scene .nostroke{stroke:none}
+/* 貓狗在人行道上走過。尺寸依場景比例:一扇門 30 單位 ≈ 2 公尺,
+   所以狗肩高 7.5、貓肩高 4.5 單位,和門、樹、貨車擺在一起才不會像玩具。 */
+.scene .pet{transform:translateX(-40px)}
+.scene .catwalk{transform-box:fill-box;transform-origin:center;
+  transform:translateX(1240px) scaleX(-1)}
 @media(prefers-reduced-motion:no-preference){
   .scene .truckride{animation:sc-drive 22s linear infinite;animation-delay:-9s}
   @keyframes sc-drive{0%{transform:translateX(-240px)}42%,55%{transform:translateX(490px)}100%{transform:translateX(1260px)}}
@@ -845,6 +855,23 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   .scene .puff.p2{animation-delay:.55s}.scene .puff.p3{animation-delay:1.1s}
   @keyframes sc-puff{0%{opacity:.5;transform:translate(0,0) scale(.5)}
     100%{opacity:0;transform:translate(-26px,-14px) scale(1.5)}}
+  /* 走路:身體上下一點點,前後腿反向擺,尾巴慢慢搖。幅度都很小 ——
+     這個尺寸下多一格就變成在跳。 */
+  .scene .dogwalk{animation:sc-dogwalk 34s linear infinite;animation-delay:-4s}
+  @keyframes sc-dogwalk{0%{transform:translateX(-40px)}100%{transform:translateX(1250px)}}
+  .scene .catwalk{animation:sc-catwalk 27s linear infinite;animation-delay:-11s}
+  @keyframes sc-catwalk{0%{transform:translateX(1240px) scaleX(-1)}
+    100%{transform:translateX(-50px) scaleX(-1)}}
+  .scene .petbob{animation:sc-petbob .5s ease-in-out infinite}
+  @keyframes sc-petbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-.7px)}}
+  .scene .legA{transform-box:fill-box;transform-origin:top center;
+    animation:sc-step .5s ease-in-out infinite}
+  .scene .legB{transform-box:fill-box;transform-origin:top center;
+    animation:sc-step .5s ease-in-out infinite;animation-delay:-.25s}
+  @keyframes sc-step{0%,100%{transform:rotate(11deg)}50%{transform:rotate(-11deg)}}
+  .scene .tailw{transform-box:fill-box;transform-origin:right center;
+    animation:sc-tail 1.3s ease-in-out infinite}
+  @keyframes sc-tail{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(9deg)}}
   .scene .cloudA{animation:sc-cloud 30s ease-in-out infinite alternate}
   .scene .cloudB{animation:sc-cloud 38s ease-in-out infinite alternate-reverse}
   @keyframes sc-cloud{from{transform:translateX(0)}to{transform:translateX(40px)}}
@@ -871,6 +898,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <select id="langSel" title="Language"></select>
     <select id="zoomSel" title="Display size"></select>
     <select id="themeSel" title="Theme"></select>
+    <select id="tzSel" title="Clock"></select>
   </div>
   <div class="bigclock">
     <span id="clkBig" class="mono">--:--</span>
@@ -940,6 +968,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <rect x="10.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="16" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="36.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="42" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="62.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="68" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="88.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="94" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="114.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="120" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="140.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="146" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="166.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="172" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="192.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="198" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="218.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="224" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="244.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="250" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="270.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="276" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="296.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="302" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="322.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="328" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="348.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="354" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="374.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="380" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="400.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="406" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="426.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="432" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="452.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="458" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="478.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="484" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="504.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="510" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="530.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="536" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="556.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="562" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="582.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="588" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="608.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="614" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="634.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="640" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="660.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="666" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="686.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="692" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="712.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="718" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="738.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="744" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="764.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="770" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="790.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="796" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="816.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="822" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="842.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="848" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="868.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="874" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="894.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="900" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="920.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="926" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="946.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="952" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="972.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="978" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="998.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1004" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1024.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1030" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1050.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1056" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1076.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1082" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1102.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1108" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1128.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1134" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1154.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1160" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/><rect x="1180.0" y="135" width="12" height="5" fill="#b0ada7"/><ellipse cx="1186" cy="135" rx="6.0" ry="2.6" fill="#d9d7d1"/>
     <rect x="0" y="154" width="1200" height="36" fill="#55535a"/>
     <rect x="10" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="62" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="114" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="166" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="218" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="270" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="322" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="374" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="426" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="478" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="530" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="582" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="634" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="686" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="738" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="790" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="842" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="894" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="946" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="998" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="1050" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="1102" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/><rect x="1154" y="169" width="26" height="5" rx="1.5" fill="#e8e6df" opacity=".85"/>
+    <g class="pet dogwalk"><g transform="translate(0,140) scale(.73) translate(0,-140)"><g class="petbob"><ellipse class="nostroke" cx="6" cy="140" rx="8" ry="1.5" fill="rgb(40 38 44/.22)"/><g class="legB"><rect x="-2.4" y="136" width="2.4" height="4.2" rx=".8" fill="#8a6242"/><rect x="9.6" y="136" width="2.4" height="4.2" rx=".8" fill="#8a6242"/></g><g class="legA"><rect x="0.8" y="136" width="2.4" height="4.2" rx=".8" fill="#a97a52"/><rect x="12.4" y="136" width="2.4" height="4.2" rx=".8" fill="#a97a52"/></g><rect x="-2.6" y="132.4" width="16" height="4.6" rx="1.4" fill="#a97a52" stroke="#8a6242" stroke-width="1.1"/><rect class="tailw" x="-6.2" y="130.4" width="4.6" height="2.1" rx="1" fill="#a97a52" stroke="#8a6242" stroke-width="1"/><rect x="10.6" y="128.4" width="6" height="5.4" rx="1.3" fill="#a97a52" stroke="#8a6242" stroke-width="1.1"/><rect x="15.8" y="131" width="3" height="2.4" rx=".9" fill="#c9a37c" stroke="#8a6242" stroke-width="1"/><circle cx="18.4" cy="131.8" r=".7" fill="#3a3038"/><rect x="10.9" y="126.6" width="2.2" height="2.6" rx=".7" fill="#8a6242"/><circle cx="14.4" cy="130.5" r=".7" fill="#3a3038"/><rect x="13" y="126.9" width="2.6" height="1.6" fill="#96693f"/><ellipse cx="14.3" cy="126.9" rx="1.3" ry=".62" fill="#c09468"/></g></g></g><g class="pet catwalk"><g transform="translate(0,140) scale(.54) translate(0,-140)"><g class="petbob"><ellipse class="nostroke" cx="4" cy="140" rx="5.6" ry="1.2" fill="rgb(40 38 44/.20)"/><g class="legB"><rect x="-1.4" y="137" width="1.7" height="3.2" rx=".6" fill="#6f6a74"/><rect x="5.6" y="137" width="1.7" height="3.2" rx=".6" fill="#6f6a74"/></g><g class="legA"><rect x="1" y="137" width="1.7" height="3.2" rx=".6" fill="#8d8794"/><rect x="7.4" y="137" width="1.7" height="3.2" rx=".6" fill="#8d8794"/></g><rect x="-1.6" y="134.4" width="11" height="3.2" rx="1.1" fill="#8d8794" stroke="#6f6a74" stroke-width="1"/><path class="tailw" d="M-1.6 135.6 q-4 .2 -4.2 -3.4" fill="none" stroke="#8d8794" stroke-width="1.9" stroke-linecap="round"/><rect x="7.4" y="131.2" width="4.4" height="4" rx="1.1" fill="#8d8794" stroke="#6f6a74" stroke-width="1"/><path d="M7.7 131.4 l.9 -2.1 1.1 2.1z" fill="#8d8794" stroke="#6f6a74" stroke-width=".8" stroke-linejoin="round"/><path d="M10 131.4 l1 -2.1 .8 2.1z" fill="#8d8794" stroke="#6f6a74" stroke-width=".8" stroke-linejoin="round"/><circle cx="9.4" cy="133.2" r=".6" fill="#3a3038"/><circle cx="11.3" cy="133.2" r=".6" fill="#3a3038"/><rect x="11.4" y="133.6" width="1.6" height="1.4" rx=".5" fill="#b6b0bb"/></g></g></g>
     <g class="truckride">
       <ellipse class="nostroke" cx="94" cy="186" rx="100" ry="4" fill="rgb(40 38 44/.30)"/>
       <g class="bob">
@@ -1903,7 +1932,7 @@ function applyZoom(z){
   else document.documentElement.style.fontSize=(z/100*100)+"%";
 }
 
-let UI={lang:0,theme:"fedex",zoom:100};
+let UI={lang:0,theme:"fedex",zoom:100,tz:0};
 function saveUI(){ try{localStorage.setItem(UI_KEY,JSON.stringify(UI));}catch(e){} }
 function loadUI(){ try{const s=localStorage.getItem(UI_KEY); if(s)Object.assign(UI,JSON.parse(s));}catch(e){} }
 
@@ -1913,8 +1942,11 @@ function loadUI(){ try{const s=localStorage.getItem(UI_KEY); if(s)Object.assign(
    ===================================================================== */
 const RULE_DEFAULTS={
   dim_factor:139.0, fuel_percent:18.75,
-  use_oversize_longest:false, use_oversize_weight:true,
-  use_oversize_cubic:false, use_oversize_lg:true,
+  /* 四個 Oversize 條件預設全開,和 UPS 的 DEFAULT_CONFIG 一致。以前最長邊與
+     材積是關的,門檻值明明填著 96 和 17280,畫面上卻是空的 —— 要用它們只能
+     逐渠道自己覆寫一次,而那兩個數字本來就是公告值。 */
+  use_oversize_longest:true, use_oversize_weight:true,
+  use_oversize_cubic:true, use_oversize_lg:true,
   oversize_longest_side:96.0, oversize_actual_weight:110.0,
   oversize_cubic_inches:17280.0, length_girth_limit:130.0,
   oversize_min_billable_weight:90.0,
@@ -5737,6 +5769,22 @@ async function runRepricing(){
 /* =====================================================================
    時鐘:標題列數字鐘 + 匯入頁的日期卡與指針鐘。
    ===================================================================== */
+const TZ=[["台北","Taipei","Asia/Taipei"],["美東","US East","America/New_York"],
+          ["美中","US Cent","America/Chicago"],["美山","US Mtn","America/Denver"],
+          ["美西","US West","America/Los_Angeles"],["UTC","UTC","UTC"]];
+function tzName(){ return (TZ[UI.tz]||TZ[0])[2]; }
+/* 選定時區的「現在」拆成零件。Intl 給的是那個時區的牆上時鐘,
+   不是把 Date 平移 —— 夏令時間換算才會對。 */
+function tzNow(){
+  const p={};
+  for(const x of new Intl.DateTimeFormat("en-US",{timeZone:tzName(),hour12:false,
+      hour:"2-digit",minute:"2-digit",second:"2-digit",
+      year:"numeric",month:"2-digit",day:"2-digit",weekday:"short"})
+      .formatToParts(new Date())) p[x.type]=x.value;
+  const wd=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(p.weekday);
+  return {y:+p.year, mo:+p.month-1, d:+p.day,
+          h:+p.hour%24, mi:+p.minute, s:+p.second, wd:wd<0?0:wd};
+}
 const WEEKDAYS_EN=["SUN","MON","TUE","WED","THU","FRI","SAT"];
 const MONTHS_EN=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 let lastClockSec=-1;
@@ -5744,15 +5792,17 @@ function themeVar(name){
   return getComputedStyle(document.documentElement).getPropertyValue("--"+name).trim();
 }
 function drawClocks(force){
-  const now=new Date();
-  if(!force&&now.getSeconds()===lastClockSec) return;
-  lastClockSec=now.getSeconds();
-  $("clkBig").textContent=String(now.getHours()).padStart(2,"0")+":"
-    +String(now.getMinutes()).padStart(2,"0");
+  const now=tzNow();
+  if(!force&&now.s===lastClockSec) return;
+  lastClockSec=now.s;
+  $("clkBig").textContent=String(now.h).padStart(2,"0")+":"
+    +String(now.mi).padStart(2,"0");
+  /* 時區名字接在日期後面 —— 標題列寫的是哪裡的時間,不寫就要靠猜 */
+  const zone=(TZ[UI.tz]||TZ[0])[LANG];
   $("clkSub").textContent=(LANG
-    ?WEEKDAYS_EN[now.getDay()]+" · "+MONTHS_EN[now.getMonth()]+" "+now.getDate()+", "+now.getFullYear()
-    :now.getFullYear()+" 年 "+(now.getMonth()+1)+" 月 "+now.getDate()+" 日 · 週"
-      +"日一二三四五六"[now.getDay()]);
+    ?WEEKDAYS_EN[now.wd]+" · "+MONTHS_EN[now.mo]+" "+now.d+", "+now.y
+    :now.y+" 年 "+(now.mo+1)+" 月 "+now.d+" 日 · 週"+"日一二三四五六"[now.wd])
+    +" · "+zone;
   const dpr=window.devicePixelRatio||1;
   const accent=themeVar("head")||"#4d148c", line=themeVar("line")||"#cfb5e8",
         panel=themeVar("panel")||"#fff", muted=themeVar("muted")||"#8b7a9e",
@@ -5769,12 +5819,12 @@ function drawClocks(force){
     g.fillStyle=themeVar("accent")||accent;
     g.beginPath(); g.roundRect(1,1,W-2,19,[10,10,0,0]); g.fill();
     g.fillStyle="#fff"; g.font='700 11px "Segoe Print","Comic Sans MS",Iansui,sans-serif'; g.textAlign="center";
-    g.fillText(MONTHS_EN[now.getMonth()]+" "+now.getFullYear(),W/2,14);
+    g.fillText(MONTHS_EN[now.mo]+" "+now.y,W/2,14);
     g.fillStyle=orange; g.font="700 26px JetBrains Mono,Consolas,monospace";
-    g.fillText(String(now.getDate()),W/2,49);
+    g.fillText(String(now.d),W/2,49);
     g.fillStyle=muted; g.font='600 10px "Segoe Print","Comic Sans MS",Iansui,sans-serif';
-    g.fillText(LANG?WEEKDAYS_EN[now.getDay()]
-      :"週"+"日一二三四五六"[now.getDay()],W/2,63);
+    g.fillText(LANG?WEEKDAYS_EN[now.wd]
+      :"週"+"日一二三四五六"[now.wd],W/2,63);
   }
   /* 指針鐘 */
   const cv=$("clockCv");
@@ -5794,9 +5844,9 @@ function drawClocks(force){
       g.lineTo(c+Math.sin(a)*(c-(i%3?10:13)),c-Math.cos(a)*(c-(i%3?10:13)));
       g.stroke();
     }
-    const hr=(now.getHours()%12+now.getMinutes()/60)*Math.PI/6;
-    const mi=(now.getMinutes()+now.getSeconds()/60)*Math.PI/30;
-    const se=now.getSeconds()*Math.PI/30;
+    const hr=(now.h%12+now.mi/60)*Math.PI/6;
+    const mi=(now.mi+now.s/60)*Math.PI/30;
+    const se=now.s*Math.PI/30;
     const hand=(a,len,w,col)=>{
       g.strokeStyle=col; g.lineWidth=w; g.lineCap="round";
       g.beginPath(); g.moveTo(c,c);
@@ -6077,6 +6127,7 @@ function applyLangUI(){
   fillSelect("langSel",[["0","中文"],["1","English"]],String(UI.lang));
   fillSelect("zoomSel",[["90","90%"],["100","100%"],["110","110%"],["125","125%"]],String(UI.zoom));
   fillSelect("themeSel",Object.entries(THEMES).map(([k,t])=>[k,LANG?t.en:t.zh]),UI.theme);
+  fillSelect("tzSel",TZ.map((z,i)=>[String(i),z[LANG]]),String(UI.tz));
   renderAll();
   drawClocks(true);
   refreshHist();
@@ -6104,6 +6155,9 @@ function init(){
   $("langSel").addEventListener("change",e=>{ UI.lang=+e.target.value; saveUI(); applyLangUI(); });
   $("zoomSel").addEventListener("change",e=>applyZoom(+e.target.value));
   $("themeSel").addEventListener("change",e=>applyTheme(e.target.value));
+  $("tzSel").addEventListener("change",e=>{
+    UI.tz=+e.target.value; saveUI(); drawClocks(true);
+  });
   $("appBy").title="FedEx Reprice Studio · "
     +"engine ported line-by-line from FedEx_RepricingTool.py";
   /* 主題 / 縮放 / 語言 */
