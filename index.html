@@ -347,6 +347,9 @@ td.neg{color:var(--neg)}
 .flatitem{display:flex;align-items:center;gap:6px;font-size:12px}
 .flatitem .fl{flex:1;color:var(--text);line-height:1.25}
 .flatitem input.cell{width:86px;height:26px}
+.chkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+  gap:4px 12px;max-height:150px;overflow:auto}
+.chkgrid label{display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer}
 .tplgrp{display:inline-flex;gap:0;align-items:center;border:none;padding:0}
 .tplgrp>button.act{border-radius:10px 0 0 10px}
 .tplgrp>button.act+button.act{border-radius:0 10px 10px 0;margin-left:-1px}
@@ -1125,15 +1128,29 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <button class="mx" id="dimX">✕</button>
     </div>
     <div class="modalbody">
-      <div class="row" style="margin-bottom:10px">
-        <label class="inlab" style="margin-left:0" data-i18n="lb.dimall">套用到全部</label>
-        <input id="dimAll" class="cell num" style="width:90px" value="139">
-        <button class="act sm" id="bDimApplyAll" data-i18n="btn.applyall">套用</button>
+      <p class="hint" style="margin:0 0 10px" data-i18n="hint.bulkdim">先勾渠道、填除數、再按套用。留空按「還原預設」= 清掉覆寫,跟著全域除數走。</p>
+      <div class="subhd" data-i18n="hd.selchan">Select Channels</div>
+      <div class="sketch-soft" style="padding:10px 12px;margin-bottom:12px">
+        <div class="row" style="margin-bottom:8px">
+          <button class="act ghost sm" id="bDimAll" data-i18n="btn.selall">全選</button>
+          <button class="act ghost sm" id="bDimNone" data-i18n="btn.selnone">全不選</button>
+        </div>
+        <div id="dimChans" class="chkgrid" style="max-height:150px;overflow:auto"></div>
+        <div class="row" style="margin-top:11px;flex-wrap:wrap;gap:9px;align-items:center">
+          <label class="inlab" style="margin-left:0" data-i18n="lb.chandim">DIM Factor</label>
+          <input class="cell num" id="chanDimVal" style="width:110px">
+          <button class="act sm" id="bChanDimTicked" data-i18n="btn.dimapply">Apply to Ticked Channels</button>
+          <button class="act ghost sm" id="bChanDimClear" data-i18n="btn.dimreset">Reset to default</button>
+          <span id="chanDimNote" class="savenote"></span>
+        </div>
       </div>
-      <div class="tablewrap" style="max-height:44vh">
-        <table id="tDimChan"><thead></thead><tbody></tbody></table>
+      <div class="subhd" data-i18n="hd.dimforce">DIM Factors in Force</div>
+      <div class="tablewrap" style="max-height:210px">
+        <table id="tDimForce"><thead><tr>
+          <th data-i18n="th.chan">Channel</th>
+          <th class="num" data-i18n="th.dimf">DIM Factor</th>
+        </tr></thead><tbody></tbody></table>
       </div>
-      <p class="note" data-i18n="hint.dimchan">留空 = 用上方的預設 DIM 除數。</p>
     </div>
     <div class="modalft">
       <button class="act ghost" id="dimClose" data-i18n="btn.close">關閉</button>
@@ -1407,9 +1424,14 @@ const I18N={
  "c.minwt":["Min Wt","Min Wt"],
  "btn.chandim":["Bulk set by channel","Bulk set by channel"],
  "hd.dimchan":["Bulk set DIM by channel","Bulk set DIM by channel"],
- "lb.dimall":["套用到全部","Apply to all"],
- "btn.applyall":["套用","Apply"],
- "hint.dimchan":["留空 = 用上方的預設 DIM 除數。","Leave blank to use the default DIM factor above."],
+ "hd.selchan":["Select Channels","Select Channels"],
+ "hd.dimforce":["DIM Factors in Force","DIM Factors in Force"],
+ "lb.chandim":["DIM Factor","DIM Factor"],
+ "th.dimf":["DIM Factor","DIM Factor"],
+ "btn.dimapply":["Apply to Ticked Channels","Apply to Ticked Channels"],
+ "btn.dimreset":["Reset to default","Reset to default"],
+ "hint.bulkdim":["先勾渠道、填除數、再按套用。留空按「Reset to default」= 清掉覆寫,跟著全域除數走。",
+   "Tick channels, type a divisor, apply. Reset to default clears the override and follows the global one."],
  "btn.viewrates":["View loaded rates","View loaded rates"],
  "btn.defthr":["Default Thresholds","Default Thresholds"],
  "btn.bulkchan":["Bulk Set Channels","Bulk Set Channels"],
@@ -3223,13 +3245,41 @@ function switchDem(name){
    ===================================================================== */
 /* Rules in Force:一個渠道一列,欄位順序同 SIZE_FIELDS */
 function renderDimByChan(){
-  const t=$("tDimChan"); if(!t) return;
-  t.querySelector("thead").innerHTML="<tr><th>"+L("渠道","Channel")
-    +'</th><th class="num">'+L("DIM 除數","DIM factor")+"</th></tr>";
-  t.querySelector("tbody").innerHTML=SERVICES.map(svc=>
-    "<tr><td>"+esc(svc)+'</td><td class="num"><input class="cell num dimc" data-svc="'+esc(svc)
-    +'" style="width:90px" placeholder="'+RULES.dim_factor+'" value="'
-    +esc(DIM_BY_CHAN[svc]!=null?String(DIM_BY_CHAN[svc]):"")+'"></td></tr>').join("");
+  const box=$("dimChans");
+  if(box) box.innerHTML=SERVICES.map(svc=>
+    '<label><input type="checkbox" class="dimc" value="'+esc(svc)+'">'+esc(svc)+"</label>").join("");
+  const t=$("tDimForce"); if(!t) return;
+  t.querySelector("tbody").innerHTML=SERVICES.map(svc=>{
+    const ov=DIM_BY_CHAN[svc];
+    const has=ov!=null&&ov!=="";
+    return "<tr><td>"+esc(svc)+'</td><td class="num'+(has?"":" z0")+'">'
+      +(has?esc(String(ov)):esc(String(RULES.dim_factor))+" "+L("(預設)","(default)"))+"</td></tr>";
+  }).join("");
+}
+function dimTicked(){
+  return [...document.querySelectorAll("#dimChans .dimc:checked")].map(x=>x.value);
+}
+function chanDimNote(msg){ const el=$("chanDimNote"); if(el) el.textContent=msg||""; }
+function setChanDim(list,raw){
+  if(!list.length){
+    chanDimNote(L("請先勾選至少一條渠道。","Tick at least one channel first."));
+    return;
+  }
+  const txt=String(raw??"").trim();
+  if(txt===""){
+    for(const svc of list) delete DIM_BY_CHAN[svc];
+    renderDimByChan(); markDirty();
+    chanDimNote(L("已清除 "+list.length+" 條渠道的覆寫。","Cleared overrides on "+list.length+" channel(s)."));
+    return;
+  }
+  const n=Number(txt);
+  if(!isFinite(n)||n<=0){
+    chanDimNote(L("DIM 除數要是大於 0 的數字。","The DIM factor must be a number greater than 0."));
+    return;
+  }
+  for(const svc of list) DIM_BY_CHAN[svc]=n;
+  renderDimByChan(); markDirty();
+  chanDimNote(L("已寫入 "+list.length+" 條渠道。","Set on "+list.length+" channel(s)."));
 }
 function renderRules(){
   $("inDim").value=String(RULES.dim_factor);
@@ -3297,30 +3347,19 @@ function wireRules(){
     toast(L("已套用到 "+SERVICES.length+" 個渠道","Applied to "+SERVICES.length+" channels"));
   });
   $("bBulkDim").addEventListener("click",()=>{
-    renderDimByChan();
+    renderDimByChan(); chanDimNote("");
+    $("chanDimVal").value=String(RULES.dim_factor);
     $("dimBg").style.display="flex";
   });
   $("dimClose").addEventListener("click",()=>{ $("dimBg").style.display="none"; });
   $("dimX").addEventListener("click",()=>{ $("dimBg").style.display="none"; });
   $("dimBg").addEventListener("click",e=>{ if(e.target===$("dimBg")) $("dimBg").style.display="none"; });
-  $("tDimChan").addEventListener("change",e=>{
-    const el=e.target; if(!el.classList.contains("dimc")) return;
-    const raw=String(el.value).trim();
-    const n=raw===""?0:Number(raw);
-    if(!isFinite(n)||n<0){ renderDimByChan(); return; }
-    if(n>0) DIM_BY_CHAN[el.dataset.svc]=n; else delete DIM_BY_CHAN[el.dataset.svc];
-    markDirty(); renderDimByChan();
-  });
-  $("bDimApplyAll").addEventListener("click",()=>{
-    const n=Number(String($("dimAll").value).trim());
-    if(!isFinite(n)||n<=0){
-      showError(L("要填數字","Number needed"),L("請填一個大於 0 的 DIM 除數。","Enter a DIM factor greater than 0."));
-      return;
-    }
-    for(const svc of SERVICES) DIM_BY_CHAN[svc]=n;
-    renderDimByChan(); markDirty();
-    toast(L("已套用到 "+SERVICES.length+" 個渠道","Applied to "+SERVICES.length+" channels"));
-  });
+  $("bDimAll").addEventListener("click",()=>
+    document.querySelectorAll("#dimChans .dimc").forEach(c=>{ c.checked=true; }));
+  $("bDimNone").addEventListener("click",()=>
+    document.querySelectorAll("#dimChans .dimc").forEach(c=>{ c.checked=false; }));
+  $("bChanDimTicked").addEventListener("click",()=>setChanDim(dimTicked(),$("chanDimVal").value));
+  $("bChanDimClear").addEventListener("click",()=>setChanDim(dimTicked(),""));
 }
 
 /* =====================================================================
