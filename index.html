@@ -36,6 +36,11 @@
   --brand:#FFB15E; --brand-ink:#B85400;
   --run:#FF6200; --run-hover:#E45400; --run2:#A94E8B; --run2-hover:#8D3A72;
   --neg:#C62828; --ok:#0B7059; --warn:#965A00; --btn:#F1E7F7;
+  --pos:#0B7059;
+  /* 逐項對照的兩側:左邊 FedEx 實收(紙色),右邊重新計價(橘)。
+     住/商兩種收件地址各給一個色,和 UPS 同一套語意。 */
+  --bill:#6B5847; --bill-bg:#EFE7D8; --rp:#B85400; --rp-bg:#FFEEDC;
+  --resi:#8E3B5E; --resi-bg:#F7E7EE; --com:#1F5D86; --com-bg:#E4EEF6;
   /* 漸層 */
   --grad-brand:linear-gradient(135deg,#4D148C 0%,#7B2FBE 100%);
   --grad-run:linear-gradient(180deg,#F96A00 0%,#E04E00 100%);
@@ -178,6 +183,7 @@ main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
 .note b{color:var(--ink)}
 
 /* ---- 按鈕 ---- */
+[hidden]{display:none!important}
 button.act,a.act{
   text-decoration:none;height:34px;padding:0 16px;cursor:pointer;
   border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
@@ -350,6 +356,22 @@ td.neg{color:var(--neg)}
 .chkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
   gap:4px 12px;max-height:150px;overflow:auto}
 .chkgrid label{display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer}
+.bkwrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px}
+.bkbox{padding:10px 12px}
+.bkhd{font-weight:800;font-size:13px;margin-bottom:8px;
+  border-bottom:1.5px solid var(--line);padding-bottom:6px}
+.bkgrid{display:grid;grid-template-columns:1fr 128px 96px;gap:6px 8px;align-items:center;font-size:12px}
+.bkgrid select{font-size:12px;padding:4px 8px;height:28px}
+.bkgrid input.cell{height:28px;width:100%}
+.bkgrid input.locked{color:var(--muted);background:transparent;
+  border-style:dashed;cursor:default}
+.bkgrid input.bkv::placeholder{color:var(--muted);opacity:.85}
+.bkgrid .bkh{font-weight:800;color:var(--muted);font-size:11.5px;
+  padding-bottom:2px;border-bottom:1px solid var(--line)}
+/* 一條渠道都沒勾的時候,下半部整個變淡且點不動 —— 先後順序要在按之前就看得見 */
+.bkpick{font-size:12.5px;font-weight:700;margin-top:9px;color:var(--accent)}
+.bkpick.none{color:var(--neg)}
+#bkVals.off{opacity:.38;pointer-events:none;filter:saturate(.5)}
 /* Rating Breakdown:資料密集的視窗改用中性字體,金額一律等寬對齊 */
 #bkdBody{font-family:"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei UI",sans-serif}
 #bkdBody .subhd{font:700 11.5px "Segoe UI","Noto Sans TC",sans-serif;letter-spacing:.06em;
@@ -369,6 +391,131 @@ td.neg{color:var(--neg)}
   background:color-mix(in srgb,var(--accent) 7%,transparent);font-weight:700}
 #bkdBody .pos{color:var(--pos)}#bkdBody .neg{color:var(--neg)}
 #bkdBody .note{margin:6px 0 0}
+/* 追蹤號那一條:深底、單號放大,匯出鈕擺在同一條上(標題列的底色會把
+   .act.ghost 的字吃掉,所以自己畫一顆橘框橘字的) */
+#bkdBody .bkdtrk{background:var(--accent);border-radius:10px;padding:10px 14px;
+  margin:2px 0 12px;display:flex;align-items:center;gap:14px}
+#bkdBody .bkdtrk .lbl{font-size:11px;letter-spacing:1.2px;color:var(--select);opacity:.8}
+#bkdBody .bkdtrk .no{font:700 21px "JetBrains Mono",Consolas,monospace;letter-spacing:1px;
+  color:#fff;word-break:break-all}
+#bkdBody .bkdxls{margin-left:auto;flex:none;font:700 12.5px "Segoe UI","Noto Sans TC",sans-serif;
+  cursor:pointer;background:transparent;color:var(--tab);letter-spacing:.3px;
+  border:1.5px solid var(--tab);border-radius:8px;padding:5px 13px;white-space:nowrap}
+#bkdBody .bkdxls:hover:not(:disabled){background:rgba(255,255,255,.15)}
+#bkdBody .bkdxls:disabled{opacity:.45;cursor:default}
+#bkdBody .bkdinv{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  margin:18px 0 8px;padding:6px 12px;background:var(--select);border-bottom:none;
+  border-left:6px solid var(--accent);border-radius:0 10px 10px 0}
+#bkdBody .bkdinv .no{font:800 16px "JetBrains Mono",Consolas,monospace;letter-spacing:.6px;
+  color:var(--accent)}
+#bkdBody .bkdinv .dt{font:500 12.5px "JetBrains Mono",Consolas,monospace;color:var(--muted)}
+#bkdBody .bkdseg{background:var(--panel);border-radius:10px;padding:9px 11px;margin:10px 0;
+  border-left:6px solid var(--line)}
+#bkdBody .bkdseg.resi{border-left-color:var(--resi)}
+#bkdBody .bkdseg.com{border-left-color:var(--com)}
+#bkdBody .bkdseg-hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+#bkdBody .bkdseg-name{font-weight:700;font-size:13.5px;color:var(--accent)}
+#bkdBody .bkdchip{font-size:11.5px;padding:2px 9px;border-radius:20px;font-weight:600}
+#bkdBody .bkdchip.resi{background:var(--resi-bg);color:var(--resi)}
+#bkdBody .bkdchip.com{background:var(--com-bg);color:var(--com)}
+#bkdBody .bkdmeta{font:500 12px "JetBrains Mono",Consolas,monospace;color:var(--muted);margin-left:auto}
+#bkdBody .bkdcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+#bkdBody .bkdside{border-radius:9px;overflow:hidden;display:flex;flex-direction:column}
+#bkdBody .bkdside.bill{border:2px solid var(--bill)}
+#bkdBody .bkdside.rp{border:2px solid var(--rp)}
+#bkdBody .bkdside-lbl{font-size:12.5px;font-weight:700;padding:4px 9px;letter-spacing:.5px;color:#fff}
+#bkdBody .bkdside.bill .bkdside-lbl{background:var(--bill)}
+#bkdBody .bkdside.rp .bkdside-lbl{background:var(--rp)}
+#bkdBody .bkdside-body{padding:6px 9px;flex:1}
+#bkdBody .bkdside.bill .bkdside-body{background:var(--bill-bg)}
+#bkdBody .bkdside.rp .bkdside-body{background:var(--rp-bg)}
+#bkdBody .bkdside table{table-layout:fixed;background:transparent}
+#bkdBody .bkdside td{padding:2px 0;word-break:break-word;border-bottom:none;white-space:normal}
+#bkdBody .bkdside td.m{width:86px}
+#bkdBody .bkdside tr.bkdsub td{border-top:1.5px solid rgba(0,0,0,.25);padding-top:4px;font-weight:700}
+#bkdBody .bkdglbl{font-size:11px;color:var(--muted);font-weight:600;padding-top:4px}
+#bkdBody .bkdtot{background:var(--accent);border-radius:10px;padding:9px 13px;margin:10px 0;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:13px}
+#bkdBody .bkdtot table{table-layout:fixed;background:transparent}
+#bkdBody .bkdtot td{padding:2px 0;font-size:12.5px;color:#F0E2C9;border-bottom:none}
+#bkdBody .bkdtot td.m{color:#fff;width:100px}
+#bkdBody .bkdtot .p,#bkdBody .bkdtot td.m.p{color:#9FDF9F}
+#bkdBody .bkdtot .d,#bkdBody .bkdtot td.m.d{color:#FFB3AD}
+@media(max-width:680px){#bkdBody .bkdcols,#bkdBody .bkdtot{grid-template-columns:1fr}}
+/* Statement:兩份報表挑一份。兩張卡片同高,底下那一行寫「現在手上有多少」 */
+.prgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px}
+@media(max-width:560px){.prgrid{grid-template-columns:1fr}}
+.proption{display:flex;flex-direction:column;padding:12px 13px 13px;
+  border:2px solid var(--line);border-radius:14px;background:var(--panel);cursor:pointer;
+  transition:border-color .14s,background .14s}
+.proption:hover{border-color:var(--accent);background:var(--select)}
+.proption.on{border-color:var(--accent)}
+.prthumb{display:block;width:100%;max-width:154px;height:auto;margin:2px auto 11px;
+  border-radius:6px;filter:drop-shadow(0 1px 3px rgba(64,44,18,.22))}
+.prhd{display:flex;align-items:center;gap:8px}
+.proption input[type="radio"]{appearance:none;-webkit-appearance:none;flex:none;
+  margin:0;width:15px;height:15px;border:2px solid var(--line);border-radius:50%;
+  background:var(--panel);cursor:pointer;position:relative;
+  transition:background .12s,border-color .12s}
+.proption input[type="radio"]:hover,.proption input[type="radio"]:checked{border-color:var(--accent)}
+.proption input[type="radio"]:checked::after{content:"";position:absolute;
+  left:2.5px;top:2.5px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.proption b{font-size:13.5px;color:var(--text)}
+/* 兩段敘述長短不一,中文更短 —— 給兩行的高度,底下的分頁數才會齊平 */
+.proption i{display:block;font-style:normal;font-size:12px;color:var(--muted);
+  line-height:1.6;margin-top:6px;min-height:3.2em}
+.proption em{align-self:flex-start;font-style:normal;font-size:11px;color:var(--muted);
+  margin-top:8px;padding:1.5px 8px;border:1px solid var(--line);border-radius:20px;line-height:1.5}
+.proption u{display:block;text-decoration:none;font:500 11.5px "JetBrains Mono",Consolas,monospace;
+  color:var(--accent);margin-top:auto;padding-top:9px}
+.proption.off{opacity:.5;cursor:default}
+.proption.off:hover{border-color:var(--line);background:var(--panel)}
+/* 已匯入的帳單:摘要三格、瀏覽器空間量表、就地攤開的預覽 */
+.strow{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px}
+.strow .stat{flex:1 1 150px;padding:10px 12px;border:2px solid var(--line);
+  border-radius:10px;background:var(--panel)}
+.strow .stat i{display:block;font-style:normal;font-size:12px;color:var(--muted)}
+.strow .stat b{font:800 18px "JetBrains Mono",Consolas,monospace;color:var(--accent)}
+.storagebox{border:2px solid var(--line);border-radius:10px;padding:12px 14px;margin:0 0 14px}
+.storagebox:empty{display:none}
+.meter{height:14px;border:2px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.meter .fill{height:100%;background:var(--accent-2);min-width:2px;transition:width .3s ease}
+.meterline{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.meterline b{color:var(--text);font:700 13.5px "JetBrains Mono",Consolas,monospace}
+.dfilters{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:0 0 12px}
+.dfilters .fsel{display:flex;align-items:center;gap:8px}
+.dfilters .fsel>span:first-child{font-size:11.5px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:var(--muted)}
+.stc,.stcAll{accent-color:var(--accent-2);width:15px;height:15px;cursor:pointer;margin:0}
+#tStored td:nth-child(4),#tStored td:nth-child(5),
+#tStored th:nth-child(4),#tStored th:nth-child(5){text-align:right;
+  font-variant-numeric:tabular-nums}
+#tStored tr.sel td{background:var(--select)}
+#tStored tr.stprev td{padding:0;background:var(--stripe)}
+.stprevbox{padding:12px 14px}
+.pvtop{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.pvkey{font:800 14px "JetBrains Mono",Consolas,monospace;color:var(--accent)}
+.pvtop .pvback{margin-left:auto;padding:3px 11px;font-size:12px;white-space:nowrap}
+.pvstats{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:11px}
+.pvs{flex:1 1 130px;padding:8px 11px;border:2px solid var(--line);
+  border-radius:10px;background:var(--panel)}
+.pvs i{display:block;font-style:normal;font-size:11.5px;color:var(--muted)}
+.pvs b{font:800 15px "JetBrains Mono",Consolas,monospace;color:var(--accent)}
+.pvcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.pvh{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--muted);padding-bottom:5px;margin-bottom:3px;border-bottom:1px solid var(--line)}
+.pvr{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:baseline;
+  font-size:12.5px;padding:3px 0}
+.pvr i{font-style:normal;font:500 11.5px "JetBrains Mono",Consolas,monospace;
+  color:var(--muted);min-width:44px;text-align:right}
+.pvr b{font:600 12.5px "JetBrains Mono",Consolas,monospace;min-width:88px;text-align:right}
+.pvmore{font-size:11.5px;color:var(--muted);padding-top:4px}
+.pvnote{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:11px;
+  padding-top:8px;border-top:1px solid var(--line)}
+.empty{color:var(--muted);text-align:center;padding:24px 10px;font-size:13px}
+button.act.danger{background:transparent;color:var(--neg);border-color:var(--neg)}
+button.act.danger:hover:not(:disabled){background:var(--neg);color:#fff}
+button.act.danger:disabled{opacity:.45;cursor:default}
 .tplgrp{display:inline-flex;gap:0;align-items:center;border:none;padding:0}
 .tplgrp>button.act{border-radius:10px 0 0 10px}
 .tplgrp>button.act+button.act{border-radius:0 10px 10px 0;margin-left:-1px}
@@ -806,11 +953,11 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <div class="tablewrap" style="max-height:52vh">
       <table id="tSize"><thead><tr>
         <th data-i18n="th.chan">Channel</th>
-        <th class="num">OS <span data-i18n="c.longest">Longest</span> (in)</th>
-        <th class="num">OS <span data-i18n="c.weight">Weight</span> (lb)</th>
-        <th class="num">OS <span data-i18n="c.cubic">Cubic</span> (in³)</th>
-        <th class="num">OS L+G (in)</th>
-        <th class="num">OS <span data-i18n="c.minwt">Min Wt</span> (lb)</th>
+        <th class="num">Oversize <span data-i18n="c.longest">Longest</span> (in)</th>
+        <th class="num">Oversize <span data-i18n="c.weight">Weight</span> (lb)</th>
+        <th class="num">Oversize <span data-i18n="c.cubic">Cubic</span> (in³)</th>
+        <th class="num">Oversize L+G (in)</th>
+        <th class="num">Oversize <span data-i18n="c.minwt">Min Wt</span> (lb)</th>
         <th class="num">AHS <span data-i18n="c.weight">Weight</span> (lb)</th>
         <th class="num">AHS <span data-i18n="c.longest">Longest</span> (in)</th>
         <th class="num">AHS <span data-i18n="c.second">2nd Side</span> (in)</th>
@@ -1140,6 +1287,48 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   </div>
 </div>
 
+<div id="bkBg" class="modalbg">
+  <div class="modal sketch" id="bkModal" style="width:min(920px,100%)">
+    <div class="modalhd">
+      <span data-i18n="hd.bulkchan">Bulk Set Channels</span>
+      <button class="mx" id="bkX">✕</button>
+    </div>
+    <div class="modalbody">
+      <p class="hint" style="margin:0 0 10px" data-i18n="hint.bulkchan">每條規則選「跟隨預設」或「自訂」;選了自訂才能填數字,淡色數字是它原本會跟隨的預設值。按 Apply 會把畫面上的內容原樣寫進所有勾選的渠道 —— 留在「跟隨預設」的項目會清掉該渠道原本的覆寫。勾一條渠道再按 Load values,可以看它實際覆寫了哪些值。</p>
+      <div class="subhd" data-i18n="hd.selchan">Select Channels</div>
+      <div class="sketch-soft" style="padding:10px 12px;margin-bottom:12px">
+        <div class="row" style="margin-bottom:8px;flex-wrap:wrap;gap:7px">
+          <button class="act ghost sm" id="bkAll" data-i18n="btn.selall">全選</button>
+          <button class="act ghost sm" id="bkNone" data-i18n="btn.selnone">全不選</button>
+          <span style="flex:1 1 auto"></span>
+          <button class="act ghost sm" id="bkLoad" data-i18n="btn.loadticked">Load values</button>
+          <button class="act ghost sm" id="bkClear" data-i18n="btn.clearticked">Clear overrides</button>
+        </div>
+        <div id="bkChans" class="chkgrid" style="max-height:150px;overflow:auto"></div>
+        <div id="bkPick" class="bkpick"></div>
+      </div>
+      <div id="bkVals">
+      <div class="subhd" data-i18n="hd.valwrite">Values to Write</div>
+      <div class="bkwrap">
+        <div class="bkbox sketch-soft">
+          <div class="bkhd"><span class="em">📦</span> <span data-i18n="hd.osgrp">Oversize</span></div>
+          <div id="bkOs" class="bkgrid"></div>
+        </div>
+        <div class="bkbox sketch-soft">
+          <div class="bkhd"><span class="em">📐</span> <span data-i18n="hd.ahsgrp">Additional Handling (AHS)</span></div>
+          <div id="bkAhs" class="bkgrid"></div>
+        </div>
+      </div>
+      </div>
+      <div id="bkNote" class="savenote" style="margin-top:8px"></div>
+    </div>
+    <div class="modalft">
+      <button class="act" id="bkApply" data-i18n="btn.applyticked">Apply</button>
+      <button class="act ghost" id="bkClose" data-i18n="btn.close">關閉</button>
+    </div>
+  </div>
+</div>
+
 <div id="dimBg" class="modalbg">
   <div class="modal sketch" id="dimModal" style="width:min(560px,100%)">
     <div class="modalhd">
@@ -1173,6 +1362,71 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     </div>
     <div class="modalft">
       <button class="act ghost" id="dimClose" data-i18n="btn.close">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div id="prBg" class="modalbg">
+  <div class="modal sketch" id="prModal" style="width:min(640px,100%)">
+    <div class="modalhd">
+      <span data-i18n="hd.stmtrep">Statement</span>
+      <button class="mx" id="prX">✕</button>
+    </div>
+    <div class="modalbody">
+      <p class="hint" style="margin:0 0 12px" data-i18n="hint.stmtrep">同一批資料的兩份報表:這一期的帳戶層級費用明細,或每一期並排看利潤。挑一份。</p>
+      <div class="prgrid">
+        <label class="proption" id="prLabInv">
+          <svg class="prthumb" viewBox="0 0 150 104" aria-hidden="true"><rect x="10" y="2" width="138" height="94" rx="4" fill="#fff" stroke="#DBC9AD"/><rect x="2" y="8" width="138" height="94" rx="4" fill="#fff" stroke="#DBC9AD"/><rect x="8" y="14" width="32" height="11" rx="1" fill="#E9DEC8"/><rect x="43" y="14" width="26" height="11" rx="1" fill="#E4D7F0"/><rect x="72" y="14" width="26" height="11" rx="1" fill="#E4D7F0"/><rect x="101" y="14" width="33" height="11" rx="1" fill="#FCDCC2"/><rect x="8" y="29" width="32" height="9" rx="1" fill="#F1EBDF"/><rect x="43" y="29" width="26" height="9" rx="1" fill="#F3EDFA"/><rect x="72" y="29" width="26" height="9" rx="1" fill="#F3EDFA"/><rect x="101" y="29" width="33" height="9" rx="1" fill="#FEF0E4"/><rect x="8" y="42" width="32" height="9" rx="1" fill="#F1EBDF"/><rect x="43" y="42" width="26" height="9" rx="1" fill="#F3EDFA"/><rect x="72" y="42" width="26" height="9" rx="1" fill="#F3EDFA"/><rect x="101" y="42" width="33" height="9" rx="1" fill="#FEF0E4"/><rect x="8" y="55" width="32" height="9" rx="1" fill="#F1EBDF"/><rect x="43" y="55" width="26" height="9" rx="1" fill="#F3EDFA"/><rect x="72" y="55" width="26" height="9" rx="1" fill="#F3EDFA"/><rect x="101" y="55" width="33" height="9" rx="1" fill="#FEF0E4"/><rect x="8" y="68" width="32" height="9" rx="1" fill="#F1EBDF"/><rect x="43" y="68" width="26" height="9" rx="1" fill="#F3EDFA"/><rect x="72" y="68" width="26" height="9" rx="1" fill="#F3EDFA"/><rect x="101" y="68" width="33" height="9" rx="1" fill="#FEF0E4"/><rect x="8" y="83" width="126" height="11" rx="1" fill="#FBE7BF"/></svg>
+          <span class="prhd"><input type="radio" name="prPick" id="prInv">
+            <b data-i18n="lb.prinv">這一期</b></span>
+          <i data-i18n="lb.prinvsub">這一期的帳戶層級費用逐項攤開,加一張與計價結果的對照摘要。</i>
+          <em data-i18n="lb.prinvsh">2 張分頁 · 摘要 + 對帳單</em>
+          <u id="prInvWhat"></u></label>
+        <label class="proption" id="prLabPer">
+          <svg class="prthumb" viewBox="0 0 150 104" aria-hidden="true"><rect x="6" y="6" width="138" height="94" rx="4" fill="#fff" stroke="#DBC9AD"/><rect x="12" y="11" width="30" height="9" rx="1" fill="#E9DEC8"/><rect x="46" y="11" width="21" height="9" rx="1" fill="#E9DEC8"/><rect x="70" y="11" width="21" height="9" rx="1" fill="#E9DEC8"/><rect x="94" y="11" width="21" height="9" rx="1" fill="#E9DEC8"/><rect x="118" y="11" width="20" height="9" rx="1" fill="#E9DEC8"/><rect x="12" y="23" width="30" height="5" rx="1" fill="#E3DAC9"/><rect x="46" y="23" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="70" y="23" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="94" y="23" width="21" height="5" rx="1" fill="#F3EDFA"/><rect x="118" y="23" width="20" height="5" rx="1" fill="#FEF0E4"/><rect x="12" y="31" width="30" height="5" rx="1" fill="#E3DAC9"/><rect x="46" y="31" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="70" y="31" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="94" y="31" width="21" height="5" rx="1" fill="#F3EDFA"/><rect x="118" y="31" width="20" height="5" rx="1" fill="#FEF0E4"/><rect x="12" y="39" width="30" height="5" rx="1" fill="#E3DAC9"/><rect x="46" y="39" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="70" y="39" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="94" y="39" width="21" height="5" rx="1" fill="#F3EDFA"/><rect x="118" y="39" width="20" height="5" rx="1" fill="#FEF0E4"/><rect x="12" y="47" width="30" height="5" rx="1" fill="#E3DAC9"/><rect x="46" y="47" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="70" y="47" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="94" y="47" width="21" height="5" rx="1" fill="#F3EDFA"/><rect x="118" y="47" width="20" height="5" rx="1" fill="#FEF0E4"/><rect x="12" y="55" width="30" height="5" rx="1" fill="#E3DAC9"/><rect x="46" y="55" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="70" y="55" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="94" y="55" width="21" height="5" rx="1" fill="#F3EDFA"/><rect x="118" y="55" width="20" height="5" rx="1" fill="#FEF0E4"/><rect x="12" y="63" width="30" height="5" rx="1" fill="#E3DAC9"/><rect x="46" y="63" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="70" y="63" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="94" y="63" width="21" height="5" rx="1" fill="#F3EDFA"/><rect x="118" y="63" width="20" height="5" rx="1" fill="#FEF0E4"/><rect x="12" y="71" width="30" height="5" rx="1" fill="#E3DAC9"/><rect x="46" y="71" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="70" y="71" width="21" height="5" rx="1" fill="#F1EBDF"/><rect x="94" y="71" width="21" height="5" rx="1" fill="#F3EDFA"/><rect x="118" y="71" width="20" height="5" rx="1" fill="#FEF0E4"/><rect x="12" y="82" width="126" height="9" rx="1" fill="#FBE7BF"/></svg>
+          <span class="prhd"><input type="radio" name="prPick" id="prPer">
+            <b data-i18n="lb.prper">全部期別</b></span>
+          <i data-i18n="lb.prpersub">各期的利潤與差異率。一期一列,依帳單日期排序,附合計。</i>
+          <em data-i18n="lb.prpersh">1 張分頁 · 各期利潤</em>
+          <u id="prPerWhat"></u></label>
+      </div>
+      <div id="prNote" class="savenote" style="margin-top:4px"></div>
+    </div>
+    <div class="modalft">
+      <button class="act" id="prGo" data-i18n="btn.prgo">下載 (.xlsx)</button>
+      <button class="act ghost" id="prClose" data-i18n="btn.close">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div id="stBg" class="modalbg">
+  <div class="modal sketch" id="stModal" style="width:min(980px,100%)">
+    <div class="modalhd">
+      <span data-i18n="hd.stored">已匯入的帳單</span>
+      <button class="mx" id="stX">✕</button>
+    </div>
+    <div class="modalbody">
+      <div class="dfilters" id="stFilters"></div>
+      <div class="strow" id="stSum"></div>
+      <div id="stStorage" class="storagebox"></div>
+      <div class="tablewrap" style="max-height:52vh"><table id="tStored"><thead><tr>
+        <th style="width:34px"><input type="checkbox" class="stcAll" id="stAll"></th>
+        <th data-i18n="th.invno">Invoice Number</th>
+        <th data-i18n="th.invdt">Invoice Date</th>
+        <th data-i18n="th.rows">列數</th>
+        <th data-i18n="th.trkcount">追蹤號</th>
+        <th data-i18n="th.filedat">存入時間</th>
+        <th style="width:70px"></th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="modalft">
+      <span class="row" style="gap:10px">
+        <button class="act ghost sm" id="stBack" hidden>← <span data-i18n="btn.backlist">回到清單</span></button>
+        <button class="act danger sm" id="stDelete" disabled>🗑 <span data-i18n="btn.delinv">刪除勾選</span></button>
+        <button class="act ghost sm" id="stExportAll">📗 <span data-i18n="btn.exphist">匯出全部歷史</span></button>
+        <span id="stDelNote" class="savenote"></span>
+      </span>
+      <button class="act ghost" id="stClose" data-i18n="btn.close">關閉</button>
     </div>
   </div>
 </div>
@@ -1310,6 +1564,25 @@ const I18N={
  "btn.imphist":["Import Past Invoices","Import Past Invoices"],
  "btn.refresh":["Refresh","Refresh"],
  "btn.stored":["Stored Invoices","Stored Invoices"],
+ "hd.stored":["已匯入的帳單","Stored invoices"],
+ "hd.stmtrep":["Statement","Statement"],
+ "hint.stmtrep":["同一批資料的兩份報表:這一期的帳戶層級費用明細,或每一期並排看利潤。挑一份。",
+   "Two reports from the same data: this period's account-level charges in detail, or every period summarised. Select one."],
+ "lb.prinv":["這一期","This invoice"],
+ "lb.prinvsub":["這一期的帳戶層級費用逐項攤開,加一張與計價結果的對照摘要。",
+   "The account-level charges on this period, itemised, with a summary against the repriced result."],
+ "lb.prinvsh":["2 張分頁 · 摘要 + 對帳單","2 sheets · Summary + Statement"],
+ "lb.prper":["全部期別","All periods"],
+ "lb.prpersub":["各期的利潤與差異率。一期一列,依帳單日期排序,附合計。",
+   "Profit and margin across periods. One row per invoice period, ordered by invoice date, with totals."],
+ "lb.prpersh":["1 張分頁 · 各期利潤","1 sheet · Profit by period"],
+ "btn.prgo":["下載 (.xlsx)","Download (.xlsx)"],
+ "th.rows":["列數","Rows"],
+ "th.trkcount":["追蹤號","Trackings"],
+ "th.filedat":["存入時間","Filed"],
+ "btn.backlist":["回到清單","Back to the list"],
+ "btn.delinv":["刪除勾選","Delete selected"],
+ "btn.exphist":["匯出全部歷史","Export all history"],
  "btn.search":["Search","Search"],
  "btn.breakdown":["Rating Breakdown","Rating Breakdown"],
  "hd.bkd":["Rating Breakdown","Rating Breakdown"],
@@ -1444,6 +1717,17 @@ const I18N={
  "btn.chandim":["Bulk set by channel","Bulk set by channel"],
  "hd.dimchan":["Bulk set DIM by channel","Bulk set DIM by channel"],
  "hd.selchan":["Select Channels","Select Channels"],
+ "hd.bulkchan":["Bulk Set Channels","Bulk Set Channels"],
+ "hd.valwrite":["Values to Write","Values to Write"],
+ "hd.osgrp":["Oversize","Oversize"],
+ "hd.ahsgrp":["Additional Handling (AHS)","Additional Handling (AHS)"],
+ "btn.loadticked":["Load values","Load values"],
+ "btn.clearticked":["Clear overrides","Clear overrides"],
+ "btn.applyticked":["Apply","Apply"],
+ "lb.followdef":["跟隨預設","Follow default"],
+ "lb.custom":["自訂","Custom"],
+ "hint.bulkchan":["每條規則選「跟隨預設」或「自訂」;選了自訂才能填數字,淡色數字是它原本會跟隨的預設值。按 Apply 會把畫面上的內容原樣寫進所有勾選的渠道 —— 留在「跟隨預設」的項目會清掉該渠道原本的覆寫。勾一條渠道再按 Load values,可以看它實際覆寫了哪些值。",
+   "For each rule choose Follow default or Custom; the number can only be typed once Custom is chosen, and the pale number is the default it would otherwise follow. Apply writes exactly what is on screen into every ticked channel — anything left on Follow default clears that channel's override. Tick one channel and Load values to see what it actually overrides."],
  "hd.dimforce":["DIM Factors in Force","DIM Factors in Force"],
  "lb.chandim":["DIM Factor","DIM Factor"],
  "th.dimf":["DIM Factor","DIM Factor"],
@@ -1668,6 +1952,7 @@ function loadDefaultTables(){
   /* 先掛上預設渠道(FedEx 官方服務),再依各渠道的 Zone 清單長表 */
   CUSTOM_SERVICES=DEFAULT_CHANNELS.map(([n])=>n);
   CUSTOM_SERVICE_ZONES={}; CUSTOM_SERVICE_ON={};
+  for(const n of BASE_SERVICES) CUSTOM_SERVICE_ZONES[n]=BASE_ZONES.slice();
   for(const[n,zs] of DEFAULT_CHANNELS){ CUSTOM_SERVICE_ZONES[n]=zs.slice(); CUSTOM_SERVICE_ON[n]=true; }
   syncServices();
   const zonesFor=s=>CUSTOM_SERVICE_ZONES[s]||ZONES;
@@ -1702,6 +1987,8 @@ const chanOn=n=>CUSTOM_SERVICE_ON[n]!==false;
 /* Zone 網格 = 基本 Zone ∪ 各啟用渠道的 Zone;變動時同步基本費率表欄位 */
 function syncZones(){
   const set=new Set(BASE_ZONES);
+  for(const n of BASE_SERVICES)
+    for(const z of (CUSTOM_SERVICE_ZONES[n]||[])) set.add(Math.trunc(Number(z)));
   for(const n of CUSTOM_SERVICES)
     if(chanOn(n)) for(const z of (CUSTOM_SERVICE_ZONES[n]||[])) set.add(Math.trunc(Number(z)));
   const next=[...set].filter(z=>isFinite(z)&&z>0).sort((a,b)=>a-b);
@@ -1783,6 +2070,8 @@ function applyConfig(cfg){
     ? JSON.parse(JSON.stringify(cfg.size_rules)) : {};
   DIM_BY_CHAN=(cfg.dim_by_channel&&typeof cfg.dim_by_channel==="object")
     ? {...cfg.dim_by_channel} : {};
+  for(const n of BASE_SERVICES)
+    if(!CUSTOM_SERVICE_ZONES[n]) CUSTOM_SERVICE_ZONES[n]=BASE_ZONES.slice();
   syncServices();
   for(const svc of CUSTOM_SERVICES) seedServiceRows(svc,CUSTOM_SERVICE_ZONES[svc]);
 }
@@ -1901,6 +2190,7 @@ const DEFAULT_CHANNELS=[
 function restoreDefaultChannels(){
   CUSTOM_SERVICES=DEFAULT_CHANNELS.map(([n])=>n);
   CUSTOM_SERVICE_ZONES={}; CUSTOM_SERVICE_ON={};
+  for(const n of BASE_SERVICES) CUSTOM_SERVICE_ZONES[n]=BASE_ZONES.slice();
   for(const[n,zs] of DEFAULT_CHANNELS){ CUSTOM_SERVICE_ZONES[n]=zs.slice(); CUSTOM_SERVICE_ON[n]=true; }
   syncServices();
   for(const[n,zs] of DEFAULT_CHANNELS) seedServiceRows(n,zs);
@@ -2977,13 +3267,85 @@ const CURRENCY_COLS=new Set([
   "Oversize Demand Fee","Fuel Fee","Repriced Total"]);
 const DATE_COLS=new Set(["Transaction Date","Invoice Date"]);
 const NUMERIC_COLS=new Set(["Length","Width","Height","Actual Weight","DIM Weight","Billable Weight"]);
-/* Account Level 對帳單:每列逐費項攤開 + 總計 */
-async function exportAccountStatement(accountRows){
-  const HEAD={bold:true,fill:"D9EAF7"};
-  const rows=[["Invoice Date","Invoice Number","Charge Description","Amount"]
-    .map(c=>({v:c,t:"s",s:HEAD}))];
-  let grand=0, wDesc=20, wInv=14;
-  for(const ar of accountRows){
+/* =====================================================================
+   Statement(照抄 UPS 的 Profit report):同一批資料兩份報表 —— 這一期的
+   帳戶層級費用逐項攤開,或每一期並排看利潤。以前只有一顆按鈕直接下載
+   對帳單,想看跨期的利潤只能自己把每一期的結果貼在一起。
+   ===================================================================== */
+function paintStatementBtn(){
+  const b=$("bStatement"); if(!b) return;
+  const a=prAvail();
+  b.disabled=!(a.inv||a.per);
+}
+function prAvail(){
+  return {
+    inv: !!(LAST&&LAST.accountRows&&LAST.accountRows.length),
+    per: !!(HIST_RECS&&HIST_RECS.some(r=>r.cols&&r.ships&&r.ships.length)),
+  };
+}
+function prPaint(){
+  const a=prAvail();
+  const set=(id,labId,ok)=>{
+    const el=$(id), lab=$(labId);
+    if(!el||!lab) return;
+    el.disabled=!ok; if(!ok) el.checked=false;
+    lab.classList.toggle("off",!ok);
+    lab.classList.toggle("on",!!el.checked);
+  };
+  set("prInv","prLabInv",a.inv);
+  set("prPer","prLabPer",a.per);
+  /* 兩張卡片底下這一行要對得起來:左邊「哪一期 · 幾筆」,右邊「幾期 · 什麼狀態」 */
+  const iw=$("prInvWhat");
+  if(iw){
+    if(!a.inv) iw.textContent=L("這次計價沒有帳戶層級費用","No account-level charges in this run");
+    else{
+      const invs=[...new Set(LAST.accountRows.map(r=>String(r["Invoice Number"]||"").trim())
+        .filter(Boolean))];
+      const n=LAST.accountRows.reduce((x,r)=>x+((r.pairs&&r.pairs.length)||1),0);
+      iw.textContent=[invs.length===1?invs[0]:(invs.length+L(" 期"," periods")),
+        n.toLocaleString()+L(" 筆費用"," charge"+(n===1?"":"s"))].join("  ·  ");
+    }
+  }
+  const pw=$("prPerWhat");
+  if(pw){
+    const np=a.per?prPeriodKeys().length:0;
+    pw.textContent=a.per
+      ? np+L(" 期  ·  下載時重算"," period"+(np===1?"":"s")+"  ·  reprices on download")
+      : L("還沒有匯入的期別","Nothing imported yet");
+  }
+  const go=$("prGo");
+  if(go) go.disabled=!(($("prInv")&&$("prInv").checked)||($("prPer")&&$("prPer").checked));
+}
+function prPeriodKeys(){
+  const seen=new Set();
+  for(const rec of HIST_RECS)
+    for(const r of rec.rows) seen.add(String(r.inv||"").trim()||"(no invoice no.)");
+  return [...seen];
+}
+function openStatementReport(){
+  const a=prAvail();
+  const pick=a.inv?"inv":(a.per?"per":"");
+  if($("prInv")) $("prInv").checked=(pick==="inv");
+  if($("prPer")) $("prPer").checked=(pick==="per");
+  prNote("");
+  prPaint();
+  $("prBg").style.display="flex";
+}
+function closeStatementReport(){ $("prBg").style.display="none"; }
+function prNote(t){ const n=$("prNote"); if(n) n.textContent=t||""; }
+const PR_HEAD={bold:true,fill:"D9EAF7"};
+const PR_MONEY={fmt:"$#,##0.00"};
+/* 這一期:摘要 + 帳戶層級費用逐項。摘要那張把計價結果和帳戶層級費用擺在
+   一起 —— 分開看的話,「這期到底收了多少」永遠差一個數字。 */
+function prSheetInvoice(){
+  if(!(LAST&&LAST.accountRows&&LAST.accountRows.length)) return null;
+  const acc=LAST.accountRows;
+  const res=LAST.results||[];
+  const rp=res.reduce((a,r)=>a+toFloat(r["Repriced Total"],0),0);
+  let accTotal=0, wDesc=20, wInv=14;
+  const det=[["Invoice Date","Invoice Number","Charge Description","Amount"]
+    .map(c=>({v:c,t:"s",s:PR_HEAD}))];
+  for(const ar of acc){
     const dateCell=ar._invKey
       ?{v:keyToSerial(ar._invKey),t:"n",s:{fmt:"mm/dd/yyyy"}}
       :(ar["Invoice Date"]?{v:String(ar["Invoice Date"]),t:"s"}:"");
@@ -2992,16 +3354,140 @@ async function exportAccountStatement(accountRows){
     const pairs=ar.pairs&&ar.pairs.length?ar.pairs:[["(no itemized charges)",ar.net]];
     for(const[desc,amt] of pairs){
       if(String(desc).length>wDesc) wDesc=String(desc).length;
-      grand+=amt;
-      rows.push([dateCell,inv?{v:inv,t:"s"}:"",
-        {v:String(desc),t:"s"},{v:r2(amt),t:"n",s:{fmt:"$#,##0.00"}}]);
+      accTotal+=toFloat(amt,0);
+      det.push([dateCell,inv?{v:inv,t:"s"}:"",{v:String(desc),t:"s"},
+        {v:r2(amt),t:"n",s:PR_MONEY}]);
     }
   }
-  rows.push(["","",{v:"TOTAL",t:"s",s:{bold:true}},
-    {v:r2(grand),t:"n",s:{bold:true,fmt:"$#,##0.00"}}]);
-  await xlWrite([{name:"Account Statement",rows,
-    cols:[{w:13},{w:Math.min(wInv+2,20)},{w:Math.min(wDesc+2,42)},{w:14}],
-    freeze:{r:1},filter:"A1:D"+(rows.length-1)}],"account_statement.xlsx");
+  det.push(["","",{v:"TOTAL",t:"s",s:{bold:true}},
+    {v:r2(accTotal),t:"n",s:{bold:true,fmt:"$#,##0.00"}}]);
+  /* 摘要 */
+  const sum=[["Item","Rows","Amount"].map(c=>({v:c,t:"s",s:PR_HEAD}))];
+  const line=(lab,n,v,bold)=>sum.push([
+    {v:lab,t:"s",s:bold?{bold:true}:undefined},
+    n==null?"":{v:n,t:"n",s:bold?{bold:true}:undefined},
+    {v:r2(v),t:"n",s:bold?{bold:true,fmt:"$#,##0.00"}:PR_MONEY}]);
+  line("Repriced shipments",res.length,rp);
+  for(const[k,lab] of [["Base Rate","Base Rate"],["Additional Handling Surcharge","AHS"],
+      ["DAS Fee","DAS"],["Oversize Fee","Oversize"],["Residential Fee","Residential"],
+      ["Signature Fee","Signature"],["General Demand Fee","General Demand"],
+      ["AHS Demand Fee","AHS Demand"],["Oversize Demand Fee","Oversize Demand"],
+      ["Fuel Fee","Fuel"]]){
+    const v=res.reduce((a,r)=>a+toFloat(r[k],0),0);
+    if(v!==0) line("  "+lab,null,v);
+  }
+  for(const c of (LAST.customCols||[])){
+    const v=res.reduce((a,r)=>a+toFloat((r._custom||{})[c],0),0);
+    if(v!==0) line("  "+c,null,v);
+  }
+  line("Account-level charges",acc.length,accTotal);
+  line("Statement total",null,rp+accTotal,true);
+  return {sheets:[
+    {name:"Summary",rows:sum,cols:[{w:30},{w:9},{w:15}],freeze:{r:1}},
+    {name:"Account Statement",rows:det,
+     cols:[{w:13},{w:Math.min(wInv+2,20)},{w:Math.min(wDesc+2,42)},{w:14}],
+     freeze:{r:1},filter:"A1:D"+(det.length-1)}]};
+}
+/* 全部期別:每一期用目前的費率重算一次,和帳單實收並排。一期一列。 */
+async function prSheetPeriods(onProgress){
+  const groups=new Map();
+  for(const rec of HIST_RECS){
+    if(!(rec.cols&&rec.ships&&rec.ships.length)) continue;
+    const prev=CUR_COLS;
+    CUR_COLS=rec.cols.map(c=>String(c).trim());
+    try{
+      for(const row of rec.ships){
+        const inv=String(coalesce(row,["Invoice Number","Invoice No","Invoice #"],"")??"").trim()
+          ||"(no invoice no.)";
+        let g=groups.get(inv);
+        if(!g){ g={inv,date:"",cols:rec.cols,ships:[]}; groups.set(inv,g); }
+        if(!g.date) g.date=String(coalesce(row,["Invoice Date"],"")??"");
+        g.ships.push(row);
+      }
+    } finally { CUR_COLS=prev; }
+  }
+  const list=[...groups.values()].sort((a,b)=>
+    (parseDateKey(a.date)||0)-(parseDateKey(b.date)||0)||(a.inv<b.inv?-1:1));
+  if(!list.length) return null;
+  const out=[];
+  for(let i=0;i<list.length;i++){
+    const g=list[i];
+    if(onProgress) await onProgress(i,list.length,g.inv);
+    let rp=0, ship=0, acct=0, err="";
+    try{
+      const r=repriceCore(g.cols,g.ships);
+      ship=r.results.length;
+      rp=r.results.reduce((a,x)=>a+toFloat(x["Repriced Total"],0),0);
+      acct=(r.accountRows||[]).reduce((a,x)=>a+toFloat(x.net,0),0);
+    }catch(e){ err=String((e&&e.message)||e); }
+    const billed=HIST_ROWS.filter(r=>(String(r.inv||"").trim()||"(no invoice no.)")===g.inv)
+      .reduce((a,r)=>a+toFloat(r.amt,0),0);
+    out.push({inv:g.inv,date:g.date,ship,rp:r2(rp),acct:r2(acct),billed:r2(billed),err});
+  }
+  const cols=["Invoice Number","Invoice Date","Shipments","Reprice","Account-level",
+    "FedEx Billed","Profit","Margin %","Note"];
+  const rows=[cols.map(c=>({v:c,t:"s",s:PR_HEAD}))];
+  let tRp=0,tAc=0,tBi=0,tSh=0;
+  for(const o of out){
+    tRp+=o.rp; tAc+=o.acct; tBi+=o.billed; tSh+=o.ship;
+    const profit=r2(o.billed-o.rp-o.acct);
+    /* 比例寫成真正的比例值再套百分比格式,不是先算成 "20.6%" 這種字串貼上去
+       —— 字串排不了序,也沒辦法再拿去算。 */
+    const margin=Math.abs(o.billed)>1e-9?profit/o.billed:null;
+    rows.push([{v:o.inv,t:"s"},
+      parseDateKey(o.date)?{v:keyToSerial(parseDateKey(o.date)),t:"n",s:{fmt:"mm/dd/yyyy"}}
+        :(o.date?{v:o.date,t:"s"}:""),
+      {v:o.ship,t:"n"},
+      {v:o.rp,t:"n",s:PR_MONEY},{v:o.acct,t:"n",s:PR_MONEY},{v:o.billed,t:"n",s:PR_MONEY},
+      {v:profit,t:"n",s:PR_MONEY},
+      margin==null?"":{v:margin,t:"n",s:{fmt:"0.00%"}},
+      o.err?{v:o.err,t:"s"}:""]);
+  }
+  const tProfit=r2(tBi-tRp-tAc);
+  const tMargin=Math.abs(tBi)>1e-9?tProfit/tBi:null;
+  const B={bold:true}, BM={bold:true,fmt:"$#,##0.00"};
+  rows.push([{v:"TOTAL",t:"s",s:B},"",{v:tSh,t:"n",s:B},
+    {v:r2(tRp),t:"n",s:BM},{v:r2(tAc),t:"n",s:BM},{v:r2(tBi),t:"n",s:BM},
+    {v:tProfit,t:"n",s:BM},
+    tMargin==null?"":{v:tMargin,t:"n",s:{bold:true,fmt:"0.00%"}},""]);
+  return {sheets:[{name:"Profit by Period",rows,
+    cols:[{w:18},{w:13},{w:11},{w:14},{w:14},{w:14},{w:14},{w:10},{w:34}],
+    freeze:{r:1},filter:"A1:I"+(rows.length-1)}]};
+}
+async function prDownload(){
+  const wantI=!!($("prInv")&&$("prInv").checked);
+  const wantP=!!($("prPer")&&$("prPer").checked);
+  if(!wantI&&!wantP) return;
+  const go=$("prGo");
+  if(go) go.disabled=true;
+  try{
+    const sheets=[]; let scope="";
+    if(wantI){
+      const r=prSheetInvoice();
+      if(r){ sheets.push(...r.sheets); scope="This_Invoice"; }
+    }
+    if(wantP){
+      /* 每一期都要用目前的費率重算過。幾十期要跑一陣子,進度寫在視窗裡 ——
+         什麼都不說會像當掉。 */
+      const r=await prSheetPeriods(async(i,n,key)=>{
+        prNote(L("正在重算 "+key+"  "+(i+1)+" / "+n,"Repricing "+key+"  "+(i+1)+" / "+n));
+        await new Promise(x=>setTimeout(x,0));
+      });
+      if(r){ sheets.push(...r.sheets); scope=scope?"":"By_Period"; }
+    }
+    if(!sheets.length){ prNote(L("沒有可匯出的內容","Nothing to export")); return; }
+    prNote("");
+    const name=["Statement",scope,new Date().toISOString().slice(0,10).replace(/-/g,"")]
+      .filter(Boolean).join("_")+".xlsx";
+    await xlWrite(sheets,name);
+    closeStatementReport();
+    toast(L(name+" 已下載",name+" downloaded"));
+  }catch(e){
+    prNote(L("匯出失敗:","Export failed: ")+((e&&e.message)||e));
+  } finally {
+    if(go) go.disabled=false;
+    prPaint();
+  }
 }
 async function exportResultWorkbook(results,customCols){
   customCols=customCols||[];
@@ -3320,6 +3806,184 @@ function renderRules(){
         +'" data-svc="'+esc(svc)+'" data-key="'+key+'" value="'+(v>0?v:"")+'"></td>';
     }).join("")+"</tr>").join("");
 }
+/* ---------------------------------------------------------------------
+   Bulk Set Channels(照抄 UPS):勾渠道 → 每條規則選「跟隨預設 / 自訂」→ Apply。
+   一列回答的只有一個問題:這條渠道跟隨預設,還是有自己的門檻?所以選了自訂
+   才打得動旁邊那個數字;跟隨預設時那格印的是預設值(淡色),不能改 —— 能改
+   的話,改了到底算誰的就講不清楚了。
+   ------------------------------------------------------------------ */
+const BK_OS=[
+  ["oversize_longest_side","use_oversize_longest",["最長邊 (in)","Longest side (in)"]],
+  ["oversize_actual_weight","use_oversize_weight",["實重 (lb)","Actual weight (lb)"]],
+  ["oversize_cubic_inches","use_oversize_cubic",["材積 (in³)","Cubic volume (in³)"]],
+  ["length_girth_limit","use_oversize_lg",["長 + 圍 (in)","Length + girth (in)"]],
+  ["oversize_min_billable_weight",null,["最低計費重 (lb)","Min billable weight (lb)"]]];
+const BK_AHS=[
+  ["ahs_weight_threshold",null,["重量 (lb)","Weight (lb)"]],
+  ["ahs_dimension_longest_side",null,["最長邊 (in)","Longest side (in)"]],
+  ["ahs_dimension_second_side",null,["第二長邊 (in)","Second longest side (in)"]],
+  ["ahs_dimension_cubic_inches",null,["材積 (in³)","Cubic volume (in³)"]],
+  ["ahs_dimension_lg_limit",null,["長 + 圍 (in)","Length + girth (in)"]],
+  ["ahs_min_billable_weight",null,["最低計費重 (lb)","Min billable weight (lb)"]]];
+function bkAllDefs(){ return BK_OS.concat(BK_AHS); }
+function bkTicked(){
+  return [...document.querySelectorAll("#bkChans .bkc:checked")].map(c=>c.value);
+}
+function bkNote(m){ const e=$("bkNote"); if(e) e.textContent=m||""; }
+/* 勾了幾條、下半部能不能動,兩件事同一個地方決定 */
+function bkSync(){
+  const n=bkTicked().length;
+  const p=$("bkPick");
+  if(p){
+    p.className="bkpick"+(n?"":" none");
+    p.textContent=n
+      ? L("已勾選 "+n+" 條渠道。","Ticked "+n+" channel"+(n===1?"":"s")+".")
+      : L("請先勾選要套用的渠道 —— 選好之後下面才填得動。",
+          "Tick the channels to write to first — the fields below stay locked until you do.");
+  }
+  const vals=$("bkVals"); if(vals) vals.classList.toggle("off",n===0);
+  for(const id of ["bkApply","bkLoad","bkClear"]){
+    const b=$(id); if(b) b.disabled=(n===0);
+  }
+}
+/* 這一格要印的預設值:全域門檻;開關關掉的條件顯示 0(等於不啟用) */
+function bkDefOf(f,sw){
+  if(sw&&!RULES[sw]) return "0";
+  const v=RULES[f];
+  return v==null?"":String(v);
+}
+/* 一列的兩個控制項一起動:跟隨預設就鎖住清空,自訂就打開並把預設帶進去當起點 */
+function bkSyncRow(f){
+  const sel=$("bks_"+f), inp=$("bkv_"+f);
+  if(!sel||!inp) return;
+  const own=sel.value==="own";
+  inp.disabled=!own;
+  inp.classList.toggle("locked",!own);
+  if(!own) inp.value="";
+  else if(!String(inp.value).trim()) inp.value=inp.placeholder||"";
+}
+function bkFields(boxId,defs){
+  const box=$(boxId); if(!box) return;
+  const keep={};
+  for(const[f] of defs){
+    const v=$("bkv_"+f), sc=$("bks_"+f);
+    if(v) keep[f]=v.value;
+    if(sc) keep["#"+f]=sc.value;
+  }
+  const head='<span class="bkh">'+L("規則","Rule")+"</span>"
+    +'<span class="bkh">'+L("設定","Value")+"</span>"
+    +'<span class="bkh">'+L("門檻值","Threshold")+"</span>";
+  box.innerHTML=head+defs.map(([f,sw,lab])=>{
+    const dv=bkDefOf(f,sw);
+    const own=(keep["#"+f]||"def")==="own";
+    return "<span>"+esc(lab[LANG])+"</span>"
+      +'<span class="selw"><select id="bks_'+f+'" data-f="'+esc(f)+'">'
+      +'<option value="def"'+(own?"":" selected")+">"+L("跟隨預設","Follow default")+"</option>"
+      +'<option value="own"'+(own?" selected":"")+">"+L("自訂","Custom")+"</option>"
+      +"</select></span>"
+      +'<input class="cell num bkv'+(own?"":" locked")+'" id="bkv_'+f+'"'
+      +' value="'+esc(own?(keep[f]||dv):"")+'" placeholder="'+esc(dv)+'"'
+      +(own?"":" disabled")+">";
+  }).join("");
+  box.onchange=e=>{
+    const t=e.target;
+    if(t&&String(t.id||"").startsWith("bks_")) bkSyncRow(t.dataset.f);
+  };
+}
+function renderBulkChan(){
+  const was=new Set(bkTicked());
+  const box=$("bkChans");
+  if(box) box.innerHTML=SERVICES.map(c=>
+    '<label class="bulkchk"><input type="checkbox" class="bkc" value="'+esc(c)+'"'
+    +(was.has(c)?" checked":"")+"> "+esc(c)+"</label>").join("");
+  bkFields("bkOs",BK_OS); bkFields("bkAhs",BK_AHS);
+  bkSync();
+}
+/* 勾一條就把它現在的值帶進來,方便照著改。勾多條時不帶 —— 帶誰的都不對。
+   帶進來的只有「這條渠道自己設過的那幾項」,其餘留白 —— 一眼就看得出它到底
+   自訂了哪幾項,而不是一整片和預設一樣的數字要人自己去比。 */
+function bulkChanLoad(){
+  const t=bkTicked();
+  if(t.length!==1){
+    bkNote(L("請只勾選一條渠道來帶入現值。","Tick exactly one channel to load from."));
+    return;
+  }
+  const o=SIZE_RULES[t[0]]||{};
+  let own=0;
+  for(const[f] of bkAllDefs()){
+    const has=o[f]!=null&&String(o[f]).trim()!=="";
+    const sel=$("bks_"+f), v=$("bkv_"+f);
+    if(sel) sel.value=has?"own":"def";
+    if(v&&has) v.value=String(o[f]);
+    bkSyncRow(f);
+    if(has) own++;
+  }
+  bkNote(L("已帶入 "+t[0]+" —— 它自訂了 "+own+" 項,其餘跟隨預設",
+    "Loaded "+t[0]+" — "+own+" value"+(own===1?"":"s")+" of its own, the rest follow the default"));
+}
+/* 畫面上是什麼,寫進去就是什麼。選「跟隨預設」就把那條渠道的自訂值刪掉;
+   選「自訂」填得和預設一樣也是刪掉 —— 留一個和預設相同的自訂值,只會在
+   下次改預設時變成暗雷。每條規則的「是否採用」開關這裡完全不碰。 */
+function bulkChanApply(){
+  const t=bkTicked();
+  if(!t.length){ bkNote(L("請先勾選至少一條渠道。","Tick at least one channel first.")); return; }
+  let set=0, clr=0, bad="";
+  for(const[f,sw] of bkAllDefs()){
+    const sel=$("bks_"+f), el=$("bkv_"+f);
+    if(!sel||!el||sel.value!=="own") continue;
+    const raw=String(el.value).trim();
+    if(raw==="") continue;
+    const n=Number(raw);
+    if(!isFinite(n)||n<0){ bad=bad||raw; }
+  }
+  if(bad){
+    bkNote(L("門檻值要是 0 或正數,「"+bad+"」不是。",
+      "Thresholds must be zero or a positive number — \u201c"+bad+"\u201d is not."));
+    return;
+  }
+  for(const ch of t){
+    const o=SIZE_RULES[ch]||(SIZE_RULES[ch]={});
+    for(const[f,sw] of bkAllDefs()){
+      const sel=$("bks_"+f), el=$("bkv_"+f);
+      if(!sel||!el) continue;
+      const had=o[f]!==undefined;
+      const raw=String(el.value).trim();
+      if(sel.value!=="own"||raw===""||toFloat(raw,0)===toFloat(bkDefOf(f,sw),0)){
+        if(had){ delete o[f]; clr++; }
+      } else if(String(o[f])!==raw){ o[f]=raw; set++; }
+    }
+    if(!Object.keys(o).length) delete SIZE_RULES[ch];
+  }
+  if(!set&&!clr){
+    bkNote(L("勾選的渠道本來就是這個樣子,沒有東西需要改。",
+      "The ticked channels already look like this; nothing to change."));
+    return;
+  }
+  renderRules(); renderBulkChan(); markDirty(); saveSettings();
+  toast(L("已寫入 "+set+" 項、清除 "+clr+" 項,共 "+t.length+" 條渠道",
+    "Set "+set+", cleared "+clr+", across "+t.length+" channel"+(t.length===1?"":"s")));
+  bkNote("");
+}
+function bulkChanClear(){
+  const t=bkTicked();
+  if(!t.length){ bkNote(L("請先勾選至少一條渠道。","Tick at least one channel first.")); return; }
+  for(const ch of t) delete SIZE_RULES[ch];
+  renderRules(); renderBulkChan(); markDirty(); saveSettings();
+  toast(L("已清除覆寫,共 "+t.length+" 條渠道,已儲存",
+    "Overrides cleared on "+t.length+" channel"+(t.length===1?"":"s")+", saved"));
+  bkNote("");
+}
+function openBulkChan(){
+  renderBulkChan();
+  const pick=$("sizeFilter")?$("sizeFilter").value:"*";
+  if(pick!=="*"){
+    const one=document.querySelector('#bkChans .bkc[value="'+String(pick).replace(/"/g,'&quot;')+'"]');
+    if(one){ one.checked=true; bkSync(); bulkChanLoad(); }
+  } else bkNote("");
+  $("bkBg").style.display="flex";
+}
+function closeBulkChan(){ $("bkBg").style.display="none"; }
+
 function wireRules(){
   $("inDim").addEventListener("change",e=>{
     const n=Number(String(e.target.value).trim());
@@ -3349,23 +4013,18 @@ function wireRules(){
     renderRules(); markDirty();
     toast(L("門檻已還原預設","Thresholds reset to defaults"));
   });
-  $("bBulkChan").addEventListener("click",async()=>{
-    const pick=$("sizeFilter").value;
-    if(pick==="*"){
-      showError(L("先選一個渠道","Pick a channel first"),
-        L("請在上方選一個渠道當來源,再按 Bulk Set Channels 套用到其他渠道。",
-          "Choose a source channel above, then press Bulk Set Channels to copy it to the others."));
-      return;
-    }
-    const ok=await showModal(L("套用到所有渠道","Bulk set channels"),
-      L("把「"+pick+"」的門檻套到其他所有渠道?","Copy the thresholds from "+pick+" to every other channel?"),
-      {cancel:true,okText:L("套用","Apply")});
-    if(!ok) return;
-    const src={}; for(const[key] of SIZE_FIELDS) src[key]=sizeVal(pick,key);
-    for(const svc of SERVICES) SIZE_RULES[svc]={...src};
-    renderRules(); markDirty();
-    toast(L("已套用到 "+SERVICES.length+" 個渠道","Applied to "+SERVICES.length+" channels"));
-  });
+  $("bBulkChan").addEventListener("click",openBulkChan);
+  $("bkX").addEventListener("click",closeBulkChan);
+  $("bkClose").addEventListener("click",closeBulkChan);
+  $("bkBg").addEventListener("click",e=>{ if(e.target===$("bkBg")) closeBulkChan(); });
+  $("bkAll").addEventListener("click",()=>{
+    document.querySelectorAll("#bkChans .bkc").forEach(c=>{ c.checked=true; }); bkSync(); });
+  $("bkNone").addEventListener("click",()=>{
+    document.querySelectorAll("#bkChans .bkc").forEach(c=>{ c.checked=false; }); bkSync(); });
+  $("bkChans").addEventListener("change",bkSync);
+  $("bkLoad").addEventListener("click",bulkChanLoad);
+  $("bkApply").addEventListener("click",bulkChanApply);
+  $("bkClear").addEventListener("click",bulkChanClear);
   $("bBulkDim").addEventListener("click",()=>{
     renderDimByChan(); chanDimNote("");
     $("chanDimVal").value=String(RULES.dim_factor);
@@ -3410,20 +4069,22 @@ function renderBaseTable(){
       +(CUSTOM_SERVICE_ZONES[svc]||ZONES).length+" 個。",
     "Loaded for this channel — "+mine.length+" row(s), "+priced+" priced, "
       +(CUSTOM_SERVICE_ZONES[svc]||ZONES).length+" zones.");
+  /* 只顯示這個渠道用到的 Zone(欄位索引仍對回整張表的欄位順序) */
+  const myZ=(CUSTOM_SERVICE_ZONES[svc]||ZONES).filter(z=>ZONES.includes(z));
+  const cols=myZ.map(z=>({z,i:ZONES.indexOf(z)}));
   const thead=["<tr><th>"+L("重量 (lb)","Weight (lb)")+"</th>"]
-    .concat(ZONES.map(z=>'<th class="num">Zone '+z+"</th>")).join("")+"</tr>";
+    .concat(cols.map(c=>'<th class="num">Zone '+c.z+"</th>")).join("")+"</tr>";
   $("tBase").querySelector("thead").innerHTML=thead;
   const parts=[];
   for(let w=BASE_RATE_MIN_WEIGHT;w<=BASE_RATE_MAX_WEIGHT;w++){
     const row=baseRowMap.get(svc+"|"+w);
-    parts.push("<tr><td>"+w+"</td>"+ZONES.map((z,i)=>{
-      const v=row?String(row[2+i]??""):"";
-      return '<td class="num"><input class="cell" data-w="'+w+'" data-i="'+i
+    parts.push("<tr><td>"+w+"</td>"+cols.map(c=>{
+      const v=row?String(row[2+c.i]??""):"";
+      return '<td class="num"><input class="cell" data-w="'+w+'" data-i="'+c.i
         +'" value="'+esc(v)+'"></td>';
     }).join("")+"</tr>");
   }
   $("tBase").querySelector("tbody").innerHTML=parts.join("");
-    +baseNonzeroCount();
 }
 function wireBaseTable(){
   $("baseSvc").addEventListener("change",renderBaseTable);
@@ -3725,7 +4386,8 @@ function histFlatten(columns,rows,fileName){
     const dims=[coalesce(row,["Dim Length","Length"],""),coalesce(row,["Dim Width","Width"],""),
                 coalesce(row,["Dim Height","Height"],"")].map(x=>String(x??"").trim()).filter(Boolean);
     const dim=dims.length===3?dims.join("×"):"";
-    const base={inv,invDate,tranDate,trk,svc,zone,entWt,bilWt,dim,file:fileName,i:out.length};
+    const acct=String(coalesce(row,["Bill to Account Number","Consolidated Account Number","Account Number"],"")??"");
+    const base={inv,invDate,tranDate,trk,svc,zone,entWt,bilWt,dim,acct,file:fileName,i:out.length};
     const pairs=iterChargePairs(row);
     const tc=toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
     if(tc) out.push({...base,desc:"Transportation Charge",amt:r2(tc)});
@@ -3780,9 +4442,288 @@ async function refreshHist(){
          +st.trks.toLocaleString()+" tracking(s) "+st.range)
       :L("尚未匯入任何帳單。","No invoices stored yet.");
     renderHist([]);
+    paintStatementBtn();
   }catch(e){
     $("histStats").textContent=L("瀏覽器不支援或封鎖了本機資料庫。","Local database unavailable in this browser.");
   }
+}
+/* ---------------------------------------------------------------------
+   已匯入的帳單(照抄 UPS 的 Stored Invoices):一列一「期」,不是一列一個檔案。
+   一個檔案裡常常裝好幾期,以檔名列出來的話,想刪掉匯錯的那一期就只能整個
+   檔案重來。所以這裡照帳單期號分組,刪除也照期號刪。
+   ------------------------------------------------------------------ */
+let ST_F={acct:"",range:""};
+const ST_RANGES=[["",["全部","All"]],["7",["近一週","1 week"]],["30",["近一個月","1 month"]],
+  ["90",["近三個月","3 months"]],["180",["近六個月","6 months"]],["365",["近一年","1 year"]]];
+function normYmdKey(d){
+  const k=parseDateKey(d);
+  return k?String(Math.floor(k/10000))+"-"+String(Math.floor(k/100)%100).padStart(2,"0")
+    +"-"+String(k%100).padStart(2,"0"):"";
+}
+/* 期號欄不是期號的那幾筆不是帳單 —— 有人把重計價報表當帳單匯進來過。 */
+function looksLikeInvoiceNo(k){ return /^[0-9][0-9\-\/]{3,}$/.test(String(k).trim()); }
+function stGroups(){
+  const map=new Map();
+  for(const rec of HIST_RECS){
+    for(const r of rec.rows){
+      const k=String(r.inv||"").trim()||L("(未填期號)","(no invoice no.)");
+      let g=map.get(k);
+      if(!g){ g={inv:k,date:"",acct:"",rows:0,amt:0,trk:new Set(),at:0,files:new Set()}; map.set(k,g); }
+      g.rows++; g.amt+=toFloat(r.amt,0);
+      if(r.trk) g.trk.add(r.trk);
+      if(!g.date&&r.invDate) g.date=r.invDate;
+      if(!g.acct&&r.acct) g.acct=String(r.acct).trim();
+      g.files.add(rec.name);
+      if((rec.at||0)>g.at) g.at=rec.at||0;
+    }
+  }
+  return [...map.values()].sort((a,b)=>a.inv<b.inv?-1:a.inv>b.inv?1:0);
+}
+/* 期間是「相對於最新那一期往回算幾天」,不是相對於今天 —— 手上這批帳單本來
+   就可能是上個月的,拿今天當基準會整份清單一起消失。 */
+function stFilter(list){
+  let out=list.slice();
+  if(ST_F.acct) out=out.filter(g=>g.acct===ST_F.acct);
+  const days=+ST_F.range||0;
+  if(days){
+    const dates=out.map(g=>normYmdKey(g.date)).filter(Boolean).sort();
+    const last=dates[dates.length-1];
+    if(last){
+      const t=Date.parse(last+"T00:00:00Z");
+      if(!isNaN(t)){
+        const from=new Date(t-(days-1)*86400000).toISOString().slice(0,10);
+        out=out.filter(g=>normYmdKey(g.date)>=from);
+      }
+    }
+  }
+  return out;
+}
+function stPaintFilters(all){
+  const box=$("stFilters"); if(!box) return;
+  const seen=[];
+  for(const g of all) if(g.acct&&seen.indexOf(g.acct)<0) seen.push(g.acct);
+  const opt=(v,cur,txt)=>'<option value="'+esc(v)+'"'+(v===cur?" selected":"")+">"+esc(txt)+"</option>";
+  const acctSel=seen.length>1
+    ? '<label class="fsel"><span>'+L("帳號","Account")+"</span>"
+      +'<span class="selw"><select id="stfAcct">'
+      +opt("",ST_F.acct,L("全部帳號","All accounts"))
+      +seen.map(a=>opt(a,ST_F.acct,a)).join("")+"</select></span></label>"
+    : "";
+  const rngSel='<label class="fsel"><span>'+L("期間","Period")+"</span>"
+    +'<span class="selw"><select id="stfRange">'
+    +ST_RANGES.map(([k,lab])=>opt(k,ST_F.range,lab[LANG])).join("")+"</select></span></label>";
+  const clr=(ST_F.acct||ST_F.range)
+    ? '<button class="act ghost sm" id="stfClear">'+L("清除篩選","Clear filters")+"</button>" : "";
+  box.innerHTML=acctSel+rngSel+clr;
+  const a=$("stfAcct"); if(a) a.onchange=e=>{ ST_F.acct=e.target.value; renderStored(); };
+  const g=$("stfRange"); if(g) g.onchange=e=>{ ST_F.range=e.target.value; renderStored(); };
+  const c=$("stfClear"); if(c) c.onclick=()=>{ ST_F={acct:"",range:""}; renderStored(); };
+}
+function openStored(){
+  ST_F={acct:"",range:""};
+  renderStored();
+  $("stBg").style.display="flex";
+}
+function closeStored(){ $("stBg").style.display="none"; }
+function renderStored(){
+  const all=stGroups();
+  stPaintFilters(all);
+  const list=stFilter(all);
+  const stat=(lab,val)=>'<div class="stat"><i>'+esc(lab)+"</i><b>"+val+"</b></div>";
+  const hid=all.length-list.length;
+  /* 摘要跟著篩選走 —— 篩完還印總數的話,那幾個數字和底下的表對不起來。 */
+  $("stSum").innerHTML=
+      stat(L("帳單期數","Invoices"),list.length.toLocaleString()
+        +(hid?'<span style="font-size:11.5px;color:var(--muted);font-weight:400"> / '
+          +all.length.toLocaleString()+"</span>":""))
+    + stat(L("帳單筆數","Rows"),list.reduce((a,g)=>a+g.rows,0).toLocaleString())
+    + stat(L("追蹤號","Trackings"),list.reduce((a,g)=>a+g.trk.size,0).toLocaleString())
+    + stat(L("FedEx 實收","FedEx billed"),"$"+r2(list.reduce((a,g)=>a+g.amt,0)).toLocaleString(
+        undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
+  $("tStored").tBodies[0].innerHTML = list.length
+    ? list.map(g=>"<tr><td><input type=\"checkbox\" class=\"stc\" value=\""+esc(g.inv)+"\"></td>"
+        +"<td>"+esc(g.inv)+(looksLikeInvoiceNo(g.inv)?"":' <span class="pill no">'
+          +L("不是帳單","Not an invoice")+"</span>")+"</td>"
+        +"<td>"+esc(normYmdKey(g.date)||g.date||"—")+"</td>"
+        +"<td>"+g.rows.toLocaleString()+"</td>"
+        +"<td>"+g.trk.size.toLocaleString()+"</td>"
+        +"<td>"+esc(g.at?new Date(g.at).toLocaleString():"—")+"</td>"
+        +'<td><button class="act ghost sm stRe" data-inv="'+esc(g.inv)+'">'
+        +L("預覽","Preview")+"</button></td></tr>").join("")
+    : '<tr><td colspan="7" class="empty">'+(all.length
+        ?L("沒有符合篩選條件的期別。","No invoice matches the filters.")
+        :L("還沒有任何帳單存進歷史。","No invoices filed yet."))+"</td></tr>";
+  const chk=$("stAll"); if(chk) chk.checked=false;
+  stPaintDelete();
+  stBackPaint();
+  renderStorageMeter();
+}
+function stTicked(){ return [...document.querySelectorAll("#tStored .stc:checked")].map(c=>c.value); }
+/* 勾了幾期、刪除鈕能不能按、勾中的列亮底色 —— 三件事一起畫 */
+function stPaintDelete(){
+  const n=stTicked().length;
+  const b=$("stDelete"); if(b) b.disabled=!n;
+  const note=$("stDelNote");
+  if(note) note.textContent=n?L("已勾選 "+n+" 期",n+" selected"):"";
+  document.querySelectorAll("#tStored tbody tr").forEach(tr=>{
+    const c=tr.querySelector(".stc");
+    tr.classList.toggle("sel",!!(c&&c.checked));
+  });
+}
+/* 攤開的那一格可以比視窗還高,收合鈕跟著捲出畫面;頁尾不會捲,所以
+   「回到清單」放在那裡。 */
+function stBackPaint(){
+  const b=$("stBack"); if(b) b.hidden=!document.querySelector("#tStored tr.stprev");
+}
+function stPreviewClick(e){
+  const b=e.target.closest&&e.target.closest(".stRe");
+  if(!b) return;
+  const tr=b.closest("tr");
+  const open=tr.nextElementSibling&&tr.nextElementSibling.classList.contains("stprev");
+  /* 一次只攤開一期,不然這張表會變成一面牆 */
+  document.querySelectorAll("#tStored .stprev").forEach(x=>x.remove());
+  document.querySelectorAll("#tStored .stRe").forEach(x=>{ x.textContent=L("預覽","Preview"); });
+  if(open){ stBackPaint(); return; }
+  const row=document.createElement("tr");
+  row.className="stprev";
+  row.innerHTML='<td colspan="7">'+stPreviewHTML(b.dataset.inv)+"</td>";
+  tr.after(row);
+  b.textContent=L("收合","Hide");
+  const x=$("pvXls");
+  if(x) x.onclick=()=>stExportOne(x.dataset.inv);
+  stBackPaint();
+}
+/* 只倒這一期。畫面上渠道只列前六條、費用項目只列前八個(再多就是一面牆),
+   檔案裡全部列出來 —— 會匯出的人是要拿去對帳的,不是要瞄一眼。 */
+async function stExportOne(key){
+  const noInv=L("(未填期號)","(no invoice no.)");
+  const rows=HIST_ROWS.filter(r=>(String(r.inv||"").trim()||noInv)===key);
+  if(!rows.length) return;
+  const cols=["Invoice Number","Invoice Date","Transaction Date","Tracking Number",
+    "Service","Zone","Entered Weight","Billed Weight","Package Dimensions",
+    "Charge Description","Net Amount"];
+  await exportTemplate(cols,rows.map(r=>[r.inv,r.invDate,r.tranDate,r.trk,r.svc,r.zone,
+    r.entWt,r.bilWt,r.dim,r.desc,toFloat(r.amt,0)]),
+    "invoice_"+String(key).replace(/[^\w.-]+/g,"_")+".xlsx");
+  toast(L(key+" 已匯出("+rows.length.toLocaleString()+" 列)",
+    key+" exported ("+rows.length.toLocaleString()+" rows)"));
+}
+/* 「預覽」:就地攤開這一期有什麼,不重算、不換分頁、不動現在跑的那一期。
+   讀的是存下來的帳單行,只做加總 —— 這一期收了多少、分在哪些渠道、
+   哪些費用項目、出貨日期到哪裡。全部不經過計價。 */
+function stPreviewHTML(key){
+  const rows=HIST_ROWS.filter(r=>(String(r.inv||"").trim()||L("(未填期號)","(no invoice no.)"))===key);
+  const money0=v=>"$"+r2(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  let billed=0; const chan={}, desc={}, trk=new Set(); let d0="", d1="";
+  for(const r of rows){
+    const n=toFloat(r.amt,0);
+    billed+=n;
+    if(r.trk) trk.add(r.trk);
+    const c=String(r.svc||"").trim()||L("(未寫服務名稱)","(no service name)");
+    (chan[c]=chan[c]||{n:0,amt:0}); chan[c].n++; chan[c].amt+=n;
+    const dsc=String(r.desc||"").trim()||"—";
+    desc[dsc]=(desc[dsc]||0)+n;
+    const d=normYmdKey(r.tranDate||r.invDate||"");
+    if(d){ if(!d0||d<d0) d0=d; if(!d1||d>d1) d1=d; }
+  }
+  const top=(o,f)=>Object.entries(o).sort((a,b)=>Math.abs(f(b[1]))-Math.abs(f(a[1])));
+  const chanRows=top(chan,v=>v.amt).slice(0,6).map(([c,v])=>
+    '<div class="pvr"><span>'+esc(c)+"</span><i>"+v.n.toLocaleString()+"</i><b>"
+    +money0(v.amt)+"</b></div>").join("");
+  const more=Object.keys(chan).length-6;
+  const descRows=top(desc,v=>v).slice(0,8).map(([c,v])=>
+    '<div class="pvr"><span>'+esc(c)+"</span><i></i><b>"+money0(v)+"</b></div>").join("");
+  const dmore=Object.keys(desc).length-8;
+  const stat=(lab,val)=>'<div class="pvs"><i>'+esc(lab)+"</i><b>"+val+"</b></div>";
+  return '<div class="stprevbox">'
+    +'<div class="pvtop"><span class="pvkey">'+esc(key)+"</span>"
+    +'<button class="act ghost sm pvback" id="pvXls" data-inv="'+esc(key)+'">'
+    +L("匯出 Excel","Export to Excel")+"</button></div>"
+    +'<div class="pvstats">'
+    +stat(L("FedEx 實收","FedEx billed"),money0(billed))
+    +stat(L("追蹤號","Trackings"),trk.size.toLocaleString())
+    +stat(L("明細列","Lines"),rows.length.toLocaleString())
+    +stat(L("出貨日期","Shipped"),d0?(d0===d1?d0:d0+" → "+d1):"—")
+    +"</div>"
+    +'<div class="pvcols">'
+    +'<div><div class="pvh">'+L("渠道(依帳單服務名稱)","Channels (as billed)")+"</div>"
+    +(chanRows||'<div class="pvr"><span>'+L("本期無運費行","No freight lines in this period")+"</span></div>")
+    +(more>0?'<div class="pvmore">'+L("另有 "+more+" 條渠道","and "+more+" more")+"</div>":"")+"</div>"
+    +'<div><div class="pvh">'+L("費用項目","Charge descriptions")+"</div>"+descRows
+    +(dmore>0?'<div class="pvmore">'+L("另有 "+dmore+" 個項目","and "+dmore+" more")+"</div>":"")+"</div>"
+    +"</div>"
+    +'<div class="pvnote">'+L(
+      "以上為已匯入帳單行之加總,未經重算。要以目前費率重算本期,請回 Import Files 匯入這份帳單後按 Reprice。",
+      "Sums of the imported invoice lines. Nothing has been repriced. To reprice this period with the current rates, import the invoice under Import Files and press Reprice.")
+    +"</div></div>";
+}
+/* 刪掉勾選的期別:一個檔案裡可能裝好幾期,所以是把那幾期的列從檔案裡挑掉,
+   挑完沒東西剩的檔案才整筆刪除。 */
+async function stDeleteTicked(){
+  const keys=stTicked();
+  if(!keys.length) return;
+  const ok=await showModal(L("刪除帳單歷史","Delete invoice history"),
+    L("要刪除這 "+keys.length+" 期帳單歷史嗎?\n\n"+keys.join("、")+"\n\n刪掉之後無法復原。",
+      "Delete "+keys.length+" invoice period(s) from history?\n\n"+keys.join(", ")
+      +"\n\nThis cannot be undone."),
+    {cancel:true,okText:L("刪除","Delete")});
+  if(!ok) return;
+  const kset=new Set(keys);
+  const noInv=L("(未填期號)","(no invoice no.)");
+  const keyOf=v=>String(v||"").trim()||noInv;
+  const prev=CUR_COLS;
+  try{
+    for(const rec of HIST_RECS){
+      const keep=rec.rows.filter(r=>!kset.has(keyOf(r.inv)));
+      if(keep.length===rec.rows.length) continue;
+      if(!keep.length){ await histDel(rec.name); continue; }
+      CUR_COLS=(rec.cols||[]).map(c=>String(c).trim());
+      const ships=(rec.ships||[]).filter(row=>
+        !kset.has(keyOf(coalesce(row,["Invoice Number","Invoice No","Invoice #"],""))));
+      await histPut({...rec,rows:keep,ships});
+    }
+  } finally { CUR_COLS=prev; }
+  await refreshHist();
+  renderStored();
+  toast(L("已刪除 "+keys.length+" 期帳單歷史","Deleted "+keys.length+" invoice period(s)"));
+}
+/* 全部歷史倒成一張表 —— 匯出的人是要拿去對帳的,所以欄名照帳單的講法。 */
+async function stExportAll(){
+  if(!HIST_ROWS.length){
+    showError(L("沒有東西可以匯出","Nothing to export"),
+      L("還沒有任何帳單存進歷史。","No invoices filed yet."));
+    return;
+  }
+  const cols=["Invoice Number","Invoice Date","Transaction Date","Tracking Number",
+    "Service","Zone","Entered Weight","Billed Weight","Package Dimensions",
+    "Charge Description","Net Amount","Account Number","Source File"];
+  const rows=HIST_ROWS.map(r=>[r.inv,r.invDate,r.tranDate,r.trk,r.svc,r.zone,
+    r.entWt,r.bilWt,r.dim,r.desc,toFloat(r.amt,0),r.acct||"",r.file]);
+  await exportTemplate(cols,rows,"invoice_history.xlsx");
+  toast(L("invoice_history.xlsx 已下載("+rows.length.toLocaleString()+" 列)",
+    "invoice_history.xlsx downloaded ("+rows.length.toLocaleString()+" rows)"));
+}
+/* 瀏覽器空間的量表。數字向瀏覽器要,要不到就不畫這一塊 —— 編一個數字
+   比不顯示更糟。 */
+function fmtBytes(n){
+  if(n<1024) return n+" B";
+  if(n<1048576) return (n/1024).toFixed(n<10240?1:0)+" KB";
+  return (n/1048576).toFixed(2)+" MB";
+}
+function renderStorageMeter(){
+  const box=$("stStorage");
+  if(!box) return;
+  box.innerHTML="";
+  if(!(navigator.storage&&navigator.storage.estimate)) return;
+  navigator.storage.estimate().then(e=>{
+    const used=e.usage||0, cap=e.quota||0;
+    if(!cap) return;
+    const free=Math.max(0,cap-used), pct=Math.min(100,used/cap*100);
+    box.innerHTML='<div class="meter"><div class="fill" style="width:'+pct.toFixed(2)+'%"></div></div>'
+      +'<div class="meterline"><span>'+L("已用","Used")+" <b>"+fmtBytes(used)+"</b></span>"
+      +"<span>"+L("剩下","Free")+" <b>"+fmtBytes(free)+"</b></span>"
+      +"<span>"+L("總共","Total")+" <b>"+fmtBytes(cap)+"</b></span></div>";
+  }).catch(()=>{});
 }
 function wireHist(){
   $("bHist").addEventListener("click",()=>$("fHist").click());
@@ -3809,19 +4750,31 @@ function wireHist(){
     }
   });
   $("bHistRefresh").addEventListener("click",refreshHist);
-  $("bHistStored").addEventListener("click",async()=>{
-    const recs=await histAll();
-    if(!recs.length){ showModal(L("已存帳單","Stored invoices"),L("目前沒有存任何帳單。","Nothing stored yet.")); return; }
-    const lines=recs.map(r=>"· "+r.name+" — "+r.rows.length.toLocaleString()+L(" 列"," rows")
-      +" ("+new Date(r.at).toLocaleDateString()+")");
-    const ok=await showModal(L("已存帳單","Stored invoices"),
-      lines.join("\n")+"\n\n"+L("要清除全部已存帳單嗎?","Clear every stored invoice?"),
-      {cancel:true,okText:L("清除全部","Clear all")});
-    if(!ok) return;
-    for(const r of recs) await histDel(r.name);
-    await refreshHist();
-    toast(L("已清除","Cleared"));
+  $("bHistStored").addEventListener("click",openStored);
+  $("stX").addEventListener("click",closeStored);
+  $("stClose").addEventListener("click",closeStored);
+  $("stBg").addEventListener("click",e=>{ if(e.target===$("stBg")) closeStored(); });
+  $("stAll").addEventListener("change",()=>{
+    const on=$("stAll").checked;
+    document.querySelectorAll("#tStored .stc").forEach(c=>{ c.checked=on; });
+    stPaintDelete();
   });
+  $("tStored").addEventListener("change",e=>{
+    if(e.target.classList.contains("stc")) stPaintDelete();
+  });
+  $("tStored").addEventListener("click",stPreviewClick);
+  $("stBack").addEventListener("click",()=>{
+    const pv=document.querySelector("#tStored tr.stprev");
+    if(!pv) return;
+    const tr0=pv.previousElementSibling;
+    pv.remove();
+    const b=tr0&&tr0.querySelector(".stRe");
+    if(b) b.textContent=L("預覽","Preview");
+    if(tr0) tr0.scrollIntoView({block:"nearest"});
+    stBackPaint();
+  });
+  $("stDelete").addEventListener("click",stDeleteTicked);
+  $("stExportAll").addEventListener("click",stExportAll);
   const findTrk=()=>{
     const q=$("trkSearch").value.trim();
     if(!q){ renderHist([]); return []; }
@@ -3840,32 +4793,70 @@ function wireHist(){
     ["Signature Fee","Signature"],["General Demand Fee","Demand"],
     ["AHS Demand Fee","AHS Demand"],["Oversize Demand Fee","Oversize Demand"],
     ["Fuel Fee","Fuel"]];
+  /* 一期的兩側對照(照抄 UPS):左邊 FedEx 實收、右邊重新計價,並排在同一張
+     卡上。上下疊兩張表要人自己記住左邊的數字再去比右邊 —— 並排就不用記。 */
   function bkdSection(o){
-    const H=[];
-    H.push('<div class="subhd">'+L("帳單逐項","Billed charges")+"</div>");
-    H.push("<table>");
-    for(const r of o.rows)
-      H.push("<tr><td>"+esc(r.desc)+'</td><td class="m">'+money2(r.amt)+"</td></tr>");
-    H.push('<tr class="tot"><td>'+L("帳單合計","Billed total")
-      +'</td><td class="m">'+money2(o.billed)+"</td></tr></table>");
-    if(o.res){
-      H.push('<div class="subhd">'+L("Reprice 逐項","Repriced charges")+"</div>");
-      H.push("<table>");
-      H.push("<tr><td>"+L("服務 / Zone / 計費重","Service / Zone / Billable")+"</td>"
-        +'<td class="m">'+esc(o.res["Service"])+" · Zone "+esc(o.res["Zone"])
-        +" · "+esc(o.res["Billable Weight"])+" lb</td></tr>");
-      for(const[k,lab] of FEE_COLS)
-        if(toFloat(o.res[k],0)!==0)
-          H.push("<tr><td>"+lab+'</td><td class="m">'+money2(toFloat(o.res[k],0))+"</td></tr>");
-      const diff=toFloat(o.res["Repriced Total"],0)-o.billed;
-      H.push('<tr class="tot"><td>'+L("Reprice 合計","Repriced total")
-        +'</td><td class="m">'+money2(toFloat(o.res["Repriced Total"],0))+"</td></tr>");
-      H.push('<tr class="tot"><td>'+L("差異(Reprice − 帳單)","Diff (repriced − billed)")
-        +'</td><td class="m '+(diff<0?"neg":"pos")+'">'+money2(diff)+"</td></tr></table>");
-    }else{
-      H.push('<p class="note warn">'+esc(o.err||L("這一期無法計價(Zone 或費率未設定)。",
-        "Could not price this period (zone or rate not configured)."))+"</p>");
+    const res=o.res;
+    if(!res)
+      return '<p class="note warn">'+esc(o.err||L("這一期無法計價(Zone 或費率未設定)。",
+        "Could not price this period (zone or rate not configured)."))+"</p>";
+    const resi=toFloat(res["Residential Fee"],0)>0;
+    const neg=v=>'<span class="'+((v||0)<-0.0001?"neg":"")+'">'+money2(v)+"</span>";
+    const meta=[];
+    if(res["Zone"]!==""&&res["Zone"]!=null) meta.push("Zone "+esc(res["Zone"]));
+    if(toFloat(res["Billable Weight"],0)>0) meta.push(esc(res["Billable Weight"])+" lb");
+    if(o.rows.length&&o.rows[0].tranDate) meta.push(esc(o.rows[0].tranDate));
+    const l=toFloat(res["Length"],0), w=toFloat(res["Width"],0), h=toFloat(res["Height"],0);
+    if(l||w||h) meta.push(l+"×"+w+"×"+h);
+    /* 左:帳單原樣的逐項 */
+    const U=[]; let usub=0;
+    for(const r of o.rows){
+      if(Math.abs(toFloat(r.amt,0))<0.005) continue;
+      usub+=toFloat(r.amt,0);
+      U.push("<tr><td>"+esc(r.desc)+'</td><td class="m">'+neg(toFloat(r.amt,0))+"</td></tr>");
     }
+    if(!U.length) U.push("<tr><td>"+L("本期無費用行","No charge lines")+'</td><td class="m">—</td></tr>');
+    U.push('<tr class="bkdsub"><td>'+L("小計","Subtotal")+'</td><td class="m">'+neg(usub)+"</td></tr>");
+    /* 右:重算出來的逐項,順序同匯出的欄位 */
+    const P=[]; let psub=0;
+    for(const[k,lab] of FEE_COLS){
+      const v=toFloat(res[k],0);
+      if(v===0) continue;
+      psub+=v;
+      P.push("<tr><td>"+esc(lab)+'</td><td class="m">'+neg(v)+"</td></tr>");
+    }
+    for(const[k,v] of Object.entries(res["_custom"]||{})){
+      if(toFloat(v,0)===0) continue;
+      psub+=toFloat(v,0);
+      P.push("<tr><td>"+esc(k)+'</td><td class="m">'+neg(toFloat(v,0))+"</td></tr>");
+    }
+    if(!P.length) P.push("<tr><td>"+L("這一期沒有算出任何費用","Nothing priced for this period")
+      +'</td><td class="m">—</td></tr>');
+    P.push('<tr class="bkdsub"><td>'+L("小計","Subtotal")+'</td><td class="m">'
+      +neg(toFloat(res["Repriced Total"],0))+"</td></tr>");
+    const H=[];
+    H.push('<div class="bkdseg '+(resi?"resi":"com")+'">'
+      +'<div class="bkdseg-hd"><span class="bkdseg-name">'+L("原始出貨","Original shipment")+"</span>"
+      +'<span class="bkdchip '+(resi?"resi":"com")+'">'+esc(res["Service"]||"—")+"</span>"
+      +'<span class="bkdmeta">'+esc(meta.join(" · "))+"</span></div>"
+      +'<div class="bkdcols">'
+      +'<div class="bkdside bill"><div class="bkdside-lbl">'+L("FedEx 實收","FedEx billed")+"</div>"
+      +'<div class="bkdside-body"><table>'+U.join("")+"</table></div></div>"
+      +'<div class="bkdside rp"><div class="bkdside-lbl">'+L("重新計價","Reprice")+"</div>"
+      +'<div class="bkdside-body"><table>'+P.join("")+"</table></div></div>"
+      +"</div></div>");
+    const rp=toFloat(res["Repriced Total"],0);
+    const diff=rp-o.billed;
+    const pct=Math.abs(rp)>1e-9?(diff/rp*100):null;
+    const c=diff<0?"d":"p";
+    H.push('<div class="bkdtot"><table>'
+      +"<tr><td>"+L("FedEx 實收","FedEx billed")+'</td><td class="m">'+money2(o.billed)+"</td></tr>"
+      +"<tr><td>"+L("重新計價","Reprice")+'</td><td class="m">'+money2(rp)+"</td></tr>"
+      +'</table><table>'
+      +'<tr><td class="'+c+'">'+L("差異","Difference")+'</td><td class="m '+c+'">'+money2(diff)+"</td></tr>"
+      +'<tr><td class="'+c+'">'+L("差異率","Margin")+'</td><td class="m '+c+'">'
+      +(pct==null?"—":pct.toFixed(2)+"%")+"</td></tr>"
+      +"</table></div>");
     return H.join("");
   }
   function openBreakdown(){
@@ -3909,9 +4900,9 @@ function wireHist(){
     }
     out.sort((a,b)=>(parseDateKey(a.invDate)||0)-(parseDateKey(b.invDate)||0));
     const H=[];
-    H.push('<div class="row" style="margin-bottom:10px"><span class="bkdno">'+esc(t)+"</span>"
-      +'<span style="flex:1 1 auto"></span>'
-      +'<button class="act ghost sm" id="bkdXls">⬇ '+L("匯出 Excel","Export to Excel")+"</button></div>");
+    H.push('<div class="bkdtrk"><div><div class="lbl">'+L("追蹤號","TRACKING")+"</div>"
+      +'<div class="no">'+esc(t)+"</div></div>"
+      +'<button class="bkdxls" id="bkdXls">⬇ '+L("匯出 Excel","Export to Excel")+"</button></div>");
     H.push('<div class="subhd" style="margin-top:0">'+L("各期比對","Per-invoice comparison")+"</div>");
     H.push('<table><tr class="hdr">'
       +"<td><b>Invoice</b></td><td><b>"+L("帳單日期","Invoice date")+"</b></td>"
@@ -3945,7 +4936,8 @@ function wireHist(){
     }
     H.push("</table>");
     for(const o of out){
-      H.push('<div class="bkdinv">'+esc(o.inv||"—")+"<i>"+esc(o.invDate||"")+"</i></div>");
+      H.push('<div class="bkdinv"><span class="no">'+esc(o.inv||"—")+"</span>"
+        +'<span class="dt">'+esc(o.invDate||"")+"</span></div>");
       H.push(bkdSection(o));
     }
     body.innerHTML=H.join("");
@@ -3964,6 +4956,8 @@ function wireHist(){
       if(o.res){
         for(const[k,lab] of FEE_COLS)
           if(toFloat(o.res[k],0)!==0) rows.push([BKD_LAST.trk,o.inv,o.invDate,"Repriced · "+lab,toFloat(o.res[k],0)]);
+        for(const[k,v] of Object.entries(o.res["_custom"]||{}))
+          if(toFloat(v,0)!==0) rows.push([BKD_LAST.trk,o.inv,o.invDate,"Repriced · "+k,toFloat(v,0)]);
         rows.push([BKD_LAST.trk,o.inv,o.invDate,"Repriced · TOTAL",toFloat(o.res["Repriced Total"],0)]);
         rows.push([BKD_LAST.trk,o.inv,o.invDate,"Diff (repriced − billed)",
           r2(toFloat(o.res["Repriced Total"],0)-o.billed)]);
@@ -4091,25 +5085,31 @@ function renderChannels(){
   const tb=$("chList"); if(!tb) return;
   const defs=new Set(DEFAULT_CHANNELS.map(([n])=>n));
   const q=($("chanSearch")?$("chanSearch").value:"").trim().toLowerCase();
-  const list=CUSTOM_SERVICES.map((sv,i)=>[sv,i])
+  const list=BASE_SERVICES.map(sv=>[sv,-1])
+    .concat(CUSTOM_SERVICES.map((sv,i)=>[sv,i]))
     .filter(([sv])=>!q||sv.toLowerCase().includes(q));
   tb.innerHTML=list.length?list.map(([sv,i])=>{
     const st=baseRateState(sv);
-    return "<tr"+(chanOn(sv)?"":' class="off"')+">"
-      +'<td><input type="checkbox" class="ch-pick" data-i="'+i+'"></td>'
-      +"<td>"+esc(sv)+(defs.has(sv)?' <span class="tag">'+L("預設","preset")+"</span>":"")+"</td>"
+    const builtin=i<0;
+    const on=builtin||chanOn(sv);
+    return "<tr"+(on?"":' class="off"')+">"
+      +"<td>"+(builtin?"":'<input type="checkbox" class="ch-pick" data-i="'+i+'">')+"</td>"
+      +"<td>"+esc(sv)
+        +(builtin?' <span class="tag">'+L("內建","built-in")+"</span>"
+                 :(defs.has(sv)?' <span class="tag">'+L("預設","preset")+"</span>":""))+"</td>"
       +'<td class="zonecell">'+esc(zoneLabel(CUSTOM_SERVICE_ZONES[sv]))+"</td>"
       +'<td class="'+st.cls+'">'+esc(st.txt)+"</td>"
       +'<td class="num"><label class="chk" style="justify-content:flex-end">'
-        +'<input type="checkbox" class="ch-on" data-i="'+i+'"'+(chanOn(sv)?" checked":"")+"></label></td>"
+        +'<input type="checkbox" class="ch-on" data-i="'+i+'"'+(on?" checked":"")
+        +(builtin?" disabled":"")+"></label></td>"
       +"</tr>";
   }).join("")
     :'<tr><td class="empty" colspan="5">'+(q?L("(沒有符合的渠道)","(no channel matches)")
       :L("(尚無渠道)","(no channels yet)"))+"</td></tr>";
   const c=$("chCount");
-  if(c) c.textContent=CUSTOM_SERVICES.length
-    ?L(CUSTOM_SERVICES.length+" 個渠道,"+CUSTOM_SERVICES.filter(chanOn).length+" 個啟用",
-       CUSTOM_SERVICES.length+" channels, "+CUSTOM_SERVICES.filter(chanOn).length+" enabled"):"";
+  const tot=BASE_SERVICES.length+CUSTOM_SERVICES.length;
+  const on=BASE_SERVICES.length+CUSTOM_SERVICES.filter(chanOn).length;
+  if(c) c.textContent=L(tot+" 個渠道,"+on+" 個啟用",tot+" channels, "+on+" enabled");
 }
 function refreshServiceSelects(){
   for(const id of ["baseSvc","accChan"]){
@@ -4166,6 +5166,7 @@ function wireChannels(){
   $("chList").addEventListener("change",e=>{
     const el=e.target;
     if(!el.classList.contains("ch-on")) return;
+    if(+el.dataset.i<0) return;   /* 內建渠道不可停用 */
     const n=CUSTOM_SERVICES[+el.dataset.i];
     CUSTOM_SERVICE_ON[n]=el.checked;
     syncServices(); renderChannels(); renderAll(); markDirty();
@@ -4219,16 +5220,14 @@ function wireChannels(){
         lines.push("＋ "+svc+" → Zone "+zoneLabel(zs)+L("(新渠道)"," (new channel)"));
         continue;
       }
-      if(BASE_SERVICES.includes(svc)){
-        lines.push("· "+svc+" → Zone "+zoneLabel(zs)+L("(內建渠道)"," (built-in)"));
-        continue;
-      }
       const cur=new Set(CUSTOM_SERVICE_ZONES[svc]||[]);
       const add=zs.filter(z=>!cur.has(z));
       if(add.length){
         const next=[...new Set([...cur,...zs])].sort((a,b)=>a-b);
         CUSTOM_SERVICE_ZONES[svc]=next;
-        syncServices(); seedServiceRows(svc,next); touched++;
+        syncServices();
+        if(!BASE_SERVICES.includes(svc)) seedServiceRows(svc,next);
+        touched++;
         lines.push("＋ "+svc+" → "+L("補上 Zone ","added zones ")+zoneLabel(add));
       }else lines.push("· "+svc+" → Zone "+zoneLabel(zs)+L("(已涵蓋)"," (already covered)"));
     }
@@ -4409,7 +5408,7 @@ function renderResults(){
        "Account-level charges: "+x.rows+" row(s), $"+x.total.toFixed(2)+" — kept out of repricing; click Statement to download.")
     :L("服務「"+x.label+"」未設費率:"+x.rows+" 筆、$"+x.total.toFixed(2)+" 原價轉嫁。",
        "Service '"+x.label+"' has no rate table: "+x.rows+" row(s), $"+x.total.toFixed(2)+" passed through."));
-  $("bStatement").disabled=!(LAST.accountRows&&LAST.accountRows.length);
+  paintStatementBtn();
   /* 本期新出現:目錄與自訂清單都沒有的費目、對照表與渠道清單都沒有的服務 */
   const knownFee=n=>{
     if(KNOWN_PASS_FEES.includes(n)) return true;
@@ -4467,7 +5466,7 @@ async function runRepricing(){
   }
   setStatus(L("計算中…","Repricing…"));
   $("bRunTop").disabled=true;
-  $("bStatement").disabled=true;
+  paintStatementBtn();
   try{
     await new Promise(r=>setTimeout(r,30)); /* 讓狀態字先畫出來 */
     const {results,warnings,infos,accountRows,seenFees,customCols}=repriceCore(BILLING.columns,BILLING.rows);
@@ -4844,6 +5843,7 @@ function applyLangUI(){
   renderAll();
   drawClocks(true);
   refreshHist();
+  if($("prInvWhat")){ try{ prPaint(); }catch(e){} }
 }
 function init(){
   loadUI();
@@ -4856,12 +5856,13 @@ function init(){
   wireRules(); wireFuel(); wireBaseTable(); wireAcc();
   wireDemand(); wireFiles(); wireChannels(); wireCsur(); wireHist();
   $("bRunTop").addEventListener("click",runRepricing);
-  $("bStatement").addEventListener("click",async()=>{
-    if(LAST&&LAST.accountRows&&LAST.accountRows.length){
-      await exportAccountStatement(LAST.accountRows);
-      toast(L("account_statement.xlsx 已下載","account_statement.xlsx downloaded"));
-    }
-  });
+  $("bStatement").addEventListener("click",openStatementReport);
+  $("prX").addEventListener("click",closeStatementReport);
+  $("prClose").addEventListener("click",closeStatementReport);
+  $("prBg").addEventListener("click",e=>{ if(e.target===$("prBg")) closeStatementReport(); });
+  $("prInv").addEventListener("change",prPaint);
+  $("prPer").addEventListener("change",prPaint);
+  $("prGo").addEventListener("click",prDownload);
   document.querySelectorAll("#tabs button").forEach(b=>
     b.addEventListener("click",()=>switchPage(b.dataset.p)));
   document.querySelectorAll("#demTabs button").forEach(b=>
@@ -4898,6 +5899,7 @@ window.__FEDEX_TEST={
   get SERVICES(){return SERVICES;},
   buildConfig,applyConfig,loadDefaultTables,renderAll,
   get TBL(){return TBL;},get RULES(){return RULES;},
+  get SIZE_RULES(){return SIZE_RULES;},
   set RULES(v){RULES=v;},
   UserInputError,
   setBaseRate(service,weight,zone,fee){
