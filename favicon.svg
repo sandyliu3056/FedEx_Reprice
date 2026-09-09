@@ -1,40 +1,79 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
   <defs>
+    <clipPath id="card"><rect x="3" y="3" width="114" height="114" rx="22"/></clipPath>
     <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#cfe4f4"/><stop offset="1" stop-color="#f2ece1"/>
+      <stop offset="0" stop-color="#a9d6f5"/><stop offset=".62" stop-color="#c6e4f8"/>
     </linearGradient>
   </defs>
-  <rect x="1" y="1" width="62" height="62" rx="15" fill="url(#sky)"/>
+  <g clip-path="url(#card)">
+    <rect x="3" y="3" width="114" height="114" fill="url(#sky)"/>
+    <path d="M3 78h114v39H3z" fill="#f6ecdd"/>
+    <!-- 雲 -->
+    <g fill="#fdfaf2">
+      <path d="M17 26a7 7 0 0 1 13-3 8 8 0 0 1 14 3z" /><rect x="17" y="24" width="27" height="4" rx="2"/>
+      <path d="M85 24a8 8 0 0 1 14-3 8 8 0 0 1 13 3z"/><rect x="85" y="22" width="27" height="4" rx="2"/>
+    </g>
+    <!-- 地面影 -->
+    <ellipse cx="60" cy="99" rx="46" ry="5" fill="#e2d3c6"/>
+  </g>
+  <rect x="3" y="3" width="114" height="114" rx="22" fill="none" stroke="#efe6d6" stroke-width="3"/>
 
-  <!-- 車頂顆粒 -->
-  <g fill="#ded7c8"><rect x="11" y="15" width="6" height="3" rx="1"/><rect x="20" y="15" width="6" height="3" rx="1"/>
-     <rect x="29" y="15" width="6" height="3" rx="1"/><rect x="41" y="21" width="5" height="3" rx="1"/></g>
-  <g fill="#fbf8f1"><ellipse cx="14" cy="15" rx="3" ry="1.5"/><ellipse cx="23" cy="15" rx="3" ry="1.5"/>
-     <ellipse cx="32" cy="15" rx="3" ry="1.5"/><ellipse cx="43.5" cy="21" rx="2.5" ry="1.3"/></g>
+  <g stroke="#2e1c40" stroke-width="2.6" stroke-linejoin="round">
+    <!-- 車頂顆粒(後箱) -->
+    <g fill="#efe7d6">
+      <rect x="21" y="27" width="13" height="9" rx="4.5"/><rect x="37" y="27" width="13" height="9" rx="4.5"/>
+      <rect x="53" y="27" width="13" height="9" rx="4.5"/><rect x="66" y="30" width="12" height="9" rx="4.5"/>
+    </g>
+    <!-- 後箱 -->
+    <path d="M16 36h62l6 5v38H16z" fill="#f3ead7"/>
+    <path d="M16 36h62l6 5H22z" fill="#e7dcc6"/>
+    <!-- 車廂磚縫 -->
+    <g stroke-width="1.5" fill="none" opacity=".8">
+      <path d="M16 52h68M30 41v11M58 41v11M44 52v18M16 70h68"/>
+    </g>
 
-  <!-- 車廂 -->
-  <rect x="8" y="17" width="30" height="24" fill="#f4f0e6" stroke="#cfc7b6" stroke-width="1.4"/>
-  <line x1="8" y1="25" x2="38" y2="25" stroke="#cfc7b6" stroke-width=".9"/>
-  <line x1="23" y1="17" x2="23" y2="36" stroke="#cfc7b6" stroke-width=".9"/>
+    <!-- 駕駛室顆粒 -->
+    <g fill="#efe7d6">
+      <rect x="79" y="40" width="12" height="9" rx="4.5"/><rect x="93" y="40" width="12" height="9" rx="4.5"/>
+    </g>
+    <!-- 駕駛室 -->
+    <path d="M84 49h24l4 6v24H84z" fill="#f3ead7"/>
+    <path d="M87 54h18l4 5v11H87z" fill="#8fc9ee"/>
+    <path d="M96 54v16" stroke-width="2"/>
+    <path d="M101 57l4 10" stroke="#d5edff" stroke-width="3" stroke-linecap="round"/>
+    <!-- 引擎蓋(紫)+ 顆粒 -->
+    <g fill="#6b2fa8"><rect x="94" y="64" width="10" height="8" rx="4"/><rect x="105" y="64" width="9" height="8" rx="4"/></g>
+    <path d="M92 71h22v14H92z" fill="#5c2593"/>
+    <!-- 格柵 -->
+    <g fill="#3f3a48" stroke-width="0"><rect x="103" y="76" width="12" height="2.4" rx="1"/>
+      <rect x="103" y="80" width="12" height="2.4" rx="1"/><rect x="103" y="84" width="12" height="2.4" rx="1"/></g>
+    <!-- 腰線與底盤 -->
+    <path d="M16 79h96v11H16z" fill="#5c2593"/>
+    <path d="M14 89h100v6a3 3 0 0 1-3 3H17a3 3 0 0 1-3-3z" fill="#4b4553"/>
+    <!-- 橘色示廓燈 -->
+    <rect x="12" y="76" width="7" height="9" rx="2" fill="#f5821f"/>
+    <rect x="108" y="76" width="8" height="9" rx="2" fill="#f5821f"/>
 
-  <!-- 車頭 -->
-  <rect x="38" y="23" width="11" height="8" fill="#f4f0e6" stroke="#cfc7b6" stroke-width="1.4"/>
-  <path d="M39.5 24.5h6l3.2 4v2.2h-9.2z" fill="#a8cbe2" stroke="#7ba4bf" stroke-width="1.1"/>
-  <rect x="45" y="31" width="9" height="8" fill="#5b2a91" stroke="#43206c" stroke-width="1.2"/>
-  <rect x="52.5" y="33" width="2.4" height="3" rx=".6" fill="#f08c2e"/>
+    <!-- 輪拱 -->
+    <path d="M25 90a13 13 0 0 1 26 0z" fill="#6b2fa8"/>
+    <path d="M74 90a13 13 0 0 1 26 0z" fill="#6b2fa8"/>
+  </g>
 
-  <!-- 腰線 + 底盤 -->
-  <rect x="8" y="36" width="30" height="5" fill="#5b2a91"/>
-  <rect x="7" y="41" width="47" height="3" rx="1" fill="#4b4550"/>
-  <rect x="6" y="34" width="3" height="4" rx=".8" fill="#f08c2e"/>
-
-  <!-- 車身標誌:紫圓弧 + 橘三角(reprice) -->
-  <path d="M22.5 22.5a6.5 6.5 0 1 0 6.4 7.7" fill="none" stroke="#5b2a91" stroke-width="3.6" stroke-linecap="round"/>
-  <path d="M27.5 20.5l5.4 3.1-5.4 3.1z" fill="#f0781f"/>
+  <!-- 車身標誌:紫圓弧 + 橘三角 -->
+  <path d="M45 47a11.5 11.5 0 1 0 11.5 12.6" fill="none" stroke="#5c2593" stroke-width="7" stroke-linecap="round"/>
+  <path d="M53.5 43.5l11 6.4-11 6.4z" fill="#f5731f" stroke="#f5731f" stroke-width="3" stroke-linejoin="round"/>
 
   <!-- 輪子 -->
-  <g><circle cx="17" cy="44" r="6" fill="#2b2830" stroke="#17141c" stroke-width="1.2"/>
-     <circle cx="17" cy="44" r="2.6" fill="#b9b4c0"/></g>
-  <g><circle cx="45" cy="44" r="6" fill="#2b2830" stroke="#17141c" stroke-width="1.2"/>
-     <circle cx="45" cy="44" r="2.6" fill="#b9b4c0"/></g>
+  <g stroke="#2e1c40" stroke-width="2.6">
+    <circle cx="38" cy="92" r="14" fill="#3b3742"/>
+    <circle cx="38" cy="92" r="6" fill="#b9b4c0"/>
+    <circle cx="87" cy="92" r="14" fill="#3b3742"/>
+    <circle cx="87" cy="92" r="6" fill="#b9b4c0"/>
+  </g>
+  <g fill="#2e1c40">
+    <rect x="36" y="77" width="4" height="4" rx="1"/><rect x="36" y="103" width="4" height="4" rx="1"/>
+    <rect x="23" y="90" width="4" height="4" rx="1"/><rect x="49" y="90" width="4" height="4" rx="1"/>
+    <rect x="85" y="77" width="4" height="4" rx="1"/><rect x="85" y="103" width="4" height="4" rx="1"/>
+    <rect x="72" y="90" width="4" height="4" rx="1"/><rect x="98" y="90" width="4" height="4" rx="1"/>
+  </g>
 </svg>

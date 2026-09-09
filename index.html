@@ -691,6 +691,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <div class="row" style="margin-top:12px">
       <button class="act run" id="bRunTop" data-i18n="btn.run" disabled>Reprice</button>
       <button class="act ghost sm" id="bStatement" data-i18n="btn.statement" disabled>Statement</button>
+      <button class="act ghost sm" id="bSave1" data-i18n="btn.savesettings">Save Settings</button>
       <span id="runStatus" class="savenote" data-i18n="st.ready">就緒 — 選好帳單、檢查費率,然後執行。</span>
     </div>
     <p class="note" id="runSummary" style="display:none"></p>
@@ -763,6 +764,8 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <input class="cell num" id="inDim" list="dimList" style="width:86px">
       <datalist id="dimList"><option value="139"><option value="166"></datalist>
       <button class="act ghost sm" id="bBulkDim" data-i18n="btn.chandim">Bulk set by channel</button>
+      <button class="act sm" id="bSave3" data-i18n="btn.save">Save</button>
+      <span class="savenote"></span>
     </div>
     <p class="note" data-i18n="hint.core">DIM 重 = 長×寬×高 ÷ DIM 除數(無條件進位)。燃油費率請到 Surcharge Setup 頁設定。</p>
   </div>
@@ -774,6 +777,9 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <select id="sizeFilter" style="min-width:220px"></select>
       <button class="act ghost sm" id="bDefThr" data-i18n="btn.defthr">Default Thresholds</button>
       <button class="act ghost sm" id="bBulkChan" data-i18n="btn.bulkchan">Bulk Set Channels</button>
+      <span style="flex:1 1 auto"></span>
+      <button class="act sm" id="bSave4" data-i18n="btn.savesettings">Save Settings</button>
+      <span class="savenote"></span>
     </div>
     <div class="tablewrap" style="max-height:52vh">
       <table id="tSize"><thead><tr>
@@ -824,6 +830,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <button class="act ghost" id="bBaseExp" data-i18n="btn.exprate">Export base rate template</button>
       <button class="act ghost" id="bBaseImp" data-i18n="btn.imprate">Import completed base rates</button>
       <button class="act ghost" id="bScanZone" data-i18n="btn.scanzone">Scan zones from invoice</button>
+      <button class="act ghost" id="bViewRates" data-i18n="btn.viewrates">View loaded rates</button>
       <button class="act ghost" id="bChRestore" data-i18n="btn.chrestore">Restore preset channels</button>
       <input type="file" id="fBaseImp" accept=".xlsx,.xls">
     </div>
@@ -834,6 +841,8 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <h3 class="display"><span class="em">📋</span><span data-i18n="hd.allchan">Channels already set up</span></h3>
     <div class="row" style="margin-bottom:8px">
       <button class="act danger sm" id="bDelChan" data-i18n="btn.delchan">Delete selected</button>
+      <button class="act sm" id="bSave5" data-i18n="btn.savesettings">Save Settings</button>
+      <span class="savenote"></span>
       <span style="flex:1 1 auto"></span>
       <label class="inlab" data-i18n="lb.search">Search</label>
       <input id="chanSearch" class="cell left" style="width:170px">
@@ -850,13 +859,6 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     </div>
   </div>
 
-  <div class="lf sketch">
-    <h3 class="display"><span class="em">🧮</span><span data-i18n="hd.loaded">Loaded rates</span></h3>
-    <p class="hint" data-i18n="hint.base">1–150 lb × 每個 Zone 的費率(上方選的渠道)。可直接在格子裡改,或匯出範本到 Excel 填好再匯入(匯入只取代範本裡出現的服務)。</p>
-    <div class="tablewrap" style="max-height:60vh">
-      <table id="tBase"><thead></thead><tbody></tbody></table>
-    </div>
-  </div>
 </section>
 
 <!-- ==================== 附加費(含燃油,照 UPS 版式) ==================== -->
@@ -883,6 +885,8 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     </div>
     <div class="row" style="margin-bottom:8px">
       <button class="act" id="bCsurAdd" data-i18n="btn.csuradd">Custom Surcharges…</button>
+      <button class="act" id="bSave2" data-i18n="btn.saverates">Save Rates</button>
+      <span class="savenote"></span>
       <button class="act ghost" id="bRemoveTicked" data-i18n="btn.removeticked">Remove Ticked</button>
       <span class="tplgrp">
         <button class="act ghost" id="bAccExp" data-i18n="btn.exportacc">Export Accessorials Template</button>
@@ -901,10 +905,6 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <div class="subhd" data-i18n="hd.flat">Flat amounts</div>
     <div id="accFlat" class="flatgrid"></div>
 
-    <div class="subhd" data-i18n="hd.customlist">Custom Surcharges</div>
-    <div class="tablewrap" style="max-height:26vh">
-      <table id="tCsur"><thead></thead><tbody></tbody></table>
-    </div>
   </div>
 </section>
 
@@ -923,6 +923,8 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
           <div class="tablewrap" style="max-height:38vh;margin-top:10px"><table id="tDem-g"><thead></thead><tbody></tbody></table></div>
           <div class="row" style="margin-top:9px">
             <button class="act ghost sm" id="bDemAdd-g" data-i18n="btn.demadd">Add period</button>
+            <button class="act sm" id="bSave6" data-i18n="btn.savedemand">Save Demand settings</button>
+            <span class="savenote"></span>
             <span style="flex:1 1 auto"></span>
             <span class="tplgrp">
               <button class="act ghost sm" id="bDemExp-g" data-i18n="btn.tplexp">匯出範本</button>
@@ -1029,6 +1031,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <button class="act ghost sm" id="bCfgSave" data-i18n="btn.cfgsave">下載設定 JSON</button>
       <button class="act danger sm" id="bCfgReset" data-i18n="btn.cfgreset">還原預設值</button>
       <button class="act ghost sm" id="bSample" data-i18n="btn.sample">下載帳單範例</button>
+      <button class="act sm" id="bSave7" data-i18n="btn.savesettings">Save Settings</button>
       <span id="cfgNote" class="savenote"></span>
     </div>
     <div class="subhd" data-i18n="hd.chanpol">🚚 Channel &amp; Zone Policy</div>
@@ -1096,6 +1099,61 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   </div>
 </div>
 
+<div id="rateBg" class="modalbg">
+  <div class="modal sketch" id="rateModal" style="width:min(1080px,100%)">
+    <div class="modalhd">
+      <span data-i18n="hd.loaded">Loaded rates</span>
+      <button class="mx" id="rateX">✕</button>
+    </div>
+    <div class="modalbody">
+      <p class="hint" data-i18n="hint.base">1–150 lb × 每個 Zone 的費率(上方選的渠道)。可直接在格子裡改,或匯出範本到 Excel 填好再匯入。</p>
+      <div class="tablewrap" style="max-height:60vh">
+        <table id="tBase"><thead></thead><tbody></tbody></table>
+      </div>
+    </div>
+    <div class="modalft">
+      <button class="act" id="bSave8" data-i18n="btn.savesettings">Save Settings</button>
+      <button class="act ghost" id="rateClose" data-i18n="btn.close">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div id="dimBg" class="modalbg">
+  <div class="modal sketch" id="dimModal" style="width:min(560px,100%)">
+    <div class="modalhd">
+      <span data-i18n="hd.dimchan">Bulk set DIM by channel</span>
+      <button class="mx" id="dimX">✕</button>
+    </div>
+    <div class="modalbody">
+      <div class="row" style="margin-bottom:10px">
+        <label class="inlab" style="margin-left:0" data-i18n="lb.dimall">套用到全部</label>
+        <input id="dimAll" class="cell num" style="width:90px" value="139">
+        <button class="act sm" id="bDimApplyAll" data-i18n="btn.applyall">套用</button>
+      </div>
+      <div class="tablewrap" style="max-height:44vh">
+        <table id="tDimChan"><thead></thead><tbody></tbody></table>
+      </div>
+      <p class="note" data-i18n="hint.dimchan">留空 = 用上方的預設 DIM 除數。</p>
+    </div>
+    <div class="modalft">
+      <button class="act ghost" id="dimClose" data-i18n="btn.close">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div id="bkdBg" class="modalbg">
+  <div class="modal sketch" id="bkdModal" style="width:min(980px,100%)">
+    <div class="modalhd">
+      <span data-i18n="hd.bkd">Rating Breakdown</span>
+      <button class="mx" id="bkdX">✕</button>
+    </div>
+    <div class="modalbody" id="bkdBody"></div>
+    <div class="modalft">
+      <button class="act ghost" id="bkdClose" data-i18n="btn.close">關閉</button>
+    </div>
+  </div>
+</div>
+
 <div id="csurBg" class="modalbg">
   <div class="modal sketch" id="csurModal" style="width:min(520px,100%)">
     <div class="modalhd">
@@ -1103,6 +1161,10 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <button class="mx" id="bCsX">✕</button>
     </div>
     <div class="modalbody">
+      <div class="tablewrap" style="max-height:34vh;margin-bottom:12px">
+        <table id="tCsur"><thead></thead><tbody></tbody></table>
+      </div>
+      <div class="subhd" style="margin-top:0" data-i18n="hd.csuradd">新增自訂附加費</div>
       <div class="row">
         <label class="inlab" style="margin-left:0" data-i18n="lb.csname">表頭名稱</label>
         <input id="csName" class="cell left" style="width:260px" placeholder="e.g. Address Correction">
@@ -1118,7 +1180,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <p class="note" data-i18n="hint.csmodal">名稱與帳單 Charge Description 比對(包含即符合)。費率 0 = 先登記、金額照原帳單轉嫁。</p>
     </div>
     <div class="modalft">
-      <button class="act" id="bCsSave" data-i18n="btn.save">儲存</button>
+      <button class="act" id="bCsSave" data-i18n="btn.csadd">新增</button>
       <button class="act ghost" id="bCsClose" data-i18n="btn.close">關閉</button>
     </div>
   </div>
@@ -1214,6 +1276,7 @@ const I18N={
  "btn.stored":["Stored Invoices","Stored Invoices"],
  "btn.search":["Search","Search"],
  "btn.breakdown":["Rating Breakdown","Rating Breakdown"],
+ "hd.bkd":["Rating Breakdown","Rating Breakdown"],
  "hd.findtrk":["Find a Tracking","Find a Tracking"],
  "th.trk":["Tracking","Tracking"],
  "th.invno":["Invoice Number","Invoice Number"],
@@ -1262,6 +1325,7 @@ const I18N={
    "Use ✕ to drop channels you do not ship (FedEx presets included — their rate rows stay, and Restore presets brings them back). Adding a channel seeds zero-rate rows for the zones you pick; fill them in the base rate table below and on the Surcharge pages. Invoice service names containing a channel name map to it."],
  "hd.csur":["Custom Surcharges","Custom Surcharges"],
  "hd.csuradd":["新增自訂附加費","Add Custom Surcharge"],
+ "btn.csadd":["新增","Add"],
  "lb.csname":["表頭名稱","Display name"],
  "lb.csalias":["帳單費目名稱","Invoice charge names"],
  "lb.csfee":["費率","Rate"],
@@ -1310,6 +1374,9 @@ const I18N={
  "btn.selnone":["全不選","Deselect All"],
  "btn.delticked":["刪除勾選","Delete Ticked"],
  "btn.save":["儲存","Save"],
+ "btn.savesettings":["Save Settings","Save Settings"],
+ "btn.saverates":["Save Rates","Save Rates"],
+ "btn.savedemand":["Save Demand settings","Save Demand settings"],
  "btn.close":["關閉","Close"],
  "hd.pickdate":["選擇日期","Select Date"],
  "hd.fuelhero":["目前燃油附加費率","Current Fuel Surcharge"],
@@ -1339,6 +1406,11 @@ const I18N={
  "c.second":["2nd Side","2nd Side"],
  "c.minwt":["Min Wt","Min Wt"],
  "btn.chandim":["Bulk set by channel","Bulk set by channel"],
+ "hd.dimchan":["Bulk set DIM by channel","Bulk set DIM by channel"],
+ "lb.dimall":["套用到全部","Apply to all"],
+ "btn.applyall":["套用","Apply"],
+ "hint.dimchan":["留空 = 用上方的預設 DIM 除數。","Leave blank to use the default DIM factor above."],
+ "btn.viewrates":["View loaded rates","View loaded rates"],
  "btn.defthr":["Default Thresholds","Default Thresholds"],
  "btn.bulkchan":["Bulk Set Channels","Bulk Set Channels"],
  "hint.size":["一個渠道一列。0 或空白 = 該條件不啟用。Oversize 任一條件成立就收 Oversize 費、壓最低計費重並停收 AHS;AHS 只收最高的一種,最低計費重只在尺寸型觸發時套用。",
@@ -1514,6 +1586,7 @@ let RULES={...RULE_DEFAULTS};
 /* 各渠道門檻(照 UPS 的 Rules in Force):只存與預設不同的值,取值時退回 RULES。
    0 或空 = 該條件不啟用(對應 UPS 空格的語意)。 */
 let SIZE_RULES={};
+let DIM_BY_CHAN={};   /* 渠道 → DIM 除數覆寫(空 = 用預設) */
 const SIZE_FIELDS=[
   ["oversize_longest_side","use_oversize_longest"],
   ["oversize_actual_weight","use_oversize_weight"],
@@ -1578,7 +1651,7 @@ function loadDefaultTables(){
   TBL.signature.rows=[["Adult Signature","10.00"],["Direct Signature","5.70"],["Indirect Signature","5.70"]];
   TBL.gdemand.rows=[]; TBL.ademand.rows=[]; TBL.odemand.rows=[]; TBL.fuelp.rows=[];
   TBL.csur.rows=[];
-  SIZE_RULES={};
+  SIZE_RULES={}; DIM_BY_CHAN={};
   CARRIER_DRAFTS={};
 }
 
@@ -1640,6 +1713,7 @@ function buildConfig(){
   cfg.custom_service_zones={...CUSTOM_SERVICE_ZONES};
   cfg.custom_service_enabled={...CUSTOM_SERVICE_ON};
   cfg.size_rules=JSON.parse(JSON.stringify(SIZE_RULES));
+  cfg.dim_by_channel={...DIM_BY_CHAN};
   return cfg;
 }
 function applyConfig(cfg){
@@ -1666,6 +1740,8 @@ function applyConfig(cfg){
     ? {...cfg.custom_service_enabled} : {};
   SIZE_RULES=(cfg.size_rules&&typeof cfg.size_rules==="object")
     ? JSON.parse(JSON.stringify(cfg.size_rules)) : {};
+  DIM_BY_CHAN=(cfg.dim_by_channel&&typeof cfg.dim_by_channel==="object")
+    ? {...cfg.dim_by_channel} : {};
   syncServices();
   for(const svc of CUSTOM_SERVICES) seedServiceRows(svc,CUSTOM_SERVICE_ZONES[svc]);
 }
@@ -1687,6 +1763,20 @@ function markDirty(){
     }
   },400);
   refreshReady();
+}
+/* 立即存檔(照 UPS 的 Save Settings):平常會自動存,這顆按鈕給明確的確認 */
+function saveSettings(){
+  try{
+    localStorage.setItem(CFG_KEY,JSON.stringify(buildConfig()));
+    const t=new Date();
+    const stamp=L("已儲存 ","Saved ")+String(t.getHours()).padStart(2,"0")+":"
+      +String(t.getMinutes()).padStart(2,"0")+":"+String(t.getSeconds()).padStart(2,"0");
+    document.querySelectorAll(".savenote").forEach(el=>{ el.textContent=stamp; });
+    toast(L("設定已儲存","Settings saved"));
+  }catch(e){
+    showError(L("儲存失敗","Save failed"),
+      L("瀏覽器空間不足或封鎖了本機儲存。","Browser storage is full or blocked."));
+  }
 }
 function loadLocalConfig(){
   try{
@@ -2128,8 +2218,12 @@ function buildSigLookup(){
   return m;
 }
 
-function calcDimWeight(l,w,h){
-  return Math.ceil((l*w*h)/Math.max(RULES.dim_factor,1.0));
+function dimFactorFor(service){
+  const v=toFloat(DIM_BY_CHAN[service],0);
+  return v>0?v:Math.max(toFloat(RULES.dim_factor,139),1);
+}
+function calcDimWeight(l,w,h,service){
+  return Math.ceil((l*w*h)/Math.max(dimFactorFor(service),1.0));
 }
 function oversizeHitFn(l,w,h,actualWeight,service){
   const longest=Math.max(l,w,h);
@@ -2373,7 +2467,7 @@ function repriceCore(columns,rowsIn){
       return;
     }
     const effKey=getEffectiveDateKey(row);
-    const dimWeight=calcDimWeight(l,w,h);
+    const dimWeight=calcDimWeight(l,w,h,service);
     const ratedWeight=toFloat(
       coalesce(row,["Rated Weight Amount","Billed Weight","Billable Weight"],0),0);
     let billableWeight=ratedWeight>0?Math.ceil(ratedWeight):Math.max(actualWeight,dimWeight);
@@ -3128,6 +3222,15 @@ function switchDem(name){
    全域規則 ←→ 輸入框
    ===================================================================== */
 /* Rules in Force:一個渠道一列,欄位順序同 SIZE_FIELDS */
+function renderDimByChan(){
+  const t=$("tDimChan"); if(!t) return;
+  t.querySelector("thead").innerHTML="<tr><th>"+L("渠道","Channel")
+    +'</th><th class="num">'+L("DIM 除數","DIM factor")+"</th></tr>";
+  t.querySelector("tbody").innerHTML=SERVICES.map(svc=>
+    "<tr><td>"+esc(svc)+'</td><td class="num"><input class="cell num dimc" data-svc="'+esc(svc)
+    +'" style="width:90px" placeholder="'+RULES.dim_factor+'" value="'
+    +esc(DIM_BY_CHAN[svc]!=null?String(DIM_BY_CHAN[svc]):"")+'"></td></tr>').join("");
+}
 function renderRules(){
   $("inDim").value=String(RULES.dim_factor);
   const sel=$("sizeFilter");
@@ -3194,9 +3297,29 @@ function wireRules(){
     toast(L("已套用到 "+SERVICES.length+" 個渠道","Applied to "+SERVICES.length+" channels"));
   });
   $("bBulkDim").addEventListener("click",()=>{
-    showModal(L("DIM 除數","DIM factor"),
-      L("目前所有渠道共用同一個 DIM 除數("+RULES.dim_factor+")。需要各渠道不同的 DIM 時再告訴我,會在這裡加上逐渠道設定。",
-        "All channels currently share one DIM factor ("+RULES.dim_factor+"). Say the word if you need per-channel DIM and it will be added here."));
+    renderDimByChan();
+    $("dimBg").style.display="flex";
+  });
+  $("dimClose").addEventListener("click",()=>{ $("dimBg").style.display="none"; });
+  $("dimX").addEventListener("click",()=>{ $("dimBg").style.display="none"; });
+  $("dimBg").addEventListener("click",e=>{ if(e.target===$("dimBg")) $("dimBg").style.display="none"; });
+  $("tDimChan").addEventListener("change",e=>{
+    const el=e.target; if(!el.classList.contains("dimc")) return;
+    const raw=String(el.value).trim();
+    const n=raw===""?0:Number(raw);
+    if(!isFinite(n)||n<0){ renderDimByChan(); return; }
+    if(n>0) DIM_BY_CHAN[el.dataset.svc]=n; else delete DIM_BY_CHAN[el.dataset.svc];
+    markDirty(); renderDimByChan();
+  });
+  $("bDimApplyAll").addEventListener("click",()=>{
+    const n=Number(String($("dimAll").value).trim());
+    if(!isFinite(n)||n<=0){
+      showError(L("要填數字","Number needed"),L("請填一個大於 0 的 DIM 除數。","Enter a DIM factor greater than 0."));
+      return;
+    }
+    for(const svc of SERVICES) DIM_BY_CHAN[svc]=n;
+    renderDimByChan(); markDirty();
+    toast(L("已套用到 "+SERVICES.length+" 個渠道","Applied to "+SERVICES.length+" channels"));
   });
 }
 
@@ -3221,6 +3344,13 @@ function renderBaseTable(){
   rebuildBaseMap();
   const svc=$("baseSvc").value||SERVICES[0];
   $("baseEditing").textContent=L("正在編輯:","Editing: ")+svc;
+  const mine=TBL.base.rows.filter(r=>String(r[0])===svc);
+  const priced=mine.filter(r=>r.slice(2).some(x=>toFloat(x,0)>0)).length;
+  const bc=$("baseCount");
+  if(bc) bc.textContent=L("這個渠道已載入 "+mine.length+" 列,其中 "+priced+" 列有費率;Zone "
+      +(CUSTOM_SERVICE_ZONES[svc]||ZONES).length+" 個。",
+    "Loaded for this channel — "+mine.length+" row(s), "+priced+" priced, "
+      +(CUSTOM_SERVICE_ZONES[svc]||ZONES).length+" zones.");
   const thead=["<tr><th>"+L("重量 (lb)","Weight (lb)")+"</th>"]
     .concat(ZONES.map(z=>'<th class="num">Zone '+z+"</th>")).join("")+"</tr>";
   $("tBase").querySelector("thead").innerHTML=thead;
@@ -3234,7 +3364,6 @@ function renderBaseTable(){
     }).join("")+"</tr>");
   }
   $("tBase").querySelector("tbody").innerHTML=parts.join("");
-  $("baseCount").textContent=L("目前整張表非零費率格數:","Non-zero rate cells in the whole grid: ")
     +baseNonzeroCount();
 }
 function wireBaseTable(){
@@ -3485,7 +3614,9 @@ function wireAcc(){
    Invoice History —— 帳單存在瀏覽器 IndexedDB,可查追蹤號與 Reprice 明細
    ===================================================================== */
 const HIST_DB="fedexRepriceHist", HIST_STORE="invoices";
-let HIST_ROWS=[];      /* 目前載入記憶體的歷史列 */
+let HIST_ROWS=[];      /* 目前載入記憶體的歷史費用列 */
+let HIST_RECS=[];      /* 原始帳單(含欄位與原始列),Rating Breakdown 逐期重算用 */
+let BKD_LAST=null;
 function histOpen(){
   return new Promise((res,rej)=>{
     const rq=indexedDB.open(HIST_DB,1);
@@ -3535,7 +3666,7 @@ function histFlatten(columns,rows,fileName){
     const dims=[coalesce(row,["Dim Length","Length"],""),coalesce(row,["Dim Width","Width"],""),
                 coalesce(row,["Dim Height","Height"],"")].map(x=>String(x??"").trim()).filter(Boolean);
     const dim=dims.length===3?dims.join("×"):"";
-    const base={inv,invDate,tranDate,trk,svc,zone,entWt,bilWt,dim,file:fileName};
+    const base={inv,invDate,tranDate,trk,svc,zone,entWt,bilWt,dim,file:fileName,i:out.length};
     const pairs=iterChargePairs(row);
     const tc=toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
     if(tc) out.push({...base,desc:"Transportation Charge",amt:r2(tc)});
@@ -3580,7 +3711,8 @@ function renderHist(list,note){
 async function refreshHist(){
   try{
     const recs=await histAll();
-    HIST_ROWS=recs.flatMap(r=>r.rows);
+    HIST_RECS=recs;
+    HIST_ROWS=recs.flatMap(r=>(r.rows||[]).map(x=>({...x,_rec:r.name})));
     const st=histStats(recs);
     $("histStats").textContent=st.rows
       ?L(st.files+" 個檔案、"+st.invs+" 張發票、"+st.rows.toLocaleString()+" 列、"
@@ -3604,7 +3736,8 @@ function wireHist(){
       for(const f of files){
         const {columns,rows}=await readTableFile(f);
         const flat=histFlatten(columns,rows,f.name);
-        await histPut({name:f.name,at:Date.now(),rows:flat});
+        await histPut({name:f.name,at:Date.now(),cols:columns.map(c=>String(c).trim()),
+                       ships:rows,rows:flat});
         n+=flat.length;
       }
       await refreshHist();
@@ -3641,39 +3774,151 @@ function wireHist(){
   };
   $("bTrkSearch").addEventListener("click",findTrk);
   $("trkSearch").addEventListener("keydown",e=>{ if(e.key==="Enter") findTrk(); });
-  /* Rating Breakdown:用目前費率把這個追蹤號重算一次,列出逐項明細 */
-  $("bTrkBreak").addEventListener("click",()=>{
-    const hit=findTrk();
-    if(!hit.length) return;
-    const x=hit[0];
-    const billed=hit.reduce((a,b)=>a+toFloat(b.amt,0),0);
-    const lines=[L("追蹤號","Tracking")+": "+x.trk,
-      L("服務","Service")+": "+(x.svc||"—")+"   Zone: "+(x.zone||"—"),
-      L("材積","Dimensions")+": "+(x.dim||"—")+"   "+L("實重","Entered weight")+": "+(x.entWt||"—")
-        +"   "+L("計費重","Billed weight")+": "+(x.bilWt||"—"),
-      "",L("帳單逐項","Billed charges")+":"];
-    for(const r of hit) lines.push("  "+r.desc+" ....... $"+Number(r.amt).toFixed(2));
-    lines.push("  "+L("帳單合計","Billed total")+" ....... $"+billed.toFixed(2));
-    if(LAST&&LAST.results){
-      const mine=LAST.results.find(r=>String(r["Tracking Number"]).includes(x.trk));
-      if(mine){
-        lines.push("",L("這次 Reprice 明細","This reprice")+":");
-        for(const k of ["Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
-                        "Residential Fee","Signature Fee","General Demand Fee","AHS Demand Fee",
-                        "Oversize Demand Fee","Fuel Fee"])
-          if(toFloat(mine[k],0)!==0) lines.push("  "+k+" ....... $"+toFloat(mine[k],0).toFixed(2));
-        lines.push("  "+L("Reprice 合計","Repriced total")+" ....... $"+toFloat(mine["Repriced Total"],0).toFixed(2));
-        lines.push("  "+L("差額(帳單 − Reprice)","Difference (billed − repriced)")
-          +" ....... $"+(billed-toFloat(mine["Repriced Total"],0)).toFixed(2));
-      }else{
-        lines.push("",L("這次 Reprice 沒有這筆(請先在 Import Files 跑一次含這張帳單的計價)。",
-                        "Not in the current reprice run — run a reprice that includes this invoice first."));
-      }
+  /* Rating Breakdown —— 照 UPS:各期比對表 + 每期逐項明細 + 匯出 Excel */
+  const money2=v=>"$"+(Math.round((v||0)*100)/100).toFixed(2);
+  const FEE_COLS=[["Base Rate","Base"],["Additional Handling Surcharge","AHS"],
+    ["DAS Fee","DAS"],["Oversize Fee","Oversize"],["Residential Fee","Residential"],
+    ["Signature Fee","Signature"],["General Demand Fee","Demand"],
+    ["AHS Demand Fee","AHS Demand"],["Oversize Demand Fee","Oversize Demand"],
+    ["Fuel Fee","Fuel"]];
+  function bkdSection(o){
+    const H=[];
+    H.push('<div class="subhd" style="margin-top:6px">'+L("帳單逐項","Billed charges")+"</div>");
+    H.push('<table style="width:100%;font-size:12.5px;margin-bottom:10px">');
+    for(const r of o.rows)
+      H.push("<tr><td>"+esc(r.desc)+'</td><td class="num" style="text-align:right;font-family:monospace">'
+        +money2(r.amt)+"</td></tr>");
+    H.push('<tr><td><b>'+L("帳單合計","Billed total")+'</b></td>'
+      +'<td class="num" style="text-align:right;font-family:monospace"><b>'+money2(o.billed)+"</b></td></tr></table>");
+    if(o.res){
+      H.push('<div class="subhd">'+L("Reprice 逐項","Repriced charges")+"</div>");
+      H.push('<table style="width:100%;font-size:12.5px;margin-bottom:6px">');
+      H.push("<tr><td>"+L("服務 / Zone / 計費重","Service / Zone / Billable")+"</td>"
+        +'<td style="text-align:right">'+esc(o.res["Service"])+" · Zone "+esc(o.res["Zone"])
+        +" · "+esc(o.res["Billable Weight"])+" lb</td></tr>");
+      for(const[k,lab] of FEE_COLS)
+        if(toFloat(o.res[k],0)!==0)
+          H.push("<tr><td>"+lab+'</td><td class="num" style="text-align:right;font-family:monospace">'
+            +money2(toFloat(o.res[k],0))+"</td></tr>");
+      H.push("<tr><td><b>"+L("Reprice 合計","Repriced total")
+        +'</b></td><td class="num" style="text-align:right;font-family:monospace"><b>'
+        +money2(toFloat(o.res["Repriced Total"],0))+"</b></td></tr></table>");
     }else{
-      lines.push("",L("尚未執行 Reprice。","No reprice has been run yet."));
+      H.push('<p class="note warn">'+esc(o.err||L("這一期無法計價(Zone 或費率未設定)。",
+        "Could not price this period (zone or rate not configured)."))+"</p>");
     }
-    showModal(L("計價明細","Rating breakdown"),lines.join("\n"));
-  });
+    return H.join("");
+  }
+  function openBreakdown(){
+    const t=$("trkSearch").value.trim();
+    const body=$("bkdBody");
+    const show=()=>{ $("bkdBg").style.display="flex"; };
+    if(!t){ body.innerHTML='<p class="note warn">'
+        +L("先在上面輸入追蹤號。","Enter a tracking number above first.")+"</p>"; show(); return; }
+    const hits=HIST_ROWS.filter(x=>String(x.trk).includes(t));
+    if(!hits.length){ body.innerHTML='<p class="note warn">'
+        +L("已存帳單裡沒有這個追蹤號。請先用 Import Past Invoices 匯入包含這筆的帳單。",
+           "This tracking number is not in any stored invoice — import the invoice that contains it first.")
+        +"</p>"; show(); return; }
+    /* 依發票分期 */
+    const byInv=new Map();
+    for(const r of hits){
+      const k=(r.inv||"(current)")+"|"+r._rec;
+      if(!byInv.has(k)) byInv.set(k,{inv:r.inv,invDate:r.invDate,rec:r._rec,rows:[]});
+      byInv.get(k).rows.push(r);
+    }
+    const out=[];
+    for(const g of byInv.values()){
+      const rec=HIST_RECS.find(x=>x.name===g.rec);
+      let res=null, err="";
+      if(rec&&rec.cols&&rec.ships){
+        const raw=rec.ships.filter(row=>{
+          const trk=String(coalesce(row,["Express or Ground Tracking ID","CrossRefTrackingID","Tracking Number"],"")??"");
+          const inv=String(coalesce(row,["Invoice Number","Invoice No","Invoice #"],"")??"");
+          return trk.includes(t)&&(!g.inv||inv===g.inv);
+        });
+        if(raw.length){
+          try{
+            const r=repriceCore(rec.cols,raw);
+            res=r.results.find(x=>String(x["Tracking Number"]).includes(t))||null;
+            if(!res&&r.warnings.length) err=r.warnings[0];
+          }catch(e){ err=String((e&&e.message)||e); }
+        }
+      }else err=L("這份帳單是舊版格式,重新匯入後才能逐期重算。",
+                  "This invoice was stored by an older version — re-import it to reprice per period.");
+      out.push({...g,res,err,billed:g.rows.reduce((a,b)=>a+toFloat(b.amt,0),0)});
+    }
+    out.sort((a,b)=>(parseDateKey(a.invDate)||0)-(parseDateKey(b.invDate)||0));
+    const H=[];
+    H.push('<div class="row" style="margin-bottom:10px"><b style="font-size:15px">'+esc(t)+"</b>"
+      +'<span style="flex:1 1 auto"></span>'
+      +'<button class="act ghost sm" id="bkdXls">⬇ '+L("匯出 Excel","Export to Excel")+"</button></div>");
+    H.push('<div class="subhd" style="margin-top:0">'+L("各期比對","Per-invoice comparison")+"</div>");
+    H.push('<table style="width:100%;font-size:12.5px;margin-bottom:12px"><tr>'
+      +"<td><b>Invoice</b></td><td><b>"+L("帳單日期","Invoice date")+"</b></td>"
+      +'<td style="text-align:right"><b>Reprice</b></td>'
+      +'<td style="text-align:right"><b>'+L("FedEx 實收","FedEx billed")+"</b></td>"
+      +'<td style="text-align:right"><b>'+L("差異","Diff")+"</b></td>"
+      +'<td style="text-align:right"><b>%</b></td></tr>');
+    let tRe=0,tBi=0,allPriced=true;
+    for(const o of out){
+      const rp=o.res?toFloat(o.res["Repriced Total"],0):null;
+      const d=rp==null?null:rp-o.billed;
+      const pc=(rp!=null&&Math.abs(rp)>1e-9)?(d/rp*100):null;
+      if(rp!=null) tRe+=rp; else allPriced=false;
+      tBi+=o.billed;
+      const col=d==null?"":(d<0?";color:var(--neg);font-weight:600":";color:var(--pos);font-weight:600");
+      H.push("<tr><td>"+esc(o.inv||"—")+"</td><td>"+esc(o.invDate||"—")+"</td>"
+        +'<td style="text-align:right;font-family:monospace">'+(rp==null?"—":money2(rp))+"</td>"
+        +'<td style="text-align:right;font-family:monospace">'+money2(o.billed)+"</td>"
+        +'<td style="text-align:right;font-family:monospace'+col+'">'+(d==null?"—":money2(d))+"</td>"
+        +'<td style="text-align:right;font-family:monospace">'+(pc==null?"—":pc.toFixed(2)+"%")+"</td></tr>");
+    }
+    if(out.length>1){
+      const td=allPriced?tRe-tBi:null;
+      const tp=(allPriced&&Math.abs(tRe)>1e-9)?(td/tRe*100):null;
+      const tc='style="text-align:right;font-family:monospace;border-top:1.5px solid var(--accent);background:var(--select)"';
+      H.push('<tr><td style="border-top:1.5px solid var(--accent);background:var(--select)"><b>'
+        +L("合計","Total")+'</b></td><td style="border-top:1.5px solid var(--accent);background:var(--select)"></td>'
+        +"<td "+tc+"><b>"+(allPriced?money2(tRe):"—")+"</b></td>"
+        +"<td "+tc+"><b>"+money2(tBi)+"</b></td>"
+        +"<td "+tc+"><b>"+(td==null?"—":money2(td))+"</b></td>"
+        +"<td "+tc+"><b>"+(tp==null?"—":tp.toFixed(2)+"%")+"</b></td></tr>");
+    }
+    H.push("</table>");
+    for(const o of out){
+      H.push('<div class="subhd">'+esc(o.inv||"—")+"  ·  "+esc(o.invDate||"")+"</div>");
+      H.push(bkdSection(o));
+    }
+    body.innerHTML=H.join("");
+    BKD_LAST={trk:t,out};
+    const bx=$("bkdXls");
+    if(bx) bx.addEventListener("click",exportBreakdown);
+    show();
+  }
+  async function exportBreakdown(){
+    if(!BKD_LAST) return;
+    const cols=["Tracking","Invoice","Invoice Date","Line","Amount"];
+    const rows=[];
+    for(const o of BKD_LAST.out){
+      for(const r of o.rows) rows.push([BKD_LAST.trk,o.inv,o.invDate,"Billed · "+r.desc,r.amt]);
+      rows.push([BKD_LAST.trk,o.inv,o.invDate,"Billed · TOTAL",r2(o.billed)]);
+      if(o.res){
+        for(const[k,lab] of FEE_COLS)
+          if(toFloat(o.res[k],0)!==0) rows.push([BKD_LAST.trk,o.inv,o.invDate,"Repriced · "+lab,toFloat(o.res[k],0)]);
+        rows.push([BKD_LAST.trk,o.inv,o.invDate,"Repriced · TOTAL",toFloat(o.res["Repriced Total"],0)]);
+        rows.push([BKD_LAST.trk,o.inv,o.invDate,"Diff (repriced − billed)",
+          r2(toFloat(o.res["Repriced Total"],0)-o.billed)]);
+      }
+    }
+    await exportTemplate(cols,rows,"rating_breakdown_"+BKD_LAST.trk+".xlsx");
+    toast(L("明細已匯出","Breakdown exported"));
+  }
+  $("bTrkBreak").addEventListener("click",openBreakdown);
+  $("bkdClose").addEventListener("click",()=>{ $("bkdBg").style.display="none"; });
+  $("bkdX").addEventListener("click",()=>{ $("bkdBg").style.display="none"; });
+  $("bkdBg").addEventListener("click",e=>{ if(e.target===$("bkdBg")) $("bkdBg").style.display="none"; });
+
 }
 
 /* =====================================================================
@@ -3879,6 +4124,13 @@ function wireChannels(){
                :L("預設渠道都在了","All presets are already here"));
   });
   /* 從帳單掃描 Zone:照 UPS 的做法,用真實帳單把每個渠道的 Zone 補齊 */
+  $("bViewRates").addEventListener("click",()=>{
+    renderBaseTable();
+    $("rateBg").style.display="flex";
+  });
+  $("rateClose").addEventListener("click",()=>{ $("rateBg").style.display="none"; });
+  $("rateX").addEventListener("click",()=>{ $("rateBg").style.display="none"; });
+  $("rateBg").addEventListener("click",e=>{ if(e.target===$("rateBg")) $("rateBg").style.display="none"; });
   $("bScanZone").addEventListener("click",()=>{
     if(!BILLING){
       showError(L("尚未選帳單","No invoice loaded"),
@@ -3947,6 +4199,7 @@ function renderCsur(){
 }
 function openCsurModal(){
   $("csName").value=""; $("csAlias").value=""; $("csFee").value="0";
+  renderCsur();
   $("csurBg").style.display="flex";
   $("csName").focus();
 }
@@ -3970,13 +4223,14 @@ function wireCsur(){
       L("請確認費率欄位。","Please check the rate field.")); return; }
     const alias=$("csAlias").value.trim()||name;
     TBL.csur.rows.push([name,alias,fee]);
-    renderCsur(); markDirty(); closeCsurModal();
+    renderCsur(); renderFlat(); markDirty();
+    $("csName").value=""; $("csAlias").value=""; $("csFee").value="0"; $("csName").focus();
     toast(L("已新增費目:"+name,"Surcharge added: "+name));
   });
   $("bCsClose").addEventListener("click",closeCsurModal);
   $("bCsX").addEventListener("click",closeCsurModal);
   $("csurBg").addEventListener("click",e=>{ if(e.target===$("csurBg")) closeCsurModal(); });
-  $("tCsur").addEventListener("change",e=>{
+  if($("tCsur")) $("tCsur").addEventListener("change",e=>{
     const el=e.target, i=+el.dataset.i, row=TBL.csur.rows[i];
     if(!row) return;
     if(el.classList.contains("cs-name")) row[0]=el.value.trim();
@@ -3985,7 +4239,7 @@ function wireCsur(){
     else return;
     markDirty();
   });
-  $("tCsur").addEventListener("click",e=>{
+  if($("tCsur")) $("tCsur").addEventListener("click",e=>{
     const b=e.target.closest("button.cs-del"); if(!b) return;
     TBL.csur.rows.splice(+b.dataset.i,1);
     renderCsur(); markDirty();
@@ -4032,6 +4286,9 @@ function wireFiles(){
     toast(L("帳單範例已下載","Billing sample downloaded"));
   });
   $("bGoChan").addEventListener("click",()=>switchPage("base"));
+  for(const id of ["bSave1","bSave2","bSave3","bSave4","bSave5","bSave6","bSave7","bSave8"]){
+    const el=$(id); if(el) el.addEventListener("click",saveSettings);
+  }
   $("bCfgLoad").addEventListener("click",()=>$("fCfg").click());
   $("fCfg").addEventListener("change",async e=>{
     const f=e.target.files[0]; e.target.value="";
