@@ -918,7 +918,6 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <select id="zoomSel" title="Display size"></select>
     <select id="themeSel" title="Theme"></select>
     <select id="tzSel" title="Clock"></select>
-    <select id="wxSel" title="Weather"></select>
   </div>
   <div class="bigclock">
     <span id="clkBig" class="mono">--:--</span>
@@ -5823,12 +5822,9 @@ function tzNow(){
 const TZ_COORD=[[25.03,121.57],[40.71,-74.01],[41.88,-87.63],
                 [39.74,-104.99],[34.05,-118.24],[51.48,-0.01]];
 const WX_KEY="fedexRepriceWx";
-let WX={mode:"clear",live:true,temp:null,at:0};
+let WX={mode:"clear",temp:null,at:0};
 try{ const w=localStorage.getItem(WX_KEY); if(w) WX=Object.assign(WX,JSON.parse(w)); }catch(e){}
 function wxSave(){ try{ localStorage.setItem(WX_KEY,JSON.stringify(WX)); }catch(e){} }
-const WX_MODES=[["clear",["晴","Clear"]],["cloud",["多雲","Cloudy"]],
-                ["rain",["雨","Rain"]],["storm",["雷雨","Thunderstorm"]],
-                ["snow",["雪","Snow"]],["live",["即時(連網)","Live (network)"]]];
 /* 當地幾點,回 0..24 的小數 */
 function localHour(){ const t=tzNow(); return t.h+t.mi/60; }
 function skyPhase(h){
@@ -5843,7 +5839,7 @@ function skyPhase(h){
    濾鏡,不是天空。dim 是入夜覆蓋層的濃度。 */
 const SKY={
   night:  {top:"#16233d",mid:"#22355c",bot:"#3a4c74",dim:.46},
-  dawn:   {top:"#5b7fae",mid:"#c69a94",bot:"#f0a071",dim:.14},
+  dawn:   {top:"#6d93c6",mid:"#e0ab8e",bot:"#ffb877",dim:.10},
   day:    {top:"#a9cbe4",mid:"#d3e6f2",bot:"#e4ecee",dim:0},
   dusk:   {top:"#4a6a96",mid:"#a2718a",bot:"#e0703c",dim:.18},
   evening:{top:"#25325a",mid:"#4a4a75",bot:"#7a6a8e",dim:.34},
@@ -5868,8 +5864,10 @@ function skyNow(){
   const wx=WX_SKY[WX.mode];
   if(!wx) return base;
   /* 有天氣時用天氣的灰,但夜裡仍然要更暗 —— 陰天的半夜不是灰白的。 */
-  const dark=(ph==="night"||ph==="evening");
-  const k=dark?.55:0;
+  /* 天氣壓過時段,但不是把時段整個蓋掉:夜裡仍然要更暗(陰天的半夜不是
+     灰白的),晨昏仍然要留住地平線那道暖光(陰天的日出不是平灰的)。 */
+  const k=(ph==="night"||ph==="evening")?.55
+         :(ph==="dawn"||ph==="dusk")?.42:0;
   return {top:mixHex(wx.top,base.top,k),mid:mixHex(wx.mid,base.mid,k),
           bot:mixHex(wx.bot,base.bot,k),
           dim:+Math.min(.62,base.dim
@@ -5986,7 +5984,7 @@ async function fetchWx(){
             : ((c>=71&&c<=77)||c===85||c===86) ? "snow"
             : ((c>=51&&c<=67)||(c>=80&&c<=82)) ? "rain"
             : (c>=1&&c<=48) ? "cloud" : "clear";
-    WX.temp=j.current.temperature_2m; WX.at=Date.now(); WX.live=true;
+    WX.temp=j.current.temperature_2m; WX.at=Date.now();
     wxSave();
   }catch(e){
     /* 連不到就靜靜維持晴天。天氣是裝飾,不值得打斷使用者。 */
@@ -6338,7 +6336,6 @@ function applyLangUI(){
   fillSelect("zoomSel",[["90","90%"],["100","100%"],["110","110%"],["125","125%"]],String(UI.zoom));
   fillSelect("themeSel",Object.entries(THEMES).map(([k,t])=>[k,LANG?t.en:t.zh]),UI.theme);
   fillSelect("tzSel",TZ.map((z,i)=>[String(i),z[LANG]]),String(UI.tz));
-  fillSelect("wxSel",WX_MODES.map(([v,lab])=>[v,lab[LANG]]),WX.live?"live":WX.mode);
   renderAll();
   drawClocks(true);
   refreshHist();
@@ -6368,11 +6365,7 @@ function init(){
   $("themeSel").addEventListener("change",e=>applyTheme(e.target.value));
   $("tzSel").addEventListener("change",e=>{
     UI.tz=+e.target.value; saveUI(); drawClocks(true); paintScene(true);
-    if(WX.live) fetchWx();
-  });
-  $("wxSel").addEventListener("change",e=>{
-    if(e.target.value==="live"){ WX.live=true; wxSave(); fetchWx(); }
-    else{ WX.live=false; WX.mode=e.target.value; wxSave(); paintScene(true); }
+    fetchWx();
   });
   $("appBy").title="FedEx Reprice Studio · "
     +"engine ported line-by-line from FedEx_RepricingTool.py";
@@ -6389,8 +6382,8 @@ function init(){
   paintScene(true);
   /* 即時天氣半小時查一次就夠 —— 天氣不會每分鐘變,而這是整份檔案唯一
      一個網路請求。 */
-  if(WX.live) fetchWx();
-  setInterval(()=>{ if(WX.live) fetchWx(); },30*60*1000);
+  fetchWx();
+  setInterval(fetchWx,30*60*1000);
 }
 document.addEventListener("DOMContentLoaded",init);
 
