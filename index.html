@@ -423,8 +423,11 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
    第 2 頁 計價規則:三張卡自動排版,門檻做成晶片,關掉的門檻自動變虛
    ===================================================================== */
 #p-rules.on{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));
-  gap:20px;align-items:stretch}
+  gap:20px;align-items:start}
 #p-rules .lf{margin-bottom:0}
+#p-rules .coreBar{grid-column:1/-1;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+#p-rules .coreBar>h3{margin:0}
+#p-rules .coreBar>.note{margin:0;flex:1;min-width:280px}
 #p-rules .row:has(>.row){display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
 #p-rules .row>.row{justify-content:space-between;background:var(--stripe);border:1px solid var(--line);
   border-radius:10px;padding:8px 12px;gap:10px;margin:0}
@@ -442,6 +445,10 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
 
 /* kv 摘要(照 UPS .kv) */
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;margin:0}
+#p-sur .fuelBar{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+#p-sur .fuelBar>h3{margin:0}
+#p-sur .fuelBar .kv{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+#p-sur .fuelBar .kv dd{margin-right:14px}
 .kv dt{font-family:var(--round);font-size:12px}
 .kv dt{color:var(--muted)}
 .kv dd{margin:0;font-weight:700;color:var(--head)}
@@ -586,8 +593,9 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
 .modalhd .mx{font:inherit;background:transparent;border:none;color:var(--muted);
   cursor:pointer;font-size:15px;padding:0 4px}
 .modalhd .mx:hover{color:var(--neg)}
-.modalbody{padding:14px 18px;overflow:auto;flex:1;white-space:pre-wrap;
+.modalbody{padding:14px 18px;overflow:auto;flex:1;
   font-size:13.5px;line-height:1.65;max-height:60vh}
+#modalBg .modalbody{white-space:pre-wrap}
 .modalft{padding:12px 18px;display:flex;justify-content:flex-end;gap:8px;
   border-top:1px solid var(--line);background:var(--stripe)}
 
@@ -656,7 +664,6 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <p class="hint" id="invNote" style="margin-top:8px" data-i18n="hint.inv">支援簡化欄位(Service, Zone, Length, Width, Height, Actual Weight)或 FedEx 原始帳單欄位(Zone Code, Dim Length…)。檔案只在瀏覽器裡計算,不會上傳到任何伺服器。</p>
     <div class="row" style="margin-top:12px">
       <button class="act run" id="bRunTop" data-i18n="btn.run" disabled>Reprice</button>
-      <button class="act ghost sm" id="bReExport" data-i18n="btn.reexport" disabled>重新下載結果 Excel</button>
       <span id="runStatus" class="savenote" data-i18n="st.ready">就緒 — 選好帳單、檢查費率,然後執行。</span>
     </div>
     <p class="note" id="runSummary" style="display:none"></p>
@@ -692,13 +699,11 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 
 <!-- ==================== 計價規則 ==================== -->
 <section class="page" id="p-rules">
-  <div class="lf sketch">
+  <div class="lf sketch coreBar">
     <h3 class="display"><span class="em">⚙️</span><span data-i18n="hd.core">核心參數</span></h3>
-    <div class="row">
-      <label class="inlab" style="margin-left:0" data-i18n="lb.dim">DIM 除數</label>
-      <input class="cell num" id="inDim" list="dimList" style="width:86px">
-      <datalist id="dimList"><option value="139"><option value="166"></datalist>
-    </div>
+    <label class="inlab" style="margin-left:0" data-i18n="lb.dim">DIM 除數</label>
+    <input class="cell num" id="inDim" list="dimList" style="width:86px">
+    <datalist id="dimList"><option value="139"><option value="166"></datalist>
     <p class="note" data-i18n="hint.core">DIM 重 = 長×寬×高 ÷ DIM 除數(無條件進位)。燃油費率請到「燃油附加費」頁設定。</p>
   </div>
 
@@ -758,15 +763,14 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 
 <!-- ==================== 附加費(含燃油,照 UPS 版式) ==================== -->
 <section class="page" id="p-sur">
-  <div class="lf sketch">
+  <div class="lf sketch fuelBar">
     <h3 class="display"><span class="em">⛽</span><span data-i18n="hd.fuelcard">燃油</span></h3>
-    <div class="row">
-      <label class="inlab" style="margin-left:0" data-i18n="lb.fuelsur">燃油附加費</label>
+    <dl class="kv" id="fuelKV"></dl>
+    <div class="row" style="margin-left:auto">
       <button class="act sm" id="bSetFuel" data-i18n="btn.setfuel">設定燃油費率</button>
       <a class="act alt sm" id="bFuelLookup" href="https://www.fedex.com/en-us/shipping/fuel-surcharge.html"
          target="_blank" rel="noopener" data-i18n="btn.fuellookup">查 FedEx 官方燃油費率</a>
     </div>
-    <dl class="kv" id="fuelKV" style="margin-top:8px"></dl>
   </div>
   <div class="lf sketch">
     <h3 class="display"><span class="em">🎠</span><span data-i18n="hd.zonestudio">Zone 費率工作室</span></h3>
@@ -1089,7 +1093,6 @@ const I18N={
    "DIM weight = L×W×H ÷ DIM factor, rounded up. Set the fuel rate on the Fuel Surcharge page."],
  "tab.fuel":["燃油附加費","Fuel Surcharge"],
  "hd.fuelcard":["燃油","Fuel"],
- "lb.fuelsur":["燃油附加費","Fuel Surcharge"],
  "btn.setfuel":["設定燃油費率","Set Fuel Percentage"],
  "hd.fuelsetup":["燃油設定","Fuel Setup"],
  "lb.deffuel":["預設燃油 %","Default Fuel %"],
@@ -1174,7 +1177,6 @@ const I18N={
  "dt.o":["Oversize Demand","Oversize demand"],
  "btn.demadd":["＋ 新增期間","+ Add period"],
  "hd.run":["執行","Run"],
- "btn.reexport":["重新下載結果 Excel","Re-download result Excel"],
  "st.ready":["就緒 — 選好帳單、檢查費率,然後執行。","Ready — pick a billing file, review rates, then run."],
  "hint.runsum":["成功執行後,下方會出現統計與逐筆預覽。","After a successful run the summary and per-shipment preview appear below."],
  "hd.sum":["這次計價","This Run"],
@@ -3060,7 +3062,6 @@ function refreshReady(){
     ?BILLING.name+" · "+BILLING.rows.length+L(" 列"," rows"):"";
   const can=!!BILLING;
   $("bRunTop").disabled=!can;
-  $("bReExport").disabled=!LAST;
 }
 async function pickBilling(file){
   try{
@@ -3566,10 +3567,6 @@ function init(){
   wireRules(); wireFuel(); wireBaseTable(); wireZoneEditors(); wireResiSig();
   wireDemand(); wireFiles();
   $("bRunTop").addEventListener("click",runRepricing);
-  $("bReExport").addEventListener("click",async()=>{
-    if(LAST){ await exportResultWorkbook(LAST.results);
-      toast(L("已重新下載 repriced_result.xlsx","repriced_result.xlsx downloaded again")); }
-  });
   document.querySelectorAll("#tabs button").forEach(b=>
     b.addEventListener("click",()=>switchPage(b.dataset.p)));
   document.querySelectorAll("#surTabs button").forEach(b=>
