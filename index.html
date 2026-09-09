@@ -485,14 +485,41 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
    第 3 頁 基本費率:表格接管整頁高度,格子就是輸入框,聚焦有餘燼光
    ===================================================================== */
 #p-base.on{display:flex;flex-direction:column;height:100%}
-.chBar{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.chBar>h3{margin:0}
-.chBar>.note{margin:0;flex:1;min-width:280px}
+.chCard>h3{align-items:baseline}
+.chcount{font:600 11px "JetBrains Mono",Consolas,monospace;color:var(--muted);letter-spacing:.04em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
+.chip{display:inline-flex;align-items:center;gap:9px;padding:6px 7px 6px 13px;
+  border-radius:999px;line-height:1.15;white-space:nowrap;
+  background:color-mix(in srgb,var(--accent) 7%,var(--panel));
+  border:1.5px solid color-mix(in srgb,var(--accent) 24%,var(--line));
+  box-shadow:0 1px 2px rgb(var(--shadow-ink)/.06)}
+.chip b{font:700 12.5px var(--hand);color:var(--head)}
+.chip .zs{font:600 10.5px "JetBrains Mono",Consolas,monospace;color:var(--muted);
+  padding:1px 7px;border-radius:999px;background:color-mix(in srgb,var(--head) 7%,transparent)}
+.chip .chx{flex:none;width:19px;height:19px;display:grid;place-items:center;
+  border:none;border-radius:50%;background:transparent;color:var(--muted);
+  font:600 11px var(--hand);cursor:pointer;padding:0;transition:.14s}
+.chip .chx:hover{background:color-mix(in srgb,var(--neg) 15%,transparent);color:var(--neg)}
+.chip.add{cursor:pointer;background:transparent;border-style:dashed;
+  border-color:color-mix(in srgb,var(--accent) 45%,transparent);
+  padding:6px 15px;font:700 12.5px var(--hand);color:var(--accent);gap:6px;box-shadow:none}
+.chip.add:hover{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+#tChan .tag{font:600 9.5px var(--hand);letter-spacing:.06em;color:var(--muted);
+  padding:1px 6px;border-radius:999px;border:1px solid var(--line)}
+#tChan tr.off td{opacity:.45}
+#tChan .zonecell{font:600 11.5px "JetBrains Mono",Consolas,monospace;color:var(--muted)}
+.chip.def{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
+.chip.restore{cursor:pointer;background:transparent;border-style:dashed;
+  border-color:var(--line);color:var(--muted);padding:6px 14px;
+  font:600 12px var(--hand);box-shadow:none}
+.chip.restore:hover{color:var(--head);border-color:color-mix(in srgb,var(--head) 30%,transparent)}
+.chip.add .plus{font-size:13px;line-height:1}
 #p-base .lf{display:flex;flex-direction:column;flex:1;min-height:0;
   margin-bottom:0;padding:0;overflow:hidden}
 #p-base .lf>h3{margin:0;padding:16px 22px 0}
-#p-base .chBar{flex:none;flex-direction:row;align-items:center;gap:16px;padding:14px 18px}
-#p-base .chBar>h3{margin:0;padding:0}
+#p-base .chCard{flex:none;display:block;padding:14px 18px}
+#p-base .chCard>h3{margin:0 0 2px;padding:0;display:flex;gap:10px}
+#p-base .chCard>.note{margin:0}
 #p-base .lf>.row{margin:0 !important;padding:14px 22px;
   border-bottom:1px solid var(--line);background:var(--panel)}
 #p-base .hint{margin:0;padding:10px 22px}
@@ -805,31 +832,65 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 
 <!-- ==================== 基本費率 ==================== -->
 <section class="page" id="p-base">
-  <div class="lf sketch chBar">
-    <h3 class="display"><span class="em">🚚</span><span data-i18n="hd.channels">渠道</span></h3>
-    <span class="row" id="chList" style="gap:6px"></span>
-    <button class="act sm" id="bChAdd" data-i18n="btn.chadd">新增渠道</button>
-    <p class="note" data-i18n="hint.channels" style="margin:0;flex:1;min-width:280px">新增後各費率表會自動長出 0 費率列,到「基本費率/附加費」頁填數字;帳單服務名稱包含渠道名即歸入。</p>
+  <div class="lf sketch">
+    <h3 class="display"><span class="em">➕</span><span data-i18n="hd.chandata">Add a new channel</span></h3>
+    <div class="grid3" style="grid-template-columns:auto minmax(0,1fr)">
+      <label data-i18n="lb.channame">Channel name</label>
+      <input id="newChanName" class="cell left" style="width:100%">
+      <label data-i18n="th.zones">Zones</label>
+      <input id="newChanZones" class="cell left" style="width:100%" value="2,3,4,5,6,7,8,9,17">
+    </div>
+    <div class="row" style="margin-top:9px">
+      <label class="chk"><input type="checkbox" id="newChanOn" checked>
+        <span data-i18n="lb.chanon">Enable this channel</span></label>
+      <button class="act" id="bAddChan" data-i18n="btn.addchan">Add channel</button>
+    </div>
+    <p class="hint" style="margin:9px 0 0;max-width:760px" data-i18n="hint.addchan">渠道對應帳單上的 FedEx 服務名稱(Service Type / Ground Service)。新增後會依所選 Zone 在各費率表長出 0 費率列;帳單服務名稱只要包含渠道名就歸入該渠道。</p>
   </div>
 
   <div class="lf sketch">
-    <h3 class="display"><span class="em">🧮</span><span data-i18n="hd.base">基本費率表</span></h3>
-    <div class="row" style="margin-bottom:10px">
-      <label class="inlab" style="margin-left:0" data-i18n="lb.service">服務</label>
-      <select id="baseSvc"></select>
+    <h3 class="display"><span class="em">②</span><span data-i18n="hd.ratestate">Rate table state</span></h3>
+    <div class="row" style="margin-bottom:8px">
+      <label class="inlab" style="margin-left:0" data-i18n="lb.pickrate">Rate table channel</label>
+      <select id="baseSvc" style="min-width:260px"></select>
       <span id="baseEditing" class="savenote"></span>
-      <span style="flex:1 1 auto"></span>
-      <span class="tplgrp">
-        <button class="act ghost" id="bBaseExp" data-i18n="btn.tplexp">匯出範本</button>
-        <button class="act ghost" id="bBaseImp" data-i18n="btn.tplimp">匯入範本</button>
-      </span>
+    </div>
+    <div class="row">
+      <button class="act ghost" id="bBaseExp" data-i18n="btn.exprate">Export base rate template</button>
+      <button class="act ghost" id="bBaseImp" data-i18n="btn.imprate">Import completed base rates</button>
+      <button class="act ghost" id="bScanZone" data-i18n="btn.scanzone">Scan zones from invoice</button>
+      <button class="act ghost" id="bChRestore" data-i18n="btn.chrestore">Restore preset channels</button>
       <input type="file" id="fBaseImp" accept=".xlsx,.xls">
     </div>
-    <p class="hint" data-i18n="hint.base">1–150 lb × 每個 Zone 的費率。可直接在格子裡改,或匯出範本到 Excel 填好再匯入(匯入只取代範本裡出現的服務)。</p>
-    <div class="tablewrap" style="max-height:64vh">
+    <p class="note" id="baseCount"></p>
+  </div>
+
+  <div class="lf sketch">
+    <h3 class="display"><span class="em">📋</span><span data-i18n="hd.allchan">Channels already set up</span></h3>
+    <div class="row" style="margin-bottom:8px">
+      <button class="act danger sm" id="bDelChan" data-i18n="btn.delchan">Delete selected</button>
+      <span style="flex:1 1 auto"></span>
+      <label class="inlab" data-i18n="lb.search">Search</label>
+      <input id="chanSearch" class="cell left" style="width:170px">
+      <span id="chCount" style="color:var(--muted);font-size:12.5px"></span>
+    </div>
+    <div class="tablewrap" style="max-height:44vh">
+      <table id="tChan"><thead><tr>
+        <th style="width:30px"></th>
+        <th data-i18n="lb.channame">Channel name</th>
+        <th data-i18n="th.zones">Zones</th>
+        <th data-i18n="th.ratestate">Base rates</th>
+        <th class="num" data-i18n="th.enabled">Enabled</th>
+      </tr></thead><tbody id="chList"></tbody></table>
+    </div>
+  </div>
+
+  <div class="lf sketch">
+    <h3 class="display"><span class="em">🧮</span><span data-i18n="hd.loaded">Loaded rates</span></h3>
+    <p class="hint" data-i18n="hint.base">1–150 lb × 每個 Zone 的費率(上方選的渠道)。可直接在格子裡改,或匯出範本到 Excel 填好再匯入(匯入只取代範本裡出現的服務)。</p>
+    <div class="tablewrap" style="max-height:60vh">
       <table id="tBase"><thead></thead><tbody></tbody></table>
     </div>
-    <p class="note" id="baseCount"></p>
   </div>
 </section>
 
@@ -1116,30 +1177,6 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   </div>
 </div>
 
-<div id="chBg" class="modalbg">
-  <div class="modal sketch" id="chModal" style="width:min(460px,100%)">
-    <div class="modalhd">
-      <span data-i18n="hd.chadd">新增渠道</span>
-      <button class="mx" id="bChX">✕</button>
-    </div>
-    <div class="modalbody">
-      <div class="row">
-        <label class="inlab" style="margin-left:0" data-i18n="lb.chname">渠道名稱</label>
-        <input id="chName" class="cell left" style="width:250px" placeholder="e.g. International Ground">
-      </div>
-      <div class="row" style="margin-top:10px">
-        <label class="inlab" style="margin-left:0" data-i18n="lb.chzones">Zones</label>
-        <input id="chZones" class="cell left" style="width:250px" value="2,3,4,5,6,7,8,9,17">
-      </div>
-      <p class="note" data-i18n="hint.chmodal">此渠道要用的 Zone(逗號分隔;目前支援 2–9、17,與桌面版格式一致)。新增後 AHS/DAS/Oversize 只種所選 Zone 的 0 費率列,基本費率整表建立;帳單服務名稱包含渠道名即歸入。</p>
-    </div>
-    <div class="modalft">
-      <button class="act" id="bChSave" data-i18n="btn.save">儲存</button>
-      <button class="act ghost" id="bChClose" data-i18n="btn.close">關閉</button>
-    </div>
-  </div>
-</div>
-
 <div id="csurBg" class="modalbg">
   <div class="modal sketch" id="csurModal" style="width:min(520px,100%)">
     <div class="modalhd">
@@ -1209,14 +1246,17 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 /* =====================================================================
    常數 — 與桌面版 FedEx_RepricingTool.py 一字不差
    ===================================================================== */
-const ZONES=[2,3,4,5,6,7,8,9,17];
+const BASE_ZONES=[2,3,4,5,6,7,8,9,17];
+/* ZONES 是「目前所有啟用渠道用到的 Zone」的聯集,原地更新以免既有引用失效 */
+const ZONES=[...BASE_ZONES];
 const BASE_SERVICES=["Ground","Home Delivery"];
 let CUSTOM_SERVICES=[];              /* 使用者新增的渠道 */
 const SERVICES=[...BASE_SERVICES];   /* 引擎與 UI 共用;syncServices() 重建 */
 function syncServices(){
   SERVICES.length=0;
   for(const x of BASE_SERVICES) SERVICES.push(x);
-  for(const x of CUSTOM_SERVICES) if(x&&!SERVICES.includes(x)) SERVICES.push(x);
+  for(const x of CUSTOM_SERVICES) if(x&&chanOn(x)&&!SERVICES.includes(x)) SERVICES.push(x);
+  if(typeof syncZones==="function") syncZones();
 }
 const AHS_TYPES=["Weight","Package","Dimension"];
 const DAS_TYPES=[
@@ -1258,13 +1298,32 @@ const I18N={
  "btn.statement":["Statement","Statement"],
  "hd.channels":["渠道","Channels"],
  "btn.chadd":["新增渠道","Add channel"],
+ "hd.chandata":["新增渠道","Add a new channel"],
+ "hd.ratestate":["費率表狀態","Rate table state"],
+ "hd.allchan":["已設定的渠道","Channels already set up"],
+ "hd.loaded":["已載入的費率","Loaded rates"],
+ "lb.channame":["渠道名稱","Channel name"],
+ "th.zones":["Zones","Zones"],
+ "th.ratestate":["基本費率","Base rates"],
+ "th.enabled":["啟用","Enabled"],
+ "lb.chanon":["啟用此渠道","Enable this channel"],
+ "lb.pickrate":["費率表渠道","Rate table channel"],
+ "lb.search":["搜尋","Search"],
+ "btn.addchan":["新增渠道","Add channel"],
+ "btn.delchan":["刪除勾選","Delete selected"],
+ "btn.exprate":["匯出基本費率範本","Export base rate template"],
+ "btn.imprate":["匯入填好的基本費率","Import completed base rates"],
+ "btn.scanzone":["從帳單掃描 Zone","Scan zones from invoice"],
+ "hint.addchan":["渠道對應帳單上的 FedEx 服務名稱(Service Type / Ground Service)。新增後會依所選 Zone 在各費率表長出 0 費率列;帳單服務名稱只要包含渠道名就歸入該渠道。",
+   "A channel maps to the FedEx service name on the invoice (Service Type / Ground Service). Adding one seeds zero-rate rows for the zones you pick; any invoice service name containing the channel name maps to it."],
+ "btn.chrestore":["還原預設渠道","Restore preset channels"],
  "hd.chadd":["新增渠道","Add Channel"],
  "lb.chname":["渠道名稱","Channel name"],
  "lb.chzones":["Zones","Zones"],
  "hint.chmodal":["此渠道要用的 Zone(逗號分隔;目前支援 2–9、17,與桌面版格式一致)。新增後 AHS/DAS/Oversize 只種所選 Zone 的 0 費率列,基本費率整表建立;帳單服務名稱包含渠道名即歸入。",
    "Zones this channel uses (comma-separated; 2–9 and 17 supported, matching the desktop config). AHS/DAS/Oversize seed only the chosen zones; the base rate table is created in full. Invoice service names containing the channel name map to it."],
- "hint.channels":["新增後各費率表會自動長出 0 費率列,到「基本費率/附加費」頁填數字;帳單服務名稱包含渠道名即歸入。",
-   "Adding a channel seeds zero-rate rows in every rate table — fill them on the Base Rates / Surcharges pages. Invoice service names containing the channel name map to it."],
+ "hint.channels":["✕ 可移除用不到的渠道(標「預設」的 FedEx 官方渠道也能移除,費率表列會保留,按「還原預設渠道」可補回)。新增渠道會依所選 Zone 長出 0 費率列,在下方基本費率表與附加費頁填數字;帳單服務名稱包含渠道名即歸入該渠道。",
+   "Use ✕ to drop channels you do not ship (FedEx presets included — their rate rows stay, and Restore presets brings them back). Adding a channel seeds zero-rate rows for the zones you pick; fill them in the base rate table below and on the Surcharge pages. Invoice service names containing a channel name map to it."],
  "hd.csur":["自訂附加費","Custom Surcharges"],
  "hd.csuradd":["新增自訂附加費","Add Custom Surcharge"],
  "lb.csname":["表頭名稱","Display name"],
@@ -1487,7 +1546,7 @@ const RULE_DEFAULTS={
   ahs_dimension_cubic_inches:10368.0, ahs_min_billable_weight:40.0,
 };
 let RULES={...RULE_DEFAULTS};
-const BASE_COLS=["Service","Weight"].concat(ZONES.map(z=>"Zone "+z));
+let BASE_COLS=["Service","Weight"].concat(ZONES.map(z=>"Zone "+z));
 const TBL={
   base:       {cols:BASE_COLS, rows:[]},
   ahs:        {cols:["Service","AHS Type","Zone","Fee"], rows:[]},
@@ -1508,8 +1567,8 @@ let LAST=null;      /* 上一次成功執行的結果,重新下載用 */
 function loadDefaultTables(){
   /* 先掛上預設渠道(FedEx 官方服務),再依各渠道的 Zone 清單長表 */
   CUSTOM_SERVICES=DEFAULT_CHANNELS.map(([n])=>n);
-  CUSTOM_SERVICE_ZONES={};
-  for(const[n,zs] of DEFAULT_CHANNELS) CUSTOM_SERVICE_ZONES[n]=zs.slice();
+  CUSTOM_SERVICE_ZONES={}; CUSTOM_SERVICE_ON={};
+  for(const[n,zs] of DEFAULT_CHANNELS){ CUSTOM_SERVICE_ZONES[n]=zs.slice(); CUSTOM_SERVICE_ON[n]=true; }
   syncServices();
   const zonesFor=s=>CUSTOM_SERVICE_ZONES[s]||ZONES;
   const base=[];
@@ -1537,6 +1596,30 @@ function loadDefaultTables(){
 }
 
 let CUSTOM_SERVICE_ZONES={};   /* 渠道 → 使用的 Zone 清單(給種列與設定檔) */
+let CUSTOM_SERVICE_ON={};      /* 渠道 → 是否啟用(停用的不進計價,費率列保留) */
+const chanOn=n=>CUSTOM_SERVICE_ON[n]!==false;
+/* Zone 網格 = 基本 Zone ∪ 各啟用渠道的 Zone;變動時同步基本費率表欄位 */
+function syncZones(){
+  const set=new Set(BASE_ZONES);
+  for(const n of CUSTOM_SERVICES)
+    if(chanOn(n)) for(const z of (CUSTOM_SERVICE_ZONES[n]||[])) set.add(Math.trunc(Number(z)));
+  const next=[...set].filter(z=>isFinite(z)&&z>0).sort((a,b)=>a-b);
+  if(next.length===ZONES.length&&next.every((z,i)=>z===ZONES[i])) return;
+  const oldCols=BASE_COLS.slice();
+  ZONES.length=0; for(const z of next) ZONES.push(z);
+  BASE_COLS=["Service","Weight"].concat(ZONES.map(z=>"Zone "+z));
+  TBL.base.cols=BASE_COLS;
+  /* 依欄名搬移既有費率,新 Zone 補 0 */
+  TBL.base.rows=TBL.base.rows.map(r=>{
+    const out=[r[0]??"",r[1]??""];
+    for(const c of BASE_COLS.slice(2)){
+      const i=oldCols.indexOf(c);
+      out.push(i>=0?(r[i]??"0"):"0");
+    }
+    return out;
+  });
+  if(typeof rebuildBaseMap==="function") rebuildBaseMap();
+}
 /* 新渠道:各費率表補 0 費率列(已有的不動),之後到費率頁填數字 */
 function seedServiceRows(svc,zones){
   if(!TBL.base.rows.some(r=>String(r[0])===svc))
@@ -1568,6 +1651,7 @@ function buildConfig(){
   cfg.carrier_draft_rates={...CARRIER_DRAFTS};
   cfg.custom_services=[...CUSTOM_SERVICES];
   cfg.custom_service_zones={...CUSTOM_SERVICE_ZONES};
+  cfg.custom_service_enabled={...CUSTOM_SERVICE_ON};
   return cfg;
 }
 function applyConfig(cfg){
@@ -1590,6 +1674,8 @@ function applyConfig(cfg){
     ? cfg.custom_services.map(x=>String(x).trim()).filter(Boolean) : [];
   CUSTOM_SERVICE_ZONES=(cfg.custom_service_zones&&typeof cfg.custom_service_zones==="object")
     ? {...cfg.custom_service_zones} : {};
+  CUSTOM_SERVICE_ON=(cfg.custom_service_enabled&&typeof cfg.custom_service_enabled==="object")
+    ? {...cfg.custom_service_enabled} : {};
   syncServices();
   for(const svc of CUSTOM_SERVICES) seedServiceRows(svc,CUSTOM_SERVICE_ZONES[svc]);
 }
@@ -1692,8 +1778,8 @@ const DEFAULT_CHANNELS=[
 ];
 function restoreDefaultChannels(){
   CUSTOM_SERVICES=DEFAULT_CHANNELS.map(([n])=>n);
-  CUSTOM_SERVICE_ZONES={};
-  for(const[n,zs] of DEFAULT_CHANNELS) CUSTOM_SERVICE_ZONES[n]=zs.slice();
+  CUSTOM_SERVICE_ZONES={}; CUSTOM_SERVICE_ON={};
+  for(const[n,zs] of DEFAULT_CHANNELS){ CUSTOM_SERVICE_ZONES[n]=zs.slice(); CUSTOM_SERVICE_ON[n]=true; }
   syncServices();
   for(const[n,zs] of DEFAULT_CHANNELS) seedServiceRows(n,zs);
 }
@@ -2008,7 +2094,10 @@ function buildBaseLookup(){
     const service=String(row[0]??"").trim();
     const weight=Math.trunc(toFloat(row[1],0));
     if(!service||weight<=0) continue;
-    ZONES.forEach((z,i)=>m.set(service+"|"+weight+"|"+z,toFloat(row[2+i],0)));
+    (TBL.base.cols||BASE_COLS).forEach((c,i)=>{
+      const mm=/^Zone\s+(\d+)$/.exec(String(c).trim());
+      if(mm) m.set(service+"|"+weight+"|"+Number(mm[1]),toFloat(row[i],0));
+    });
   }
   return m;
 }
@@ -3451,10 +3540,58 @@ function wireDemand(){
 }
 
 /* ===== 渠道 chips ===== */
+/* [2,3,4,5,6,7,8,9,17] → "2–9, 17" */
+function zoneLabel(zs){
+  const a=[...new Set((zs||ZONES).map(Number))].filter(x=>isFinite(x)).sort((x,y)=>x-y);
+  if(!a.length) return "—";
+  const parts=[]; let i=0;
+  while(i<a.length){
+    let j=i; while(j+1<a.length&&a[j+1]===a[j]+1) j++;
+    parts.push(j>i+1?a[i]+"–"+a[j]:a.slice(i,j+1).join(", "));
+    i=j+1;
+  }
+  return parts.join(", ");
+}
+function parseZones(raw){
+  const zs=String(raw||"").split(/[\s,;|]+/).filter(Boolean)
+    .map(x=>Math.trunc(Number(x))).filter(z=>isFinite(z)&&z>0&&z<1000);
+  return [...new Set(zs)].sort((a,b)=>a-b);
+}
+/* 該渠道的基本費率有沒有填過(給 Base rates 欄位看) */
+function baseRateState(svc){
+  let rows=0, filled=0;
+  for(const r of TBL.base.rows){
+    if(String(r[0])!==svc) continue;
+    rows++;
+    for(let i=2;i<r.length;i++) if(toFloat(r[i],0)>0){ filled++; break; }
+  }
+  if(!rows) return {txt:L("未建立","not set up"),cls:"z0"};
+  if(!filled) return {txt:L(rows+" 列 · 全 0",rows+" rows · all zero"),cls:"z0"};
+  return {txt:L(rows+" 列 · "+filled+" 列有費率",rows+" rows · "+filled+" priced"),cls:""};
+}
 function renderChannels(){
-  const el=$("chList"); if(!el) return;
-  el.innerHTML=CUSTOM_SERVICES.map((sv,i)=>'<span class="act ghost sm" style="pointer-events:none">'+esc(sv)
-      +'</span><button class="act danger sm ch-del" data-i="'+i+'" style="padding:0 8px">✕</button>').join("");
+  const tb=$("chList"); if(!tb) return;
+  const defs=new Set(DEFAULT_CHANNELS.map(([n])=>n));
+  const q=($("chanSearch")?$("chanSearch").value:"").trim().toLowerCase();
+  const list=CUSTOM_SERVICES.map((sv,i)=>[sv,i])
+    .filter(([sv])=>!q||sv.toLowerCase().includes(q));
+  tb.innerHTML=list.length?list.map(([sv,i])=>{
+    const st=baseRateState(sv);
+    return "<tr"+(chanOn(sv)?"":' class="off"')+">"
+      +'<td><input type="checkbox" class="ch-pick" data-i="'+i+'"></td>'
+      +"<td>"+esc(sv)+(defs.has(sv)?' <span class="tag">'+L("預設","preset")+"</span>":"")+"</td>"
+      +'<td class="zonecell">'+esc(zoneLabel(CUSTOM_SERVICE_ZONES[sv]))+"</td>"
+      +'<td class="'+st.cls+'">'+esc(st.txt)+"</td>"
+      +'<td class="num"><label class="chk" style="justify-content:flex-end">'
+        +'<input type="checkbox" class="ch-on" data-i="'+i+'"'+(chanOn(sv)?" checked":"")+"></label></td>"
+      +"</tr>";
+  }).join("")
+    :'<tr><td class="empty" colspan="5">'+(q?L("(沒有符合的渠道)","(no channel matches)")
+      :L("(尚無渠道)","(no channels yet)"))+"</td></tr>";
+  const c=$("chCount");
+  if(c) c.textContent=CUSTOM_SERVICES.length
+    ?L(CUSTOM_SERVICES.length+" 個渠道,"+CUSTOM_SERVICES.filter(chanOn).length+" 個啟用",
+       CUSTOM_SERVICES.length+" channels, "+CUSTOM_SERVICES.filter(chanOn).length+" enabled"):"";
 }
 function refreshServiceSelects(){
   for(const id of ["baseSvc","ahsSvc","dasSvc","osSvc"]){
@@ -3463,50 +3600,115 @@ function refreshServiceSelects(){
     fillSelect(id,SERVICES.map(x=>[x,x]),SERVICES.includes(cur)?cur:SERVICES[0]);
   }
 }
-function openChModal(){
-  $("chName").value=""; $("chZones").value=ZONES.join(",");
-  $("chBg").style.display="flex";
-  $("chName").focus();
+function addChannel(name,zones,on){
+  CUSTOM_SERVICES.push(name);
+  CUSTOM_SERVICE_ZONES[name]=zones.slice();
+  CUSTOM_SERVICE_ON[name]=on!==false;
+  syncServices(); seedServiceRows(name,zones);
 }
-function closeChModal(){ $("chBg").style.display="none"; }
 function wireChannels(){
-  $("bChAdd").addEventListener("click",openChModal);
-  $("bChSave").addEventListener("click",()=>{
-    const name=$("chName").value.trim();
+  $("bAddChan").addEventListener("click",()=>{
+    const name=$("newChanName").value.trim();
     if(!name){
       showError(L("缺渠道名稱","Name required"),L("請填渠道名稱。","Enter a channel name."));
       return;
     }
-    if(SERVICES.some(x=>x.toLowerCase()===name.toLowerCase())){
-      showError(L("渠道已存在","Channel exists"),L("「"+name+"」已在渠道清單裡。","'"+name+"' is already a channel."));
+    if(SERVICES.concat(CUSTOM_SERVICES).some(x=>x.toLowerCase()===name.toLowerCase())){
+      showError(L("渠道已存在","Channel exists"),L("「"+name+"」已在清單裡。","'"+name+"' is already set up."));
       return;
     }
-    const zraw=$("chZones").value.trim();
-    let zones=ZONES.slice();
-    if(zraw){
-      zones=zraw.split(/[\s,]+/).filter(Boolean).map(x=>Math.trunc(toFloat(x,NaN)));
-      if(zones.some(z=>!ZONES.includes(z))){
-        showError(L("Zone 不支援","Unsupported zone"),
-          L("目前支援的 Zone:"+ZONES.join("、")+"(桌面版設定檔格式)。",
-            "Supported zones: "+ZONES.join(", ")+" (desktop config format)."));
-        return;
-      }
-      zones=[...new Set(zones)];
+    const zones=parseZones($("newChanZones").value);
+    if(!zones.length){
+      showError(L("缺 Zone","Zones required"),
+        L("請填這個渠道要用的 Zone(逗號分隔),例如 2,3,4,5,6,7,8。",
+          "List the zones this channel uses (comma-separated), e.g. 2,3,4,5,6,7,8."));
+      return;
     }
-    CUSTOM_SERVICES.push(name); CUSTOM_SERVICE_ZONES[name]=zones;
-    syncServices(); seedServiceRows(name,zones);
-    renderChannels(); renderAll(); markDirty(); closeChModal();
-    toast(L("已新增渠道:"+name+"(Zone "+zones.join(",")+")","Channel added: "+name+" (zones "+zones.join(",")+")"));
-  });
-  $("bChClose").addEventListener("click",closeChModal);
-  $("bChX").addEventListener("click",closeChModal);
-  $("chBg").addEventListener("click",e=>{ if(e.target===$("chBg")) closeChModal(); });
-  $("chList").addEventListener("click",e=>{
-    const b=e.target.closest("button.ch-del"); if(!b) return;
-    const name=CUSTOM_SERVICES[+b.dataset.i];
-    CUSTOM_SERVICES.splice(+b.dataset.i,1); syncServices();
+    addChannel(name,zones,$("newChanOn").checked);
+    $("newChanName").value="";
     renderChannels(); renderAll(); markDirty();
-    toast(L("已移除渠道:"+name+"(費率表列保留)","Channel removed: "+name+" (rate rows kept)"));
+    toast(L("已新增渠道:"+name,"Channel added: "+name));
+  });
+  $("bDelChan").addEventListener("click",()=>{
+    const picked=[...document.querySelectorAll("#chList .ch-pick:checked")].map(x=>+x.dataset.i);
+    if(!picked.length){
+      showError(L("沒有勾選","Nothing selected"),
+        L("請先勾選要刪除的渠道。","Tick the channels you want to delete first."));
+      return;
+    }
+    for(const i of picked.sort((a,b)=>b-a)){
+      const n=CUSTOM_SERVICES[i];
+      CUSTOM_SERVICES.splice(i,1);
+      delete CUSTOM_SERVICE_ZONES[n]; delete CUSTOM_SERVICE_ON[n];
+    }
+    syncServices(); renderChannels(); renderAll(); markDirty();
+    toast(L("已刪除 "+picked.length+" 個渠道(費率表列保留)",
+            "Deleted "+picked.length+" channel(s); their rate rows stay"));
+  });
+  $("chList").addEventListener("change",e=>{
+    const el=e.target;
+    if(!el.classList.contains("ch-on")) return;
+    const n=CUSTOM_SERVICES[+el.dataset.i];
+    CUSTOM_SERVICE_ON[n]=el.checked;
+    syncServices(); renderChannels(); renderAll(); markDirty();
+  });
+  $("chanSearch").addEventListener("input",renderChannels);
+  $("bChRestore").addEventListener("click",()=>{
+    let added=0;
+    for(const[n,zs] of DEFAULT_CHANNELS){
+      if(CUSTOM_SERVICES.some(x=>x.toLowerCase()===n.toLowerCase())) continue;
+      addChannel(n,zs,true); added++;
+    }
+    renderChannels(); renderAll(); markDirty();
+    toast(added?L("已補回 "+added+" 個預設渠道","Restored "+added+" preset channel(s)")
+               :L("預設渠道都在了","All presets are already here"));
+  });
+  /* 從帳單掃描 Zone:照 UPS 的做法,用真實帳單把每個渠道的 Zone 補齊 */
+  $("bScanZone").addEventListener("click",()=>{
+    if(!BILLING){
+      showError(L("尚未選帳單","No invoice loaded"),
+        L("請先到 Import Files 選一份帳單,再掃描 Zone。",
+          "Load an invoice on the Import Files page first."));
+      return;
+    }
+    const found=new Map();     /* 服務 → Set(zone) */
+    for(const row of BILLING.rows){
+      const svc=normalizeService(coalesce(row,["Service Type","Service"],"")
+        ||coalesce(row,["Ground Service"],""));
+      const z=Math.trunc(toFloat(coalesce(row,["Zone Code","Zone"],0),0));
+      if(!svc||!(z>0)) continue;
+      if(!found.has(svc)) found.set(svc,new Set());
+      found.get(svc).add(z);
+    }
+    if(!found.size){
+      showModal(L("沒掃到 Zone","No zones found"),
+        L("這份帳單裡找不到 Service / Zone Code 欄位的組合。",
+          "No service + Zone Code pairs were found in this invoice."));
+      return;
+    }
+    const lines=[]; let touched=0;
+    for(const[svc,set] of found){
+      const zs=[...set].sort((a,b)=>a-b);
+      if(!CUSTOM_SERVICES.includes(svc)&&!BASE_SERVICES.includes(svc)){
+        addChannel(svc,zs,true); touched++;
+        lines.push("＋ "+svc+" → Zone "+zoneLabel(zs)+L("(新渠道)"," (new channel)"));
+        continue;
+      }
+      if(BASE_SERVICES.includes(svc)){
+        lines.push("· "+svc+" → Zone "+zoneLabel(zs)+L("(內建渠道)"," (built-in)"));
+        continue;
+      }
+      const cur=new Set(CUSTOM_SERVICE_ZONES[svc]||[]);
+      const add=zs.filter(z=>!cur.has(z));
+      if(add.length){
+        const next=[...new Set([...cur,...zs])].sort((a,b)=>a-b);
+        CUSTOM_SERVICE_ZONES[svc]=next;
+        syncServices(); seedServiceRows(svc,next); touched++;
+        lines.push("＋ "+svc+" → "+L("補上 Zone ","added zones ")+zoneLabel(add));
+      }else lines.push("· "+svc+" → Zone "+zoneLabel(zs)+L("(已涵蓋)"," (already covered)"));
+    }
+    renderChannels(); renderAll(); if(touched) markDirty();
+    showModal(L("掃描結果","Zone scan"),lines.join("\n"));
   });
 }
 
