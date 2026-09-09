@@ -1,6 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="#4d148c"/>
-  <text x="14" y="45" font-family="Segoe UI,Arial,sans-serif" font-size="34"
-        font-weight="700" fill="#ffffff">F</text>
-  <path d="M34 22 L50 32 L34 42 Z" fill="#ff6200"/>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cfe4f4"/><stop offset="1" stop-color="#f2ece1"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="62" height="62" rx="15" fill="url(#sky)"/>
+
+  <!-- 車頂顆粒 -->
+  <g fill="#ded7c8"><rect x="11" y="15" width="6" height="3" rx="1"/><rect x="20" y="15" width="6" height="3" rx="1"/>
+     <rect x="29" y="15" width="6" height="3" rx="1"/><rect x="41" y="21" width="5" height="3" rx="1"/></g>
+  <g fill="#fbf8f1"><ellipse cx="14" cy="15" rx="3" ry="1.5"/><ellipse cx="23" cy="15" rx="3" ry="1.5"/>
+     <ellipse cx="32" cy="15" rx="3" ry="1.5"/><ellipse cx="43.5" cy="21" rx="2.5" ry="1.3"/></g>
+
+  <!-- 車廂 -->
+  <rect x="8" y="17" width="30" height="24" fill="#f4f0e6" stroke="#cfc7b6" stroke-width="1.4"/>
+  <line x1="8" y1="25" x2="38" y2="25" stroke="#cfc7b6" stroke-width=".9"/>
+  <line x1="23" y1="17" x2="23" y2="36" stroke="#cfc7b6" stroke-width=".9"/>
+
+  <!-- 車頭 -->
+  <rect x="38" y="23" width="11" height="8" fill="#f4f0e6" stroke="#cfc7b6" stroke-width="1.4"/>
+  <path d="M39.5 24.5h6l3.2 4v2.2h-9.2z" fill="#a8cbe2" stroke="#7ba4bf" stroke-width="1.1"/>
+  <rect x="45" y="31" width="9" height="8" fill="#5b2a91" stroke="#43206c" stroke-width="1.2"/>
+  <rect x="52.5" y="33" width="2.4" height="3" rx=".6" fill="#f08c2e"/>
+
+  <!-- 腰線 + 底盤 -->
+  <rect x="8" y="36" width="30" height="5" fill="#5b2a91"/>
+  <rect x="7" y="41" width="47" height="3" rx="1" fill="#4b4550"/>
+  <rect x="6" y="34" width="3" height="4" rx=".8" fill="#f08c2e"/>
+
+  <!-- 車身標誌:紫圓弧 + 橘三角(reprice) -->
+  <path d="M22.5 22.5a6.5 6.5 0 1 0 6.4 7.7" fill="none" stroke="#5b2a91" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M27.5 20.5l5.4 3.1-5.4 3.1z" fill="#f0781f"/>
+
+  <!-- 輪子 -->
+  <g><circle cx="17" cy="44" r="6" fill="#2b2830" stroke="#17141c" stroke-width="1.2"/>
+     <circle cx="17" cy="44" r="2.6" fill="#b9b4c0"/></g>
+  <g><circle cx="45" cy="44" r="6" fill="#2b2830" stroke="#17141c" stroke-width="1.2"/>
+     <circle cx="45" cy="44" r="2.6" fill="#b9b4c0"/></g>
 </svg>

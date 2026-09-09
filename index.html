@@ -332,21 +332,21 @@ td.neg{color:var(--neg)}
 .empty{color:var(--muted);font-style:italic;text-align:center;padding:24px 10px;font-size:13px}
 
 /* ---- Zone power-up 卡片 ---- */
-.zonecols{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
-.zonecol{position:relative;background:var(--panel);border:1px solid var(--line);
-  border-radius:9px;padding:7px 8px 8px;text-align:center;
-  transition:border-color .12s,box-shadow .12s}
-.zonecol .zt{font:700 10px var(--round);letter-spacing:.05em;text-indent:.05em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:3px}
-.zonecol input.cell{width:100%;height:auto;border:none;
-  border-bottom:1.5px solid color-mix(in srgb,var(--accent) 28%,var(--line));border-radius:0;background:transparent;
-  text-align:center;font:700 14px "JetBrains Mono",Consolas,monospace;
-  color:var(--head);padding:2px 2px}
-.zonecol input.cell:focus{outline:none;border-bottom-color:var(--tab);
-  box-shadow:0 1.5px 0 var(--tab)}
-.zonecol:hover{border-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
-.zonecol:has(input:focus){
-  border-color:color-mix(in srgb,var(--tab) 55%,var(--line));box-shadow:var(--elev-1)}
+/* 附加費:Zone 直欄 + 固定金額網格(照 UPS Surcharge Rates) */
+.zonecols{display:grid;grid-template-columns:repeat(auto-fit,minmax(292px,1fr));gap:12px}
+.zonecol{padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;background:var(--panel)}
+.zonecol .zt{font-size:12.5px;font-weight:700;color:var(--accent);margin-bottom:6px;line-height:1.3}
+.zonecol .zsel{font-size:11.5px;color:var(--muted);margin-bottom:6px}
+.zrow{display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:4px}
+.zrow .zl{flex:1;color:var(--muted)}
+.zonecol .zrow input.cell{width:88px;flex:none;height:26px}
+.zonecol .zhead{margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.zonecol .zh{width:88px;flex:none;text-align:center;font-size:11px;
+  font-weight:700;color:var(--accent);white-space:nowrap}
+.flatgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px 14px}
+.flatitem{display:flex;align-items:center;gap:6px;font-size:12px}
+.flatitem .fl{flex:1;color:var(--text);line-height:1.25}
+.flatitem input.cell{width:86px;height:26px}
 .tplgrp{display:inline-flex;gap:0;align-items:center;border:none;padding:0}
 .tplgrp>button.act{border-radius:10px 0 0 10px}
 .tplgrp>button.act+button.act{border-radius:0 10px 10px 0;margin-left:-1px}
@@ -663,6 +663,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   <button role="tab" aria-selected="false" data-p="rules"    class="display">📏 <span data-i18n="tab.rules">Size Rules</span></button>
   <button role="tab" aria-selected="false" data-p="base"     class="display">🚚 <span data-i18n="tab.base">Channels</span></button>
   <button role="tab" aria-selected="false" data-p="demand"   class="display">⚡ <span data-i18n="tab.demand">Demand Surcharge</span></button>
+  <button role="tab" aria-selected="false" data-p="hist"     class="display">🧾 <span data-i18n="tab.hist">Invoice History</span></button>
   <button role="tab" aria-selected="false" data-p="dash"     class="display">📊 <span data-i18n="tab.dash">Dashboard</span></button>
   <button role="tab" aria-selected="false" data-p="settings" class="display">⚙️ <span data-i18n="tab.settings">Settings</span></button>
 </div>
@@ -860,50 +861,50 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 
 <!-- ==================== 附加費(含燃油,照 UPS 版式) ==================== -->
 <section class="page" id="p-sur">
-  <div class="lf sketch fuelBar">
+  <div class="lf sketch">
     <h3 class="display"><span class="em">⛽</span><span data-i18n="hd.fuelcard">Fuel</span></h3>
-    <dl class="kv" id="fuelKV"></dl>
-    <div class="row" style="margin-left:auto">
-      <button class="act sm" id="bSetFuel" data-i18n="btn.setfuel">Set Fuel Percentage</button>
-      <a class="act alt sm" id="bFuelLookup" href="https://www.fedex.com/en-us/shipping/fuel-surcharge.html"
+    <div class="row">
+      <label class="inlab" style="margin-left:0" data-i18n="lb.fuelsur">Fuel Surcharge</label>
+      <button class="act" id="bSetFuel" data-i18n="btn.setfuel">Set Fuel Percentage</button>
+      <a class="act alt" id="bFuelLookup" href="https://www.fedex.com/en-us/shipping/fuel-surcharge.html"
          target="_blank" rel="noopener" data-i18n="btn.fuellookup">Look Up FedEx Fuel Percentage</a>
     </div>
+    <dl class="kv" id="fuelKV" style="margin-top:10px"></dl>
   </div>
 
   <div class="lf sketch">
-    <h3 class="display"><span class="em">➕</span><span data-i18n="hd.csur">Custom Surcharges</span></h3>
-    <div class="tablewrap" style="max-height:230px">
-      <table id="tCsur"><thead></thead><tbody></tbody></table>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <button class="act sm" id="bCsurAdd" data-i18n="btn.csuradd">Custom Surcharges…</button>
-    </div>
-    <p class="note" data-i18n="hint.csur">費目名稱與帳單 Charge Description 比對(不分大小寫、包含即符合)。費率 0 = 先登記、金額照原帳單轉嫁;填費率後改收自訂費率,並在結果 Excel 獨立一欄。</p>
-  </div>
-  <div class="lf sketch">
     <h3 class="display"><span class="em">💵</span><span data-i18n="hd.zonestudio">Surcharge Rates</span></h3>
-    <div class="row" style="margin-bottom:8px">
+    <div class="row" style="margin-bottom:10px">
       <label class="inlab" style="margin-left:0" data-i18n="th.chan">Channel</label>
       <select id="accChan" style="min-width:220px"></select>
       <label class="inlab" data-i18n="lb.search">Search</label>
-      <input id="accSearch" class="cell left" style="width:170px">
-      <span style="flex:1 1 auto"></span>
+      <input id="accSearch" class="cell left" style="width:150px">
+      <span id="accCount" style="color:var(--muted);font-size:12.5px"></span>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <button class="act" id="bCsurAdd" data-i18n="btn.csuradd">Custom Surcharges…</button>
+      <button class="act ghost" id="bRemoveTicked" data-i18n="btn.removeticked">Remove Ticked</button>
       <span class="tplgrp">
-        <button class="act ghost sm" id="bAccExp" data-i18n="btn.exportacc">Export Accessorials Template</button>
-        <button class="act ghost sm" id="bAccImp" data-i18n="btn.importacc">Import Accessorials Template</button>
+        <button class="act ghost" id="bAccExp" data-i18n="btn.exportacc">Export Accessorials Template</button>
+        <button class="act ghost" id="bAccImp" data-i18n="btn.importacc">Import Accessorials Template</button>
       </span>
       <input type="file" id="fAccImp" accept=".xlsx,.xls">
     </div>
-    <div class="tablewrap" style="max-height:48vh">
-      <table id="tAcc"><thead></thead><tbody></tbody></table>
+    <div class="row" style="margin-bottom:12px">
+      <label class="inlab" style="margin-left:0" data-i18n="lb.cfgnow">Configuration in use</label>
+      <span id="cfgNowAcc" class="savenote"></span>
+      <span class="hint" style="margin:0" data-i18n="hint.cfgwhere">在 Settings 分頁載入或替換整份設定。</span>
     </div>
-    <p class="hint" data-i18n="hint.acc">一列一個附加費項目 × 每個 Zone,直接在格子裡改。空白視為 0。Oversize 成立時不收 AHS;AHS 同時命中多種只收最高。</p>
 
+    <div id="accChanName" class="subhd"></div>
+    <div id="accZoneCols" class="zonecols"></div>
     <div class="subhd" data-i18n="hd.flat">Flat amounts</div>
-    <div class="tablewrap" style="max-height:34vh">
-      <table id="tFlat"><thead></thead><tbody></tbody></table>
+    <div id="accFlat" class="flatgrid"></div>
+
+    <div class="subhd" data-i18n="hd.customlist">Custom Surcharges</div>
+    <div class="tablewrap" style="max-height:26vh">
+      <table id="tCsur"><thead></thead><tbody></tbody></table>
     </div>
-    <p class="hint" data-i18n="hint.flat">不分 Zone 的固定費:住宅費依渠道、簽收費依簽收類型。</p>
   </div>
 </section>
 
@@ -954,6 +955,43 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
             <input type="file" id="fDemImp-o" accept=".xlsx,.xls">
           </div>
         </div>
+  </div>
+</section>
+
+<!-- ==================== Invoice History ==================== -->
+<section class="page" id="p-hist">
+  <div class="lf sketch">
+    <div class="row" style="margin-bottom:8px">
+      <button class="act" id="bHist" data-i18n="btn.imphist">Import Past Invoices</button>
+      <button class="act ghost" id="bHistRefresh" data-i18n="btn.refresh">Refresh</button>
+      <button class="act ghost" id="bHistStored" data-i18n="btn.stored">Stored Invoices</button>
+      <input type="file" id="fHist" accept=".csv,.txt,.xlsx,.xls" multiple>
+      <span id="vHist" style="color:var(--pos);font-size:12.5px"></span>
+    </div>
+    <p class="hint" id="histStats" style="margin:0 0 12px"></p>
+
+    <div class="subhd" data-i18n="hd.findtrk">Find a Tracking</div>
+    <div class="row sketch-soft" style="padding:11px 13px;margin-bottom:12px">
+      <label class="inlab" style="margin-left:0" data-i18n="th.trk">Tracking</label>
+      <input id="trkSearch" class="cell left" style="width:280px">
+      <button class="act" id="bTrkSearch" data-i18n="btn.search">Search</button>
+      <button class="act ghost" id="bTrkBreak" data-i18n="btn.breakdown">Rating Breakdown</button>
+    </div>
+    <div id="histNote"></div>
+
+    <div class="tablewrap" style="max-height:56vh"><table id="tHist"><thead><tr>
+      <th data-i18n="th.invno">Invoice Number</th>
+      <th data-i18n="th.invdt">Invoice Date</th>
+      <th data-i18n="th.trandt">Transaction Date</th>
+      <th data-i18n="th.trk">Tracking</th>
+      <th data-i18n="th.svc2">Service</th>
+      <th data-i18n="th.desc2">Charge Description</th>
+      <th data-i18n="th.zones">Zone</th>
+      <th class="num" data-i18n="th.entwt">Entered Weight</th>
+      <th class="num" data-i18n="th.bilwt">Billed Weight</th>
+      <th data-i18n="th.pkgdim">Package Dimensions</th>
+      <th class="num" data-i18n="th.net">Net Amount</th>
+    </tr></thead><tbody></tbody></table></div>
   </div>
 </section>
 
@@ -1170,6 +1208,23 @@ const I18N={
  "tab.demand":["Demand Surcharge","Demand Surcharge"],
  "tab.settings":["Settings","Settings"],
  "tab.dash":["Dashboard","Dashboard"],
+ "tab.hist":["Invoice History","Invoice History"],
+ "btn.imphist":["Import Past Invoices","Import Past Invoices"],
+ "btn.refresh":["Refresh","Refresh"],
+ "btn.stored":["Stored Invoices","Stored Invoices"],
+ "btn.search":["Search","Search"],
+ "btn.breakdown":["Rating Breakdown","Rating Breakdown"],
+ "hd.findtrk":["Find a Tracking","Find a Tracking"],
+ "th.trk":["Tracking","Tracking"],
+ "th.invno":["Invoice Number","Invoice Number"],
+ "th.invdt":["Invoice Date","Invoice Date"],
+ "th.trandt":["Transaction Date","Transaction Date"],
+ "th.desc2":["Charge Description","Charge Description"],
+ "th.svc2":["Service","Service"],
+ "th.entwt":["Entered Weight","Entered Weight"],
+ "th.bilwt":["Billed Weight","Billed Weight"],
+ "th.pkgdim":["Package Dimensions","Package Dimensions"],
+ "th.net":["Net Amount","Net Amount"],
  "hd.demand":["Demand Surcharge","Demand Surcharge"],
  "tab.run":["重新計價","Reprice & Review"],
  "hd.files":["Import Files","Import Files"],
@@ -1313,12 +1368,17 @@ const I18N={
    "1–150 lb by zone. Edit cells directly, or export the template, fill it in Excel, and import it back (import replaces only the services present in the file)."],
  "hd.zonestudio":["Surcharge Rates","Surcharge Rates"],
  "hd.flat":["Flat amounts","Flat amounts"],
+ "hd.customlist":["Custom Surcharges","Custom Surcharges"],
+ "lb.fuelsur":["Fuel Surcharge","Fuel Surcharge"],
+ "lb.cfgnow":["Configuration in use","Configuration in use"],
+ "btn.removeticked":["Remove Ticked","Remove Ticked"],
+ "hint.cfgwhere":["在 Settings 分頁載入或替換整份設定。","Load or replace it on the Settings tab."],
  "btn.exportacc":["Export Accessorials Template","Export Accessorials Template"],
  "btn.importacc":["Import Accessorials Template","Import Accessorials Template"],
- "hint.acc":["一列一個附加費項目 × 每個 Zone,直接在格子裡改。空白視為 0。Oversize 成立時不收 AHS;AHS 同時命中多種只收最高。",
-   "One row per surcharge × zone — edit in place. Blank counts as 0. Oversize suppresses AHS; when several AHS types hit, only the highest is charged."],
- "hint.flat":["不分 Zone 的固定費:住宅費依渠道、簽收費依簽收類型。",
-   "Zone-independent flat fees: residential by channel, signature by signature type."],
+ "hint.acc":["依 Zone 收的附加費:一列一項 × 每個 Zone,直接在格子裡改,空白視為 0。DAS 是按件固定費,在下方 Flat amounts 設定。Oversize 成立時不收 AHS;AHS 同時命中多種只收最高。",
+   "Zone-based surcharges: one row each × every zone, edit in place, blank counts as 0. DAS is a per-package flat fee — set it under Flat amounts below. Oversize suppresses AHS; when several AHS types hit, only the highest is charged."],
+ "hint.flat":["不分 Zone 的按件固定費:DAS 依類型(套用上方選的渠道)、住宅費依渠道、簽收費依簽收類型。",
+   "Per-package flat fees, no zone split: DAS by type (for the channel selected above), residential by channel, signature by signature type."],
  "st.ahs":["AHS","AHS"],"st.das":["DAS","DAS"],"st.os":["Oversize","Oversize"],
  "st.resi":["Residential","Residential"],"st.sig":["Signature","Signature"],
  "st.dem":["Demand 期間費","Demand periods"],
@@ -3226,13 +3286,29 @@ function wireBaseTable(){
 /* =====================================================================
    Surcharge Rates —— 照 UPS:一張大表,一列一個附加費 × 每個 Zone
    ===================================================================== */
+/* 依 Zone 收的附加費(AHS、Oversize);DAS 是按件固定費,見 Flat amounts */
 const ACC_ROWS=()=>{
   const out=[];
   for(const t of AHS_TYPES) out.push({tbl:"ahs",label:"AHS",type:t});
-  for(const t of DAS_TYPES) out.push({tbl:"das",label:"DAS",type:t});
   out.push({tbl:"oversize",label:"Oversize",type:""});
   return out;
 };
+/* DAS 固定費:存回 das 表時所有 Zone 寫同一個數字,
+   設定檔格式與桌面版 das_rate_table 維持一致 */
+function dasFlat(svc,type){
+  for(const r of TBL.das.rows)
+    if(String(r[0]??"").trim()===svc&&String(r[1]??"").trim()===type) return String(r[3]??"0");
+  return "0";
+}
+function setDasFlat(svc,type,val){
+  const zs=(CUSTOM_SERVICE_ZONES[svc]||ZONES);
+  const seen=new Set();
+  for(const r of TBL.das.rows)
+    if(String(r[0]??"").trim()===svc&&String(r[1]??"").trim()===type){
+      r[3]=val; seen.add(Math.trunc(toFloat(r[2],0)));
+    }
+  for(const z of zs) if(!seen.has(z)) TBL.das.rows.push([svc,type,String(z),val]);
+}
 function accFee(tbl,svc,type,zone){
   for(const r of TBL[tbl].rows){
     if(String(r[0]??"").trim()!==svc) continue;
@@ -3251,7 +3327,7 @@ function setAccFee(tbl,svc,type,zone,val){
   rows.push(tbl==="oversize"?[svc,String(zone),val]:[svc,type,String(zone),val]);
 }
 function renderAcc(){
-  const t=$("tAcc"); if(!t) return;
+  const host=$("accZoneCols"); if(!host) return;
   const sel=$("accChan");
   if(sel){
     const cur=sel.value;
@@ -3259,41 +3335,60 @@ function renderAcc(){
   }
   const svc=sel?sel.value:SERVICES[0];
   const q=($("accSearch")?$("accSearch").value:"").trim().toLowerCase();
-  t.querySelector("thead").innerHTML="<tr><th>"+L("附加費","Surcharge")+"</th><th>"+L("類型","Type")+"</th>"
-    +ZONES.map(z=>'<th class="num">Zone '+z+"</th>").join("")+"</tr>";
-  const rows=ACC_ROWS().filter(r=>!q||(r.label+" "+r.type).toLowerCase().includes(q));
-  t.querySelector("tbody").innerHTML=rows.length?rows.map(r=>
-    "<tr><td>"+esc(r.label)+"</td><td>"+esc(r.type||"—")+"</td>"
-    +ZONES.map(z=>{
-      const v=accFee(r.tbl,svc,r.type,z);
-      return '<td class="num"><input class="cell num acc" data-tbl="'+r.tbl+'" data-type="'+esc(r.type)
-        +'" data-zone="'+z+'" value="'+esc(toFloat(v,0)>0?v:"")+'"></td>';
-    }).join("")+"</tr>").join("")
-    :'<tr><td class="empty" colspan="'+(2+ZONES.length)+'">'+L("(沒有符合的附加費)","(no surcharge matches)")+"</td></tr>";
+  const zs=(CUSTOM_SERVICE_ZONES[svc]||ZONES);
+  $("accChanName").textContent=svc;
+  const cards=ACC_ROWS().filter(r=>{
+    const name=(r.label+" "+r.type).trim();
+    return !q||name.toLowerCase().includes(q);
+  });
+  host.innerHTML=(zs.length&&cards.length)?cards.map(r=>{
+    const name=(r.type?r.label+" · "+r.type:r.label);
+    return '<div class="zonecol">'
+      +'<div class="zt">'+esc(name)+"</div>"
+      +'<div class="zsel"><label class="chk"><input type="checkbox" class="accc" '
+        +'data-tbl="'+r.tbl+'" data-type="'+esc(r.type)+'"> '+L("勾選","Select")+"</label></div>"
+      +'<div class="zrow zhead"><span class="zl"></span><span class="zh">'+L("費率","Amount")+"</span></div>"
+      +zs.map(z=>'<div class="zrow"><span class="zl">Zone '+z+"</span>"
+        +'<input class="cell num acc" data-tbl="'+r.tbl+'" data-type="'+esc(r.type)
+        +'" data-zone="'+z+'" value="'+esc(toFloat(accFee(r.tbl,svc,r.type,z),0)>0?accFee(r.tbl,svc,r.type,z):"")
+        +'"></div>').join("")
+      +"</div>";
+  }).join("")
+    :'<div class="empty">'+(zs.length?L("(沒有符合的附加費)","(no surcharge matches)")
+      :L("這個渠道還沒設定 Zone,請到 Channels 分頁補上。",
+         "This channel has no zones set — add them on the Channels tab."))+"</div>";
+  const c=$("accCount");
+  if(c) c.textContent=L(cards.length+" 項 · Zone "+zs.length+" 個",
+                        cards.length+" surcharges · "+zs.length+" zones");
+  const cfg=$("cfgNowAcc");
+  if(cfg) cfg.textContent=L("瀏覽器自動儲存","auto-saved in this browser");
 }
 function renderFlat(){
-  const t=$("tFlat"); if(!t) return;
-  t.querySelector("thead").innerHTML="<tr><th>"+L("項目","Item")+"</th><th>"+L("對象","Applies to")
-    +'</th><th class="num">'+L("費用","Fee")+"</th></tr>";
-  const out=[];
-  for(const svc of SERVICES){
-    const row=TBL.residential.rows.find(r=>String(r[0])===svc);
-    out.push("<tr><td>Residential</td><td>"+esc(svc)+'</td><td class="num">'
-      +'<input class="cell num flat" data-tbl="residential" data-key="'+esc(svc)+'" value="'
-      +esc(row?String(row[1]??"0"):"0")+'"></td></tr>');
+  const host=$("accFlat"); if(!host) return;
+  const svc=$("accChan")?$("accChan").value:SERVICES[0];
+  const q=($("accSearch")?$("accSearch").value:"").trim().toLowerCase();
+  const items=[];
+  for(const t of DAS_TYPES) items.push({name:"DAS · "+t,tbl:"das",key:t,val:dasFlat(svc,t)});
+  const resi=TBL.residential.rows.find(r=>String(r[0])===svc);
+  items.push({name:"Residential",tbl:"residential",key:svc,val:resi?String(resi[1]??"0"):"0"});
+  for(const t of SIGNATURE_TYPES){
+    const row=TBL.signature.rows.find(r=>String(r[0])===t);
+    items.push({name:"Signature · "+t,tbl:"signature",key:t,val:row?String(row[1]??"0"):"0"});
   }
-  for(const t2 of SIGNATURE_TYPES){
-    const row=TBL.signature.rows.find(r=>String(r[0])===t2);
-    out.push("<tr><td>Signature</td><td>"+esc(t2)+'</td><td class="num">'
-      +'<input class="cell num flat" data-tbl="signature" data-key="'+esc(t2)+'" value="'
-      +esc(row?String(row[1]??"0"):"0")+'"></td></tr>');
-  }
-  t.querySelector("tbody").innerHTML=out.join("");
+  const shown=items.filter(x=>!q||x.name.toLowerCase().includes(q));
+  host.innerHTML=shown.length?shown.map(x=>
+    '<div class="flatitem"><input type="checkbox" class="accc flatc" data-tbl="'+x.tbl
+      +'" data-key="'+esc(x.key)+'">'
+    +'<span class="fl">'+esc(x.name)+"</span><span>$</span>"
+    +'<input class="cell num flat" data-tbl="'+x.tbl+'" data-key="'+esc(x.key)
+      +'" value="'+esc(toFloat(x.val,0)>0?x.val:"")+'"></div>').join("")
+    :'<div class="empty">—</div>';
 }
 function wireAcc(){
-  $("accChan").addEventListener("change",renderAcc);
-  $("accSearch").addEventListener("input",renderAcc);
-  $("tAcc").addEventListener("change",e=>{
+  const redraw=()=>{ renderAcc(); renderFlat(); };
+  $("accChan").addEventListener("change",redraw);
+  $("accSearch").addEventListener("input",redraw);
+  $("accZoneCols").addEventListener("change",e=>{
     const el=e.target; if(!el.classList.contains("acc")) return;
     const raw=String(el.value).trim();
     let v;
@@ -3302,25 +3397,58 @@ function wireAcc(){
     setAccFee(el.dataset.tbl,$("accChan").value,el.dataset.type,+el.dataset.zone,v);
     markDirty(); renderAcc();
   });
-  $("tFlat").addEventListener("change",e=>{
+  $("accFlat").addEventListener("change",e=>{
     const el=e.target; if(!el.classList.contains("flat")) return;
     const raw=String(el.value).trim();
     let v;
     try{ v=String(r2(normNum(raw===""?"0":raw,0))); }
     catch(err){ renderFlat(); return; }
     const tbl=el.dataset.tbl, key=el.dataset.key;
-    const row=TBL[tbl].rows.find(r=>String(r[0])===key);
-    if(row) row[1]=v; else TBL[tbl].rows.push([key,v]);
+    if(tbl==="das") setDasFlat($("accChan").value,key,v);
+    else{
+      const row=TBL[tbl].rows.find(r=>String(r[0])===key);
+      if(row) row[1]=v; else TBL[tbl].rows.push([key,v]);
+    }
     markDirty(); renderFlat();
   });
-  /* 一份範本涵蓋 AHS / DAS / Oversize(照 UPS 的 Accessorials Template) */
+  /* Remove Ticked:把勾選的附加費在這個渠道歸零(列保留,方便日後再填) */
+  $("bRemoveTicked").addEventListener("click",async()=>{
+    const zone=[...document.querySelectorAll("#accZoneCols .accc:checked")];
+    const flat=[...document.querySelectorAll("#accFlat .flatc:checked")];
+    if(!zone.length&&!flat.length){
+      showError(L("沒有勾選","Nothing ticked"),
+        L("請先勾選要清除費率的附加費。","Tick the surcharges you want cleared first."));
+      return;
+    }
+    const svc=$("accChan").value;
+    const ok=await showModal(L("清除費率","Remove ticked"),
+      L("把勾選的 "+(zone.length+flat.length)+" 項在「"+svc+"」的費率歸零?",
+        "Zero the rates of the "+(zone.length+flat.length)+" ticked surcharge(s) for "+svc+"?"),
+      {cancel:true,okText:L("清除","Clear")});
+    if(!ok) return;
+    for(const el of zone)
+      for(const z of (CUSTOM_SERVICE_ZONES[svc]||ZONES))
+        setAccFee(el.dataset.tbl,svc,el.dataset.type,z,"0");
+    for(const el of flat){
+      const tbl=el.dataset.tbl, key=el.dataset.key;
+      if(tbl==="das") setDasFlat(svc,key,"0");
+      else{
+        const row=TBL[tbl].rows.find(r=>String(r[0])===key);
+        if(row) row[1]="0";
+      }
+    }
+    redraw(); markDirty();
+    toast(L("已清除勾選的費率","Ticked rates cleared"));
+  });
   $("bAccExp").addEventListener("click",async()=>{
     const cols=["Service","Surcharge","Type","Zone","Fee"];
     const rows=[];
-    for(const svc of SERVICES)
+    for(const svc of SERVICES){
       for(const r of ACC_ROWS())
-        for(const z of ZONES)
+        for(const z of (CUSTOM_SERVICE_ZONES[svc]||ZONES))
           rows.push([svc,r.label,r.type,String(z),accFee(r.tbl,svc,r.type,z)]);
+      for(const t of DAS_TYPES) rows.push([svc,"DAS",t,"FLAT",dasFlat(svc,t)]);
+    }
     await exportTemplate(cols,rows,"Accessorials_template.xlsx");
     toast(L("附加費範本已匯出","Accessorials template exported"));
   });
@@ -3333,20 +3461,218 @@ function wireAcc(){
       checkTemplateColumns("Accessorials",columns,["Service","Surcharge","Type","Zone","Fee"]);
       const kind={AHS:"ahs",DAS:"das",Oversize:"oversize"};
       let n=0;
-      rows.forEach((row,i)=>{
+      rows.forEach(row=>{
         const svc=String(row["Service"]??"").trim();
-        const tbl=kind[String(row["Surcharge"]??"").trim()];
+        const label=String(row["Surcharge"]??"").trim();
+        const tbl=kind[label];
         const type=String(row["Type"]??"").trim();
+        if(!svc||!tbl) return;
+        if(label==="DAS"){ setDasFlat(svc,type,String(r2(normNum(row["Fee"],0)))); n++; return; }
         const zone=Math.trunc(toFloat(row["Zone"],0));
-        if(!svc||!tbl||!(zone>0)) return;
+        if(!(zone>0)) return;
         setAccFee(tbl,svc,type,zone,String(r2(normNum(row["Fee"],0))));
         n++;
       });
-      renderAcc(); markDirty();
+      redraw(); markDirty();
       toast(L("已匯入 "+n+" 列附加費","Imported "+n+" surcharge row(s)"));
     }catch(err){
       showError(L("範本錯誤","Template error"),err.message||String(err));
     }
+  });
+}
+
+/* =====================================================================
+   Invoice History —— 帳單存在瀏覽器 IndexedDB,可查追蹤號與 Reprice 明細
+   ===================================================================== */
+const HIST_DB="fedexRepriceHist", HIST_STORE="invoices";
+let HIST_ROWS=[];      /* 目前載入記憶體的歷史列 */
+function histOpen(){
+  return new Promise((res,rej)=>{
+    const rq=indexedDB.open(HIST_DB,1);
+    rq.onupgradeneeded=()=>{
+      const db=rq.result;
+      if(!db.objectStoreNames.contains(HIST_STORE))
+        db.createObjectStore(HIST_STORE,{keyPath:"name"});
+    };
+    rq.onsuccess=()=>res(rq.result);
+    rq.onerror=()=>rej(rq.error);
+  });
+}
+function histPut(rec){
+  return histOpen().then(db=>new Promise((res,rej)=>{
+    const tx=db.transaction(HIST_STORE,"readwrite");
+    tx.objectStore(HIST_STORE).put(rec);
+    tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error);
+  }));
+}
+function histAll(){
+  return histOpen().then(db=>new Promise((res,rej)=>{
+    const tx=db.transaction(HIST_STORE,"readonly");
+    const rq=tx.objectStore(HIST_STORE).getAll();
+    rq.onsuccess=()=>res(rq.result||[]); rq.onerror=()=>rej(rq.error);
+  }));
+}
+function histDel(name){
+  return histOpen().then(db=>new Promise((res,rej)=>{
+    const tx=db.transaction(HIST_STORE,"readwrite");
+    tx.objectStore(HIST_STORE).delete(name);
+    tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error);
+  }));
+}
+/* 一列歷史 = 一筆費用(帳單的 Charge Description × Amount 成對欄位攤開) */
+function histFlatten(columns,rows,fileName){
+  const prev=CUR_COLS; CUR_COLS=columns.map(c=>String(c).trim());
+  const out=[];
+  for(const row of rows){
+    const inv=String(coalesce(row,["Invoice Number","Invoice No","Invoice #"],"")??"");
+    const invDate=String(coalesce(row,["Invoice Date"],"")??"");
+    const tranDate=String(coalesce(row,["Shipment Date","Transaction Date","Tendered Date"],"")??"");
+    const trk=String(coalesce(row,["Express or Ground Tracking ID","CrossRefTrackingID","Tracking Number"],"")??"");
+    const svc=String(coalesce(row,["Service Type","Ground Service","Service"],"")??"");
+    const zone=String(coalesce(row,["Zone Code","Zone"],"")??"");
+    const entWt=String(coalesce(row,["Actual Weight Amount","Actual Weight"],"")??"");
+    const bilWt=String(coalesce(row,["Rated Weight Amount","Billed Weight"],"")??"");
+    const dims=[coalesce(row,["Dim Length","Length"],""),coalesce(row,["Dim Width","Width"],""),
+                coalesce(row,["Dim Height","Height"],"")].map(x=>String(x??"").trim()).filter(Boolean);
+    const dim=dims.length===3?dims.join("×"):"";
+    const base={inv,invDate,tranDate,trk,svc,zone,entWt,bilWt,dim,file:fileName};
+    const pairs=iterChargePairs(row);
+    const tc=toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
+    if(tc) out.push({...base,desc:"Transportation Charge",amt:r2(tc)});
+    for(const[desc,amt] of pairs) out.push({...base,desc:String(desc),amt:r2(amt)});
+    if(!pairs.length&&!tc)
+      out.push({...base,desc:"Net Charge",amt:r2(toFloat(coalesce(row,["Net Charge Amount"],0),0))});
+  }
+  CUR_COLS=prev;
+  return out;
+}
+function histStats(recs){
+  const invs=new Set(), trks=new Set();
+  let rows=0, lo=null, hi=null;
+  for(const r of recs){
+    rows+=r.rows.length;
+    for(const x of r.rows){
+      if(x.inv) invs.add(x.inv);
+      if(x.trk) trks.add(x.trk);
+      const k=parseDateKey(x.invDate)||parseDateKey(x.tranDate);
+      if(k){ if(lo==null||k<lo) lo=k; if(hi==null||k>hi) hi=k; }
+    }
+  }
+  const fmt=k=>k?String(Math.floor(k/10000))+"-"+String(Math.floor(k/100)%100).padStart(2,"0")
+    +"-"+String(k%100).padStart(2,"0"):"";
+  return {files:recs.length,invs:invs.size,rows,trks:trks.size,
+    range:lo?fmt(lo)+" ~ "+fmt(hi):""};
+}
+const HIST_LIMIT=500;
+function renderHist(list,note){
+  const t=$("tHist"); if(!t) return;
+  const rows=(list||HIST_ROWS).slice(0,HIST_LIMIT);
+  t.querySelector("tbody").innerHTML=rows.length?rows.map(x=>
+    "<tr><td>"+esc(x.inv)+"</td><td>"+esc(x.invDate)+"</td><td>"+esc(x.tranDate)+"</td>"
+    +"<td>"+esc(x.trk)+"</td><td>"+esc(x.svc)+"</td><td>"+esc(x.desc)+"</td><td>"+esc(x.zone)+"</td>"
+    +'<td class="num">'+esc(x.entWt)+'</td><td class="num">'+esc(x.bilWt)+"</td>"
+    +"<td>"+esc(x.dim)+'</td><td class="num">'+Number(x.amt).toFixed(2)+"</td></tr>").join("")
+    :'<tr><td class="empty" colspan="11">'
+      +L("在上方輸入追蹤號按 Search,或先按 Import Past Invoices 匯入帳單。",
+         "Type a tracking number above and press Search, or import invoices first.")+"</td></tr>";
+  $("histNote").innerHTML=note?'<p class="note">'+esc(note)+"</p>":"";
+}
+async function refreshHist(){
+  try{
+    const recs=await histAll();
+    HIST_ROWS=recs.flatMap(r=>r.rows);
+    const st=histStats(recs);
+    $("histStats").textContent=st.rows
+      ?L(st.files+" 個檔案、"+st.invs+" 張發票、"+st.rows.toLocaleString()+" 列、"
+         +st.trks.toLocaleString()+" 個追蹤號 "+st.range,
+         st.files+" file(s), "+st.invs+" invoice(s), "+st.rows.toLocaleString()+" row(s), "
+         +st.trks.toLocaleString()+" tracking(s) "+st.range)
+      :L("尚未匯入任何帳單。","No invoices stored yet.");
+    renderHist([]);
+  }catch(e){
+    $("histStats").textContent=L("瀏覽器不支援或封鎖了本機資料庫。","Local database unavailable in this browser.");
+  }
+}
+function wireHist(){
+  $("bHist").addEventListener("click",()=>$("fHist").click());
+  $("fHist").addEventListener("change",async e=>{
+    const files=[...e.target.files]; e.target.value="";
+    if(!files.length) return;
+    $("vHist").textContent=L("匯入中…","Importing…");
+    let n=0;
+    try{
+      for(const f of files){
+        const {columns,rows}=await readTableFile(f);
+        const flat=histFlatten(columns,rows,f.name);
+        await histPut({name:f.name,at:Date.now(),rows:flat});
+        n+=flat.length;
+      }
+      await refreshHist();
+      $("vHist").textContent=L("已匯入 "+files.length+" 個檔案、"+n+" 列",
+                               "Imported "+files.length+" file(s), "+n+" row(s)");
+      toast(L("帳單已存進瀏覽器","Invoices stored in this browser"));
+    }catch(err){
+      $("vHist").textContent="";
+      showError(L("匯入失敗","Import failed"),err.message||String(err));
+    }
+  });
+  $("bHistRefresh").addEventListener("click",refreshHist);
+  $("bHistStored").addEventListener("click",async()=>{
+    const recs=await histAll();
+    if(!recs.length){ showModal(L("已存帳單","Stored invoices"),L("目前沒有存任何帳單。","Nothing stored yet.")); return; }
+    const lines=recs.map(r=>"· "+r.name+" — "+r.rows.length.toLocaleString()+L(" 列"," rows")
+      +" ("+new Date(r.at).toLocaleDateString()+")");
+    const ok=await showModal(L("已存帳單","Stored invoices"),
+      lines.join("\n")+"\n\n"+L("要清除全部已存帳單嗎?","Clear every stored invoice?"),
+      {cancel:true,okText:L("清除全部","Clear all")});
+    if(!ok) return;
+    for(const r of recs) await histDel(r.name);
+    await refreshHist();
+    toast(L("已清除","Cleared"));
+  });
+  const findTrk=()=>{
+    const q=$("trkSearch").value.trim();
+    if(!q){ renderHist([]); return []; }
+    const hit=HIST_ROWS.filter(x=>String(x.trk).includes(q));
+    renderHist(hit,hit.length
+      ?L("找到 "+hit.length+" 列費用。","Found "+hit.length+" charge row(s).")
+      :L("查無這個追蹤號。","No rows for that tracking number."));
+    return hit;
+  };
+  $("bTrkSearch").addEventListener("click",findTrk);
+  $("trkSearch").addEventListener("keydown",e=>{ if(e.key==="Enter") findTrk(); });
+  /* Rating Breakdown:用目前費率把這個追蹤號重算一次,列出逐項明細 */
+  $("bTrkBreak").addEventListener("click",()=>{
+    const hit=findTrk();
+    if(!hit.length) return;
+    const x=hit[0];
+    const billed=hit.reduce((a,b)=>a+toFloat(b.amt,0),0);
+    const lines=[L("追蹤號","Tracking")+": "+x.trk,
+      L("服務","Service")+": "+(x.svc||"—")+"   Zone: "+(x.zone||"—"),
+      L("材積","Dimensions")+": "+(x.dim||"—")+"   "+L("實重","Entered weight")+": "+(x.entWt||"—")
+        +"   "+L("計費重","Billed weight")+": "+(x.bilWt||"—"),
+      "",L("帳單逐項","Billed charges")+":"];
+    for(const r of hit) lines.push("  "+r.desc+" ....... $"+Number(r.amt).toFixed(2));
+    lines.push("  "+L("帳單合計","Billed total")+" ....... $"+billed.toFixed(2));
+    if(LAST&&LAST.results){
+      const mine=LAST.results.find(r=>String(r["Tracking Number"]).includes(x.trk));
+      if(mine){
+        lines.push("",L("這次 Reprice 明細","This reprice")+":");
+        for(const k of ["Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
+                        "Residential Fee","Signature Fee","General Demand Fee","AHS Demand Fee",
+                        "Oversize Demand Fee","Fuel Fee"])
+          if(toFloat(mine[k],0)!==0) lines.push("  "+k+" ....... $"+toFloat(mine[k],0).toFixed(2));
+        lines.push("  "+L("Reprice 合計","Repriced total")+" ....... $"+toFloat(mine["Repriced Total"],0).toFixed(2));
+        lines.push("  "+L("差額(帳單 − Reprice)","Difference (billed − repriced)")
+          +" ....... $"+(billed-toFloat(mine["Repriced Total"],0)).toFixed(2));
+      }else{
+        lines.push("",L("這次 Reprice 沒有這筆(請先在 Import Files 跑一次含這張帳單的計價)。",
+                        "Not in the current reprice run — run a reprice that includes this invoice first."));
+      }
+    }else{
+      lines.push("",L("尚未執行 Reprice。","No reprice has been run yet."));
+    }
+    showModal(L("計價明細","Rating breakdown"),lines.join("\n"));
   });
 }
 
@@ -4202,6 +4528,7 @@ function applyLangUI(){
   fillSelect("themeSel",Object.entries(THEMES).map(([k,t])=>[k,LANG?t.en:t.zh]),UI.theme);
   renderAll();
   drawClocks(true);
+  refreshHist();
 }
 function init(){
   loadUI();
@@ -4212,7 +4539,7 @@ function init(){
   const restored=loadLocalConfig();
   /* UI */
   wireRules(); wireFuel(); wireBaseTable(); wireAcc();
-  wireDemand(); wireFiles(); wireChannels(); wireCsur();
+  wireDemand(); wireFiles(); wireChannels(); wireCsur(); wireHist();
   $("bRunTop").addEventListener("click",runRepricing);
   $("bStatement").addEventListener("click",async()=>{
     if(LAST&&LAST.accountRows&&LAST.accountRows.length){
