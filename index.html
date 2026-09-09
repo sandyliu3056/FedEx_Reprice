@@ -403,6 +403,8 @@ details.dettbl summary::before{content:"";width:14px;height:14px;flex:none;
 details.dettbl[open] summary::before{transform:rotate(90deg)}
 details.dettbl summary:hover{color:var(--head)}
 details.dettbl .tablewrap{margin-top:8px;max-height:36vh;border:1px solid var(--line);max-width:860px}
+details.dettbl tr.hl td{background:color-mix(in srgb,var(--tab) 9%,var(--panel))}
+details.dettbl tr.hl td:first-child{box-shadow:inset 2px 0 0 var(--tab)}
 /* 明細表的 Zone / Fee 兩欄照全站的數字紀律:右對齊等寬斜零 */
 details.dettbl th:nth-last-child(-n+2),
 details.dettbl td:nth-last-child(-n+2):not(.empty){text-align:right}
@@ -823,7 +825,7 @@ input.cell,.fpresets button,.fcout b,#runStatus,#baseCount,.grid3 input[readonly
           <span style="flex:1 1 auto"></span>
           <button class="act alt" id="bAhsSave" data-i18n="btn.zonesave">儲存全部 Zone 費用</button>
         </div>
-        <details class="dettbl"><summary data-i18n="lb.dettbl">明細表(全部列)</summary>
+        <details class="dettbl" open><summary data-i18n="lb.dettbl">明細預覽(全部列)</summary>
           <div class="tablewrap"><table id="tDetAhs"><thead></thead><tbody></tbody></table></div>
         </details>
       </div>
@@ -847,7 +849,7 @@ input.cell,.fpresets button,.fcout b,#runStatus,#baseCount,.grid3 input[readonly
           <span style="flex:1 1 auto"></span>
           <button class="act alt" id="bDasSave" data-i18n="btn.zonesave">儲存全部 Zone 費用</button>
         </div>
-        <details class="dettbl"><summary data-i18n="lb.dettbl">明細表(全部列)</summary>
+        <details class="dettbl" open><summary data-i18n="lb.dettbl">明細預覽(全部列)</summary>
           <div class="tablewrap"><table id="tDetDas"><thead></thead><tbody></tbody></table></div>
         </details>
       </div>
@@ -869,7 +871,7 @@ input.cell,.fpresets button,.fcout b,#runStatus,#baseCount,.grid3 input[readonly
           <span style="flex:1 1 auto"></span>
           <button class="act alt" id="bOsSave" data-i18n="btn.zonesave">儲存全部 Zone 費用</button>
         </div>
-        <details class="dettbl"><summary data-i18n="lb.dettbl">明細表(全部列)</summary>
+        <details class="dettbl" open><summary data-i18n="lb.dettbl">明細預覽(全部列)</summary>
           <div class="tablewrap"><table id="tDetOs"><thead></thead><tbody></tbody></table></div>
         </details>
       </div>
@@ -1107,7 +1109,7 @@ const I18N={
    "Pick the service and type first, fill each zone's fee, then save."],
  "hint.zonesave2":["填完各 Zone 的費用再按儲存。","Fill each zone's fee, then save."],
  "btn.zonesave":["儲存全部 Zone 費用","Save all zone fees"],
- "lb.dettbl":["明細表(全部列)","Detail table (all rows)"],
+ "lb.dettbl":["明細預覽(全部列)","Detail preview (all rows)"],
  "hint.resi":["帳單判定為住宅配送時,按服務別加收的固定費用。",
    "Flat fee added per service when the shipment is residential."],
  "hint.sig":["帳單出現簽收費項時,按簽收類型收的固定費用。",
@@ -2776,17 +2778,25 @@ function renderDetail(k){
   const cfg=ZONE_EDITORS[k];
   const t=$(cfg.detTable);
   const cols=TBL[cfg.tbl].cols;
+  const service=$(cfg.svcSel).value, typ=zoneEditorType(k);
   t.querySelector("thead").innerHTML="<tr>"+cols.map(c=>"<th>"+esc(c)+"</th>").join("")+"</tr>";
-  t.querySelector("tbody").innerHTML=TBL[cfg.tbl].rows.map(r=>
-    "<tr>"+r.map(v=>"<td>"+esc(v)+"</td>").join("")+"</tr>").join("")
+  t.querySelector("tbody").innerHTML=TBL[cfg.tbl].rows.map(r=>{
+    /* 正在編輯的那組列亮起來:上面卡片改的就是這幾列 */
+    const hl=cfg.hasType
+      ?(String(r[0])===service&&String(r[1])===typ)
+      :(String(r[0])===service);
+    return "<tr"+(hl?' class="hl"':"")+">"+r.map(v=>"<td>"+esc(v)+"</td>").join("")+"</tr>";
+  }).join("")
     ||'<tr><td class="empty" colspan="'+cols.length+'">—</td></tr>';
+  const wrap=t.closest(".tablewrap"), first=t.querySelector("tbody tr.hl");
+  if(wrap&&first) wrap.scrollTop=Math.max(0,first.offsetTop-44);
 }
 function wireZoneEditors(){
   for(const k of Object.keys(ZONE_EDITORS)){
     const cfg=ZONE_EDITORS[k];
     buildZoneCards(k);
-    $(cfg.svcSel).addEventListener("change",()=>refreshZoneEditor(k));
-    if(cfg.typeSel) $(cfg.typeSel).addEventListener("change",()=>refreshZoneEditor(k));
+    $(cfg.svcSel).addEventListener("change",()=>{refreshZoneEditor(k);renderDetail(k);});
+    if(cfg.typeSel) $(cfg.typeSel).addEventListener("change",()=>{refreshZoneEditor(k);renderDetail(k);});
   }
   $("bAhsSave").addEventListener("click",()=>saveZoneEditor("ahs"));
   $("bDasSave").addEventListener("click",()=>saveZoneEditor("das"));
