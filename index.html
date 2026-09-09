@@ -1937,6 +1937,12 @@ const SIZE_FIELDS=[
   ["ahs_dimension_second_side",null],["ahs_dimension_cubic_inches",null],
   ["ahs_dimension_lg_limit",null],["ahs_min_billable_weight",null],
 ];
+/* 某條門檻的預設值(全域):開關關掉的條件算 0 = 不啟用 */
+function defThrVal(key){
+  const gate=(SIZE_FIELDS.find(([k])=>k===key)||[])[1];
+  if(gate&&!RULES[gate]) return 0;
+  return toFloat(RULES[key],0);
+}
 /* 某渠道某門檻的有效值:有覆寫用覆寫,否則用全域;全域關閉的條件回 0 */
 function sizeVal(service,key){
   const ov=SIZE_RULES[service];
@@ -2113,10 +2119,6 @@ function markDirty(){
 function saveSettings(){
   try{
     localStorage.setItem(CFG_KEY,JSON.stringify(buildConfig()));
-    /* 只說有沒有存成功。時間戳沒有人會拿來對照什麼 —— 按下去的那一秒本來
-       就是現在,寫出來只是多一行會變動的字。 */
-    const stamp=L("已儲存","Saved");
-    document.querySelectorAll(".savenote").forEach(el=>{ el.textContent=stamp; });
     toast(L("設定已儲存","Settings saved"));
   }catch(e){
     showError(L("儲存失敗","Save failed"),
@@ -3460,9 +3462,12 @@ async function exportProfitReport(){
   const dateCell=k=>k?{v:keyToSerial(k),t:"n",s:{fmt:DATE}}:"";
   const m=v=>({v:r2(v),t:"n",s:{fmt:MONEY}});
   /* 毛利率是真正的比例值再套百分比格式,不是先算成 "20.1%" 這種字串貼上去
-     —— 字串排不了序,也沒辦法再拿去算。 */
+     —— 字串排不了序,也沒辦法再拿去算。
+     向客戶收是 0 的時候除不下去,這一格寫 0 而不是留白:整欄都是數字才排得
+     了序、拉得出平均;留白的格子在 Excel 裡會被當成沒有資料跳過。 */
   const pctCell=(profit,rev)=>Math.abs(rev)>1e-9
-    ? {v:profit/rev,t:"n",s:{fmt:PCT}} : "";
+    ? {v:profit/rev,t:"n",s:{fmt:PCT}}
+    : {v:0,t:"n",s:{fmt:PCT}};
 
   /* ① 逐筆明細 */
   const trks=stmtByTracking(res);
@@ -3490,7 +3495,7 @@ async function exportProfitReport(){
     const B={bold:true}, BM={bold:true,fmt:MONEY};
     d2.push([{v:"TOTAL",t:"s",s:B},"",
       {v:tBil,t:"n",s:BM},{v:tRep,t:"n",s:BM},{v:tPro,t:"n",s:BM},
-      Math.abs(tRep)>1e-9?{v:tPro/tRep,t:"n",s:{bold:true,fmt:PCT}}:""]);
+      {v:Math.abs(tRep)>1e-9?tPro/tRep:0,t:"n",s:{bold:true,fmt:PCT}}]);
   }
 
   /* ③ 帳戶層級費用。FedEx 的帳單沒有 UPS 那種 Reason / Code / note 欄,
@@ -3987,7 +3992,7 @@ function bulkChanApply(){
       if(!sel||!el) continue;
       const had=o[f]!==undefined;
       const raw=String(el.value).trim();
-      if(sel.value!=="own"||raw===""||toFloat(raw,0)===toFloat(bkDefOf(f,sw),0)){
+      if(sel.value!=="own"||raw===""||toFloat(raw,0)===defThrVal(f)){
         if(had){ delete o[f]; clr++; }
       } else if(String(o[f])!==raw){ o[f]=raw; set++; }
     }
@@ -4091,8 +4096,15 @@ function wireRules(){
     const raw=String(el.value).trim();
     const n=raw===""?0:Number(raw);
     if(!isFinite(n)||n<0){ renderRules(); return; }
-    SIZE_RULES[svc]=SIZE_RULES[svc]||{};
-    SIZE_RULES[svc][key]=n;
+    if(n===defThrVal(key)){
+      if(SIZE_RULES[svc]){
+        delete SIZE_RULES[svc][key];
+        if(!Object.keys(SIZE_RULES[svc]).length) delete SIZE_RULES[svc];
+      }
+    } else {
+      SIZE_RULES[svc]=SIZE_RULES[svc]||{};
+      SIZE_RULES[svc][key]=n;
+    }
     markDirty(); renderRules();
   });
   $("bDefThr").addEventListener("click",openDefThr);
