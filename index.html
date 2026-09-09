@@ -393,6 +393,8 @@ td.neg{color:var(--neg)}
 .csseen.known{border-style:solid;border-color:var(--line);background:var(--bill-bg)}
 .csseen.known .arrow{color:var(--muted)}
 .csseen.known b{color:var(--bill)}
+.csseen .tagx{color:var(--neg);font-size:11.5px;white-space:nowrap;
+  border:1px solid var(--neg);border-radius:6px;padding:1px 6px}
 #p-dash .csbox{border-color:var(--rp);background:var(--rp-bg)}
 #p-dash .csbox .csseen{background:var(--card)}
 #p-dash .csbox .csseen.known{background:var(--bill-bg)}
@@ -997,6 +999,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   <button role="tab" aria-selected="false" data-p="rules"    class="display">📏 <span data-i18n="tab.rules">Size Rules</span></button>
   <button role="tab" aria-selected="false" data-p="base"     class="display">🚚 <span data-i18n="tab.base">Channels</span></button>
   <button role="tab" aria-selected="false" data-p="demand"   class="display">⚡ <span data-i18n="tab.demand">Demand Surcharge</span></button>
+  <button role="tab" aria-selected="false" data-p="chg"      class="display">🔎 <span data-i18n="tab.chg">Charge Lookup</span></button>
   <button role="tab" aria-selected="false" data-p="hist"     class="display">🧾 <span data-i18n="tab.hist">Invoice History</span></button>
   <button role="tab" aria-selected="false" data-p="dash"     class="display">📊 <span data-i18n="tab.dash">Dashboard</span></button>
   <button role="tab" aria-selected="false" data-p="settings" class="display">⚙️ <span data-i18n="tab.settings">Settings</span></button>
@@ -1316,6 +1319,31 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 </section>
 
 <!-- ==================== Invoice History ==================== -->
+<!-- ==================== Charge Lookup(照 UPS 的 Code Lookup) ============ -->
+<section class="page" id="p-chg">
+  <div class="lf sketch">
+    <h3 class="display"><span class="em">🔎</span><span data-i18n="hd.chg">FedEx 費目查詢</span></h3>
+    <p class="hint" data-i18n="hint.chg">帳單上的每一個費目,系統認不認得、算進哪一項。按「掃描已載入帳單」列出這張帳單實際出現的費目。</p>
+    <div class="row" style="margin-bottom:10px">
+      <button class="act" id="bChgScan" data-i18n="btn.chgscan">掃描已載入帳單</button>
+      <button class="act ghost" id="bChgRef" data-i18n="btn.chgref">顯示完整參考表</button>
+      <label class="inlab" data-i18n="lb.search">搜尋</label>
+      <input id="chgSearch" class="cell left" style="width:170px">
+      <button class="act ghost" id="bChgClear" data-i18n="btn.clearsearch">清除</button>
+      <label class="inlab" data-i18n="lb.show">顯示</label>
+      <span class="selw"><select id="chgFilter"></select></span>
+      <span id="chgCount" style="color:var(--muted);font-size:12.5px"></span>
+    </div>
+    <div class="tablewrap"><table id="tChg"><thead><tr>
+      <th data-i18n="th.chgname">費目</th>
+      <th data-i18n="th.chghow">算進哪一項 / 處理方式</th>
+      <th data-i18n="th.ininv">在帳單中</th>
+      <th class="num" data-i18n="th.count">筆數</th>
+      <th class="num" data-i18n="th.amt2">金額</th>
+    </tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
 <section class="page" id="p-hist">
   <div class="lf sketch">
     <div class="row" style="margin-bottom:8px">
@@ -1630,9 +1658,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <div class="tablewrap" style="max-height:30vh;margin-bottom:12px">
         <table id="tCsur"><thead></thead><tbody></tbody></table>
       </div>
-      <div class="subhd" style="margin-top:0" data-i18n="hd.csseen">帳單上有、清單裡沒有的費目</div>
-      <div id="csSeen" style="margin-bottom:12px"></div>
-      <div class="subhd" data-i18n="hd.csuradd">新增自訂附加費</div>
+      <div class="subhd" style="margin-top:0" data-i18n="hd.csuradd">新增自訂附加費</div>
       <div class="row">
         <label class="inlab" style="margin-left:0" data-i18n="lb.csname">表頭名稱</label>
         <input id="csName" class="cell left" style="width:260px" placeholder="e.g. Address Correction">
@@ -1640,6 +1666,10 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <div class="row" style="margin-top:10px">
         <label class="inlab" style="margin-left:0" data-i18n="lb.csalias">帳單費目名稱</label>
         <input id="csAlias" class="cell left" style="width:320px" placeholder="e.g. Address Correction, Addr Corr">
+      </div>
+      <div class="row" style="margin-top:6px">
+        <label class="inlab" style="margin-left:0"></label>
+        <span id="csMatch" class="hint" style="margin:0"></span>
       </div>
       <div class="row" style="margin-top:10px">
         <label class="inlab" style="margin-left:0" data-i18n="lb.cstype">計費方式</label>
@@ -1813,6 +1843,20 @@ const I18N={
  "lb.csalias":["帳單費目名稱","Invoice charge names"],
  "lb.cstype":["計費方式","How to charge"],
  "lb.csfee":["費率","Rate"],
+ "tab.chg":["Charge Lookup","Charge Lookup"],
+ "hd.chg":["FedEx 費目查詢","FedEx Charge Lookup"],
+ "hint.chg":["帳單上的每一個費目,系統認不認得、算進哪一項。按「掃描已載入帳單」列出這張帳單實際出現的費目。",
+   "What the tool makes of each charge on the invoice, and which of our own charges it counts towards. Click Scan Loaded Invoice to list the charges that actually appear in the imported file."],
+ "btn.chgscan":["掃描已載入帳單","Scan Loaded Invoice"],
+ "btn.chgref":["顯示完整參考表","Show Full Reference"],
+ "btn.clearsearch":["清除","Clear"],
+ "lb.show":["顯示","Show"],
+ "th.chgname":["費目","Charge"],
+ "th.chghow":["算進哪一項 / 處理方式","Counts towards / how it is handled"],
+ "th.ininv":["在帳單中","In Invoice"],
+ "th.count":["筆數","Count"],
+ "th.amt2":["金額","Amount"],
+ "btn.gochg":["去費目查詢","Open Charge Lookup"],
  "hd.csseen":["帳單上有、清單裡沒有的費目","On the invoice but not in the list"],
  "btn.csuse":["填入","Use"],
  "hint.csseen":["這些費目目前照原價轉嫁(帳單金額 + 燃油),沒有自己的欄位。按「填入」把名字帶到下面的表單,選好計費方式再新增。",
@@ -4247,6 +4291,7 @@ function switchPage(name){
   document.querySelectorAll("main .page").forEach(p=>
     p.classList.toggle("on",p.id==="p-"+name));
   if(name==="dash") renderResults();
+  if(name==="chg") renderChg();
 }
 function switchDem(name){
   document.querySelectorAll("#demTabs button").forEach(b=>
@@ -6266,14 +6311,13 @@ function csSeenHtml(g){
       +'<span class="fl" title="'+esc(f.name)+'">'+esc(f.name)+"</span>"
       +"<s>"+L(f.rows+" 筆",f.rows+(f.rows>1?" rows":" row"))+"</s>"
       +"<b>"+money(f.total)+"</b>"
-      +'<button class="act ghost sm cs-use" data-i="'+i+'">'+L("登記","Register")+"</button>"
+      +'<span class="tagx">'+L("未收錄","not registered")+"</span>"
       +"</div>").join("")
       +'<p class="note">'+L(
-        "這些費目目前照原價轉嫁(帳單金額 + 燃油),報表上沒有自己的欄位。按「登記」把它加進上面那張清單:報表就會多一欄,金額仍照帳單轉嫁。"
-        +"要改成用自己的費率算,在上面把「計費方式」換成「重算」再填費率。",
+        "這些費目目前照原價轉嫁(帳單金額 + 燃油),報表上沒有自己的欄位。"
+        +"要讓它有自己的欄位、或用自己的費率算,到「Custom Surcharges…」把費目名稱加進清單。",
         "These pass through at cost (invoice amount + fuel) with no column of their own in the report. "
-        +"Register adds one to the list above: the report gains a column and the amount still comes from the invoice. "
-        +"To price it yourself, switch its How to charge to Reprice in that list and fill in the rate.")
+        +"To give one its own column, or price it yourself, add the charge name under Custom Surcharges.")
       +"</p>";
   }else{
     h+='<div class="note">'+L("帳單上沒有還沒歸類的費目。",
@@ -6321,10 +6365,28 @@ function csurAdd(name,alias,fee,type){
   renderCsur(); renderCsSeen(); renderFlat(); markDirty();
   return true;
 }
+/* 打進去的名字在載入的帳單裡對到什麼。照 UPS 的 dynCheckCode:對不到就講
+   對不到,不要讓人存完才發現這條規則永遠不會中。 */
+function csMatchNote(){
+  const el=$("csMatch"); if(!el) return;
+  const q=normChargeDesc(($("csAlias").value||$("csName").value||""));
+  if(!q){ el.textContent=""; return; }
+  if(!BILLING){ el.textContent=L("還沒載入帳單,無法比對。",
+    "No invoice loaded, nothing to match against."); return; }
+  const inInv=chargeScan();
+  const hit=Object.entries(inInv).filter(([d])=>normChargeDesc(d).includes(q));
+  if(!hit.length){ el.textContent=L("載入的帳單裡沒有含這個字的費目。",
+    "No charge on the loaded invoice contains that text."); return; }
+  const n=hit.reduce((a,[,v])=>a+v.n,0), amt=hit.reduce((a,[,v])=>a+v.amt,0);
+  el.textContent=L("帳單裡 "+hit.length+" 種寫法、"+n+" 筆、"+money(amt)+":"
+      +hit.map(([d])=>d).slice(0,3).join("、")+(hit.length>3?" …":""),
+    hit.length+" spelling(s), "+n+" row(s), "+money(amt)+" on the invoice: "
+      +hit.map(([d])=>d).slice(0,3).join(", ")+(hit.length>3?" …":""));
+}
 function openCsurModal(){
   $("csName").value=""; $("csAlias").value=""; $("csFee").value="0";
   fillSelect("csType",CSUR_TYPES.map(([v,lab])=>[v,lab[LANG]]),"reprice");
-  renderCsur(); renderCsSeen();
+  renderCsur(); renderCsSeen(); csMatchNote();
   $("csurBg").style.display="flex";
   $("csName").focus();
 }
@@ -6355,31 +6417,20 @@ function wireCsur(){
     markDirty();
   });
   document.addEventListener("click",e=>{
-    if(!e.target.closest("#csSeen,#dashCs")) return;
+    if(!e.target.closest("#dashCs")) return;
     const go=e.target.closest("button.cs-go");
     if(go){
       const k=(csSeenList().known[+go.dataset.i]||{}).key;
       const home=BUILTIN_HOME[k]; if(!home) return;
-      closeCsurModal();
       switchPage(home[0]);
       toast(L("費率在"+home[1][0]+"。填好之後這一筆就由我們自己算,不再照原價轉嫁。",
               "The rate lives in "+home[1][1]
               +". Fill it in and this charge is priced by us instead of passed through."));
       return;
     }
-    const b=e.target.closest("button.cs-use"); if(!b) return;
-    const f=csSeenList().fresh[+b.dataset.i]; if(!f) return;
-    if(!csurAdd(f.name,f.name,"0","invoice")) return;
-    /* 登記會改變計價,畫面上的數字要重跑才會跟上 —— 說清楚,不要讓人以為
-       按完就生效了。 */
-    const onDash=!!e.target.closest("#dashCs");
-    if(onDash) renderResults();
-    toast(L("已登記「"+f.name+"」—— 報表會多一欄,金額照帳單轉嫁。"
-            +(onDash?"按 Reprice 重跑,數字才會跟上。":"要自己算就把計費方式換成「重算」。"),
-            "'"+f.name+"' registered — it gets its own column, priced from the invoice."
-            +(onDash?" Press Reprice to bring the figures up to date."
-                    :" Switch it to Reprice to price it yourself.")));
   });
+  for(const id of ["csName","csAlias"])
+    if($(id)) $(id).addEventListener("input",csMatchNote);
   if($("tCsur")) $("tCsur").addEventListener("click",e=>{
     const b=e.target.closest("button.cs-del"); if(!b) return;
     TBL.csur.rows.splice(+b.dataset.i,1);
@@ -6591,6 +6642,111 @@ function issueGroups(rows){
   return Object.values(by).sort((a,b)=>
     ISSUE_KIND[b.kind].sev-ISSUE_KIND[a.kind].sev||Math.abs(b.amt)-Math.abs(a.amt));
 }
+/* =====================================================================
+   費目查詢 —— 照 UPS 的 Code Lookup:一份參考表 + 掃描已載入帳單,
+   認不得的標紅字「未收錄」,右邊給筆數與金額。
+   UPS 認的是收費代碼(AS/AR),FedEx 的帳單沒有代碼欄,只有
+   Tracking ID Charge Description,所以這裡認的是費目名稱。
+   ===================================================================== */
+const CHG_FILTERS=[["all",["全部費目","All charges"]],
+                   ["inv",["只看這張帳單","In this invoice only"]],
+                   ["unk",["只看未收錄","Unregistered only"]]];
+let CHG_MODE="ref";      /* ref = 完整參考表, scan = 掃描帳單 */
+/* 引擎認得的費目寫法。處理方式一律由 billedBucketOf() 算出來 ——
+   表上寫一份、引擎算一份,兩邊遲早不一樣。 */
+const CHARGE_REF=()=>["Transportation Charge","Performance Pricing","Earned Discount",
+    "Fuel Surcharge","Variable Handling Charge","Delivery Area Surcharge"]
+  .concat(DAS_TYPES)
+  .concat(["Residential Delivery","Oversize Charge","Additional Handling",
+           "Add'l Handling Charge","Declared Value","Peak Surcharge","Demand Surcharge"])
+  .concat(SIGNATURE_TYPES)
+  .concat(TBL.csur.rows.map(r=>csurEntry(r).disp).filter(Boolean));
+const csurTypeText=t=>{
+  const hit=CSUR_TYPES.find(([v])=>v===t);
+  return hit?hit[1][LANG]:t;
+};
+/* 這個費目名稱會被算進哪一項。認不得就回 null(= 未收錄,照原價轉嫁)。 */
+function chargeHandling(name){
+  const d=normChargeDesc(name);
+  for(const r of TBL.csur.rows){
+    const {disp,aliases,type}=csurEntry(r);
+    if(disp&&aliases.some(a=>d.includes(normChargeDesc(a))))
+      return {how:L("自訂費目「"+disp+"」·"+csurTypeText(type),
+                    "custom '"+disp+"' · "+csurTypeText(type)),kind:"custom"};
+  }
+  const k=billedBucketOf(name);
+  if(PR_LABEL[k]) return {how:prLabel(k),kind:"builtin",key:k};
+  return null;
+}
+/* 這張帳單上每個費目出現幾筆、多少錢。資料直接讀原始帳單,和引擎同一個來源。 */
+function chargeScan(){
+  const out={};
+  if(!BILLING) return out;
+  const prev=CUR_COLS;
+  CUR_COLS=(BILLING.columns||[]).map(c=>String(c).trim());
+  try{
+    const add=(d,v)=>{
+      const k=String(d==null?"":d).trim(); if(!k) return;
+      (out[k]=out[k]||{n:0,amt:0}); out[k].n++; out[k].amt+=toFloat(v,0);
+    };
+    for(const row of (BILLING.rows||[])){
+      const tc=toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
+      if(tc) add("Transportation Charge",tc);
+      for(const[d,v] of iterChargePairs(row)) if(v) add(d,v);
+    }
+  } finally { CUR_COLS=prev; }
+  return out;
+}
+function renderChg(){
+  const t=$("tChg"); if(!t) return;
+  const inInv=chargeScan();
+  /* 名稱來源:參考表 + 這張帳單裡出現的 */
+  const all={};
+  for(const c of CHARGE_REF()) all[c]=true;
+  for(const c of Object.keys(inInv)) all[c]=true;
+  const q=($("chgSearch")?$("chgSearch").value:"").trim().toLowerCase();
+  const mode=($("chgFilter")?$("chgFilter").value:"all")||"all";
+  const names=Object.keys(all).sort((a,b)=>a.localeCompare(b)).filter(c=>{
+    if(CHG_MODE==="scan"&&!inInv[c]) return false;
+    if(mode==="inv"&&!inInv[c]) return false;
+    if(mode==="unk"&&chargeHandling(c)) return false;
+    if(q&&!c.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  t.querySelector("tbody").innerHTML=names.length?names.map(c=>{
+    const hit=inInv[c], how=chargeHandling(c);
+    return "<tr>"
+      +"<td>"+esc(c)+"</td>"
+      +"<td>"+(how?esc(how.how)
+        :'<span style="color:var(--neg)">'+L("未收錄","not registered")
+         +'</span><span style="font-size:11px;color:var(--muted)"><br>'
+         +L("照原價轉嫁(帳單金額 + 燃油),報表上沒有自己的欄位",
+            "passed through at cost (invoice amount + fuel), with no column of its own")
+         +"</span>")+"</td>"
+      +'<td style="text-align:center">'+(hit?"✓":"")+"</td>"
+      +'<td class="num">'+(hit?hit.n.toLocaleString():"")+"</td>"
+      +'<td class="num">'+(hit?money(hit.amt):"")+"</td>"
+      +"</tr>";
+  }).join(""):'<tr><td class="empty" colspan="5">'
+    +L("沒有符合的費目。","Nothing matches.")+"</td></tr>";
+  const unk=names.filter(c=>!chargeHandling(c)).length;
+  if($("chgCount")) $("chgCount").textContent=L(
+    "顯示 "+names.length+" 個,帳單裡 "+Object.keys(inInv).length+" 個,未收錄 "+unk+" 個",
+    names.length+" shown, "+Object.keys(inInv).length+" in invoice, "+unk+" unregistered");
+}
+function wireChg(){
+  fillSelect("chgFilter",CHG_FILTERS.map(([v,lab])=>[v,lab[LANG]]),"all");
+  if($("bChgScan")) $("bChgScan").onclick=()=>{
+    if(!BILLING){ toast(L("請先匯入帳單","Import an invoice first"),true); return; }
+    CHG_MODE="scan"; renderChg();
+    toast(L("已掃描載入的帳單","Scanned the loaded invoice"));
+  };
+  if($("bChgRef")) $("bChgRef").onclick=()=>{ CHG_MODE="ref"; renderChg(); };
+  if($("chgSearch")) $("chgSearch").oninput=renderChg;
+  if($("bChgClear")) $("bChgClear").onclick=()=>{ $("chgSearch").value=""; renderChg(); };
+  if($("chgFilter")) $("chgFilter").onchange=renderChg;
+}
+
 /* 帳單上有、我們沒登記的費目 —— 直接擺在異常卡旁邊。
    把它藏在「Custom Surcharges…」視窗裡,就得先知道要去開那個視窗才看得到,
    而會去開的人本來就知道自己少了什麼。 */
@@ -6603,7 +6759,9 @@ function dashCsCard(){
   return '<div class="dcard csbox" id="dashCs" style="margin-top:12px">'
     +'<div class="ch"><h3>'+L("建議新增的費目","Charges worth registering")+"</h3>"
     +'<span class="cnote">'+L("帳單上有,而我們這邊沒有對應費率",
-      "on the invoice, with no rate of ours behind them")+"</span></div>"
+      "on the invoice, with no rate of ours behind them")+"</span>"
+    +'<button class="act ghost sm" id="bGoChg">'+L("去費目查詢","Open Charge Lookup")
+    +"</button></div>"
     +'<p class="isssub">'
     +L((n?"<b>"+n+"</b> 個費目還沒歸類":"")+(n&&k?"、":"")
        +(k?"<b>"+k+"</b> 個等著填費率":"")+",這一期 FedEx 為此收了 <b>"+money(amt)+"</b>",
@@ -6893,6 +7051,8 @@ function renderResults(){
   if(px) px.onclick=()=>withBusy(px,exportProfitReport);
   const ix=$("bIssXls");
   if(ix) ix.onclick=()=>withBusy(ix,exportIssues);
+  const gc=$("bGoChg");
+  if(gc) gc.onclick=()=>{ CHG_MODE="scan"; switchPage("chg"); renderChg(); };
   paintStatementBtn();
 }
 async function runRepricing(){
@@ -7546,7 +7706,7 @@ function init(){
   const restored=loadLocalConfig();
   /* UI */
   wireRules(); wireFuel(); wireBaseTable(); wireAcc(); wireDv();
-  wireDemand(); wireFiles(); wireChannels(); wireCsur(); wireHist();
+  wireDemand(); wireFiles(); wireChannels(); wireCsur(); wireChg(); wireHist();
   $("bRunTop").addEventListener("click",runRepricing);
   $("bStatement").addEventListener("click",exportProfitReport);
   document.querySelectorAll("#tabs button").forEach(b=>
