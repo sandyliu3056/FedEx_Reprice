@@ -2150,14 +2150,16 @@ function matchDemandFee(rows,service,effKey){
 function collectPassThrough(row){
   const excludedKeywords=[
     "fuel surcharge","fuel","variable handling charge","delivery area surcharge",
-    "das residential","das extended residential","das remote residential",
-    "das commercial","das extended commercial","das remote commercial",
+    /* DAS 用縮寫前綴比對,涵蓋帳單上的簡寫(DAS Resi、DAS Remote Comm…) */
+    "das resi","das comm","das remote","das extended",
     "hawaii - commercial","hawaii - residential",
     "alaska - commercial","alaska - residential",
-    "residential delivery","residential surcharge",
+    "residential",
     "add'l handling","additional handling","ahs","oversize charge","signature",
     "transportation charge","net charge","discount","earned discount",
     "performance pricing",
+    /* Multiweight 合計是整組資訊欄,不是逐件費用 */
+    "multiweight",
   ];
   const isExcludedName=name=>{
     const d=normChargeDesc(name);
@@ -2206,6 +2208,18 @@ function collectPassThrough(row){
   return passThrough;
 }
 
+/* 已知轉嫁費目目錄(取自實際 FedEx 帳單):
+   這些費目固定出現在 Repriced 報表欄位(沒發生就留白),
+   帳單出現目錄外的新費目時自動附加在後面。
+   (重算類各有專欄;折扣類捨棄;Pickup 類走 Statement,不在此列。) */
+const KNOWN_PASS_FEES=[
+  "Address Correction","Declared Value Charge","Declared Value",
+  "Clearance Entry Fee","Disbursement Fee","Other Government Agency Fee",
+  "Rebill Duty","Canada HST","Canada GST","British Columbia PST","Manitoba PST",
+  "HST on Disb/Ancillary Service Fees","GST on Disb/Ancillary Service Fees",
+  "Third Party Billing","Weekday Delivery",
+];
+
 /* ---- 主流程:回傳逐筆結果與警告;費率缺漏丟 UserInputError ---- */
 const FINAL_COLS=[
   "Transaction Date","Invoice Date","Invoice Number","Tracking Number",
@@ -2230,6 +2244,7 @@ function repriceCore(columns,rowsIn){
   const results=[], warnings=[];
   const accountRows=[];          /* account-level 費用列 → Statement 對帳單,不進計價結果 */
   const infoMap=new Map();       /* account-level / 未設費率渠道統計 */
+  const passTotals=new Map();    /* 轉嫁費目 → 全帳單合計(決定動態欄位與順序) */
 
   billing.forEach((row,index)=>{
     const excelRow=index+2;
@@ -2335,6 +2350,8 @@ function repriceCore(columns,rowsIn){
 
     const otherPass=collectPassThrough(row);
     const otherPassTotal=Object.values(otherPass).reduce((a,b)=>a+b,0);
+    for(const[k,v] of Object.entries(otherPass))
+      passTotals.set(k,(passTotals.get(k)||0)+v);
 
     const totalDemandFee=generalDemandFee+ahsDemandFee+oversizeDemandFee;
     const fuelBase=baseRate+ahsFee+dasFee+oversizeFee+residentialFee
@@ -2368,6 +2385,7 @@ function repriceCore(columns,rowsIn){
       "Oversize Demand Fee":r2(oversizeDemandFee),
       "Fuel Fee":r2(fuelFee),
       "Repriced Total":r2(total),
+      "_pass":otherPass,
       "_txKey":parseDateKey(transactionDate),
       "_invKey":parseDateKey(invoiceDate),
       "_ahsType":ahsType,
@@ -2376,7 +2394,11 @@ function repriceCore(columns,rowsIn){
 
   return {results,warnings,
     infos:[...infoMap.values()].sort((a,b)=>b.total-a.total),
-    accountRows};
+    accountRows,
+    passCols:KNOWN_PASS_FEES.concat(
+      [...passTotals.entries()]
+        .filter(([k])=>!KNOWN_PASS_FEES.includes(k))
+        .sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).map(([k])=>k))};
 }
 </script>
 <script>
@@ -2763,14 +2785,22 @@ async function exportAccountStatement(accountRows){
     cols:[{w:13},{w:Math.min(wInv+2,20)},{w:Math.min(wDesc+2,42)},{w:14}],
     freeze:{r:1},filter:"A1:D"+(rows.length-1)}],"account_statement.xlsx");
 }
-async function exportResultWorkbook(results){
+async function exportResultWorkbook(results,passCols){
+  passCols=passCols||[];
+  const cut=FINAL_COLS.indexOf("Fuel Fee");
+  const cols=FINAL_COLS.slice(0,cut).concat(passCols,FINAL_COLS.slice(cut));
+  const passSet=new Set(passCols);
   const HEAD={bold:true,fill:"D9EAF7"};
-  const rows=[FINAL_COLS.map(c=>({v:c,t:"s",s:HEAD}))];
-  const widths=FINAL_COLS.map(c=>c.length);
+  const rows=[cols.map(c=>({v:c,t:"s",s:HEAD}))];
+  const widths=cols.map(c=>c.length);
   for(const res of results){
-    const row=FINAL_COLS.map((c,i)=>{
+    const row=cols.map((c,i)=>{
       let cell,disp;
-      if(DATE_COLS.has(c)){
+      if(passSet.has(c)){
+        const v=res._pass?res._pass[c]:null;
+        if(v==null||v===0){ cell=""; disp=""; }
+        else{ cell={v:r2(v),t:"n",s:{fmt:"$#,##0.00"}}; disp="$"+r2(v).toFixed(2); }
+      }else if(DATE_COLS.has(c)){
         const key=c==="Transaction Date"?res._txKey:res._invKey;
         if(key){ cell={v:keyToSerial(key),t:"n",s:{fmt:"mm/dd/yyyy"}}; disp="mm/dd/yyyy"; }
         else{ cell=""; disp=""; }
@@ -2797,7 +2827,7 @@ async function exportResultWorkbook(results){
     name:"Repriced",rows,
     cols:widths.map(w=>({w:Math.min(Math.max(w+2,10),35)})),
     freeze:{r:1},
-    filter:"A1:"+xlCol(FINAL_COLS.length-1)+rows.length,
+    filter:"A1:"+xlCol(cols.length-1)+rows.length,
   }],"repriced_result.xlsx");
 }
 
@@ -3554,10 +3584,10 @@ async function runRepricing(){
   $("bStatement").disabled=true;
   try{
     await new Promise(r=>setTimeout(r,30)); /* 讓狀態字先畫出來 */
-    const {results,warnings,infos,accountRows}=repriceCore(BILLING.columns,BILLING.rows);
-    LAST={results,warnings,infos,accountRows};
+    const {results,warnings,infos,accountRows,passCols}=repriceCore(BILLING.columns,BILLING.rows);
+    LAST={results,warnings,infos,accountRows,passCols};
     renderResults();
-    await exportResultWorkbook(results);
+    await exportResultWorkbook(results,passCols);
     const done=L("完成:已處理 "+results.length+" 筆,repriced_result.xlsx 已下載。",
       "Done — "+results.length+" shipment(s) processed; repriced_result.xlsx downloaded.");
     setStatus(done);
