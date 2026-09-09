@@ -384,6 +384,15 @@ td.neg{color:var(--neg)}
 #dvHelp table th:first-child{text-align:left}
 #dvHelp table td{padding:4px 8px;border-top:1px solid var(--line)}
 #dvHelp table td.num{text-align:right;font:500 12.5px "JetBrains Mono",Consolas,monospace}
+.csseen{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:5px 8px;
+  border:1px dashed var(--line);border-radius:9px;margin-bottom:6px;background:var(--card)}
+.csseen .fl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:var(--text)}
+.csseen s{text-decoration:none;color:var(--muted);font-size:11.5px;white-space:nowrap}
+.csseen b{color:var(--rp);white-space:nowrap}
+.csseen.known{border-style:solid;border-color:var(--line);background:var(--bill-bg)}
+.csseen.known .arrow{color:var(--muted)}
+.csseen.known b{color:var(--bill)}
 .flatitem{display:flex;align-items:center;gap:6px;font-size:12px}
 .flatitem .fl{flex:1;color:var(--text);line-height:1.25}
 .flatitem input.cell{width:86px;height:26px}
@@ -1211,6 +1220,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     </div>
     <div class="row" style="margin-bottom:8px">
       <button class="act" id="bCsurAdd" data-i18n="btn.csuradd">Custom Surcharges…</button>
+      <span id="csSeenBadge" class="savenote"></span>
       <button class="act" id="bSave2" data-i18n="btn.saverates">Save Rates</button>
       <span class="savenote"></span>
       <button class="act ghost" id="bRemoveTicked" data-i18n="btn.removeticked">Remove Ticked</button>
@@ -1608,16 +1618,18 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 </div>
 
 <div id="csurBg" class="modalbg">
-  <div class="modal sketch" id="csurModal" style="width:min(520px,100%)">
+  <div class="modal sketch" id="csurModal" style="width:min(640px,100%)">
     <div class="modalhd">
       <span data-i18n="hd.csuradd">新增自訂附加費</span>
       <button class="mx" id="bCsX">✕</button>
     </div>
     <div class="modalbody">
-      <div class="tablewrap" style="max-height:34vh;margin-bottom:12px">
+      <div class="tablewrap" style="max-height:30vh;margin-bottom:12px">
         <table id="tCsur"><thead></thead><tbody></tbody></table>
       </div>
-      <div class="subhd" style="margin-top:0" data-i18n="hd.csuradd">新增自訂附加費</div>
+      <div class="subhd" style="margin-top:0" data-i18n="hd.csseen">帳單上有、清單裡沒有的費目</div>
+      <div id="csSeen" style="margin-bottom:12px;max-height:25vh;overflow:auto"></div>
+      <div class="subhd" data-i18n="hd.csuradd">新增自訂附加費</div>
       <div class="row">
         <label class="inlab" style="margin-left:0" data-i18n="lb.csname">表頭名稱</label>
         <input id="csName" class="cell left" style="width:260px" placeholder="e.g. Address Correction">
@@ -1798,6 +1810,10 @@ const I18N={
  "lb.csalias":["帳單費目名稱","Invoice charge names"],
  "lb.cstype":["計費方式","How to charge"],
  "lb.csfee":["費率","Rate"],
+ "hd.csseen":["帳單上有、清單裡沒有的費目","On the invoice but not in the list"],
+ "btn.csuse":["填入","Use"],
+ "hint.csseen":["這些費目目前照原價轉嫁(帳單金額 + 燃油),沒有自己的欄位。按「填入」把名字帶到下面的表單,選好計費方式再新增。",
+   "These pass through at cost (invoice amount + fuel) with no column of their own. Press Use to carry the name into the form below, pick how to charge it, then add it."],
  "hint.csmodal":["帳單費目名稱可填多個(用,分隔),任一出現即符合;表頭名稱是報表欄位名。計費方式:重算 = 用你設的費率(填 0 就真的是 0);照帳單轉嫁 = 原價帶過去;僅顯示 = 報表上列出金額但不計進總額。",
    "List one or more invoice charge names (comma-separated) — any match counts; the display name becomes the report column. How to charge: Reprice uses your rate (0 really means 0); Copy invoice passes the billed amount through; Report only lists the amount without charging it."],
  "btn.csuradd":["Custom Surcharges…","Custom Surcharges…"],
@@ -6186,10 +6202,96 @@ function renderCsur(){
     +"</tr>").join("")
     :'<tr><td class="empty" colspan="5">'+L("(尚無自訂費目)","(no custom surcharges yet)")+"</td></tr>";
 }
+/* 帳單上出現過、而自訂清單裡查不到的費目。引擎跑完就把它們記在
+   LAST.seenFees(名稱、筆數、金額)—— 那些錢現在照原價轉嫁,沒有自己的欄位,
+   也套不到我們自己的費率。列出來、一鍵帶進表單,比要人自己從帳單裡抄名字可靠。 */
+/* 系統本來就有對應功能的費目,設定就在這幾個地方 —— 把它們再做成一條自訂
+   附加費,同一筆錢就會有兩個算法,而先中的那個是自訂的。所以這幾項不建議
+   新增,直接指去該填的那張表。 */
+const BUILTIN_HOME={
+  "Base Rate":               ["base",["基本費率表","Base rate table"]],
+  "Additional Handling Surcharge":["sur",["Surcharge Rates 的 AHS 卡","the AHS cards under Surcharge Rates"]],
+  "Oversize Fee":            ["sur",["Surcharge Rates 的 Oversize 卡","the Oversize card under Surcharge Rates"]],
+  "DAS Fee":                 ["sur",["Flat amounts 的 DAS","the DAS rows under Flat amounts"]],
+  "Residential Fee":         ["sur",["Flat amounts 的 Residential","the Residential row under Flat amounts"]],
+  "Signature Fee":           ["sur",["Flat amounts 的 Signature","the Signature rows under Flat amounts"]],
+  "Declared Value Fee":      ["sur",["保險附加費級距","the declared value tiers"]],
+  "General Demand Fee":      ["demand",["Demand Surcharge","Demand Surcharge"]],
+  "AHS Demand Fee":          ["demand",["Demand Surcharge","Demand Surcharge"]],
+  "Oversize Demand Fee":     ["demand",["Demand Surcharge","Demand Surcharge"]],
+  "Fuel Fee":                ["sur",["Fuel 卡","the Fuel card"]],
+};
+function csSeenList(){
+  const have=new Set();
+  for(const r of TBL.csur.rows){
+    const {disp,aliases}=csurEntry(r);
+    if(disp) have.add(normChargeDesc(disp));
+    for(const a of aliases) have.add(normChargeDesc(a));
+  }
+  const out={fresh:[],known:[]};
+  for(const f of ((LAST&&LAST.seenFees)||[])){
+    if(have.has(normChargeDesc(f.name))) continue;
+    const k=billedBucketOf(f.name);
+    if(BUILTIN_HOME[k]) out.known.push(Object.assign({key:k},f));
+    else out.fresh.push(f);
+  }
+  return out;
+}
+function renderCsSeen(){
+  const g=LAST?csSeenList():{fresh:[],known:[]};
+  const badge=$("csSeenBadge");
+  if(badge) badge.textContent=(LAST&&(g.fresh.length||g.known.length))
+    ? [g.fresh.length?L(g.fresh.length+" 個沒登記的費目",
+          g.fresh.length+" unregistered charge"+(g.fresh.length>1?"s":"")):"",
+       g.known.length?L(g.known.length+" 個等費率",
+          g.known.length+" awaiting a rate"):""].filter(Boolean).join(L("、",", "))
+    : "";
+  const host=$("csSeen"); if(!host) return;
+  if(!LAST){
+    host.innerHTML='<div class="note">'+L(
+      "還沒跑過重算。先在「Import Files」匯入帳單按 Reprice,這裡就會列出帳單上有而清單裡沒有的費目。",
+      "No run yet. Import an invoice under Import Files and press Reprice; the charges on it that are not in the list will show up here.")+"</div>";
+    return;
+  }
+  let h="";
+  if(g.fresh.length){
+    h+=g.fresh.map((f,i)=>'<div class="csseen">'
+      +'<span class="fl" title="'+esc(f.name)+'">'+esc(f.name)+"</span>"
+      +"<s>"+L(f.rows+" 筆",f.rows+(f.rows>1?" rows":" row"))+"</s>"
+      +"<b>"+money(f.total)+"</b>"
+      +'<button class="act ghost sm cs-use" data-i="'+i+'">'+L("填入","Use")+"</button>"
+      +"</div>").join("")
+      +'<p class="note">'+L(
+        "這些費目目前照原價轉嫁(帳單金額 + 燃油),沒有自己的欄位。按「填入」把名字帶到下面的表單,選好計費方式再新增。",
+        "These pass through at cost (invoice amount + fuel) with no column of their own. Press Use to carry the name into the form below, pick how to charge it, then add it.")
+      +"</p>";
+  }else{
+    h+='<div class="note">'+L("帳單上沒有還沒歸類的費目。",
+      "No unclassified charges on this invoice.")+"</div>";
+  }
+  if(g.known.length){
+    /* 這幾項不給「填入」—— 系統已經有對應功能,再做一條自訂附加費,同一筆錢
+       就有兩個算法。要它自己算,去填那張費率表。 */
+    h+='<div class="subhd" style="margin:12px 0 6px">'+L("系統已經有對應功能的費目",
+      "Charges the tool already prices itself")+"</div>"
+      +g.known.map((f,i)=>'<div class="csseen known">'
+        +'<span class="fl" title="'+esc(f.name)+'">'+esc(f.name)
+        +' <span class="arrow">→</span> '+esc(prLabel(f.key))+"</span>"
+        +"<s>"+L(f.rows+" 筆",f.rows+(f.rows>1?" rows":" row"))+"</s>"
+        +"<b>"+money(f.total)+"</b>"
+        +'<button class="act ghost sm cs-go" data-i="'+i+'">'+L("去設定","Set it up")+"</button>"
+        +"</div>").join("")
+      +'<p class="note">'+L(
+        "這幾項有自己的費率表,現在照原價轉嫁是因為那張表還沒填。把它們再登記成自訂附加費,同一筆錢就會有兩個算法 —— 所以這裡不給「填入」,按「去設定」到該填的地方。",
+        "These have rate tables of their own; they pass through at cost only because the table is still empty. Registering them as custom surcharges would give the same money two prices, so there is no Use button here — press Set it up to go where the rate belongs.")
+      +"</p>";
+  }
+  host.innerHTML=h;
+}
 function openCsurModal(){
   $("csName").value=""; $("csAlias").value=""; $("csFee").value="0";
   fillSelect("csType",CSUR_TYPES.map(([v,lab])=>[v,lab[LANG]]),"reprice");
-  renderCsur();
+  renderCsur(); renderCsSeen();
   $("csurBg").style.display="flex";
   $("csName").focus();
 }
@@ -6213,7 +6315,7 @@ function wireCsur(){
       L("請確認費率欄位。","Please check the rate field.")); return; }
     const alias=$("csAlias").value.trim()||name;
     TBL.csur.rows.push([name,alias,fee,$("csType").value||"reprice"]);
-    renderCsur(); renderFlat(); markDirty();
+    renderCsur(); renderCsSeen(); renderFlat(); markDirty();
     $("csName").value=""; $("csAlias").value=""; $("csFee").value="0"; $("csName").focus();
     toast(L("已新增費目:"+name,"Surcharge added: "+name));
   });
@@ -6230,10 +6332,31 @@ function wireCsur(){
     else return;
     markDirty();
   });
+  if($("csSeen")) $("csSeen").addEventListener("click",e=>{
+    const go=e.target.closest("button.cs-go");
+    if(go){
+      const k=(csSeenList().known[+go.dataset.i]||{}).key;
+      const home=BUILTIN_HOME[k]; if(!home) return;
+      closeCsurModal();
+      switchPage(home[0]);
+      toast(L("費率在"+home[1][0]+"。填好之後這一筆就由我們自己算,不再照原價轉嫁。",
+              "The rate lives in "+home[1][1]
+              +". Fill it in and this charge is priced by us instead of passed through."));
+      return;
+    }
+    const b=e.target.closest("button.cs-use"); if(!b) return;
+    const f=csSeenList().fresh[+b.dataset.i]; if(!f) return;
+    $("csName").value=f.name; $("csAlias").value=f.name;
+    $("csType").value="invoice"; $("csFee").value="0";
+    $("csFee").disabled=false;
+    $("csName").focus();
+    toast(L("已帶入「"+f.name+"」—— 選好計費方式再按新增",
+            "'"+f.name+"' filled in — pick how to charge it, then press Add"));
+  });
   if($("tCsur")) $("tCsur").addEventListener("click",e=>{
     const b=e.target.closest("button.cs-del"); if(!b) return;
     TBL.csur.rows.splice(+b.dataset.i,1);
-    renderCsur(); markDirty();
+    renderCsur(); renderCsSeen(); renderFlat(); markDirty();
   });
 }
 
@@ -6612,20 +6735,29 @@ async function exportIssues(){
      永遠不會被發現,而那正是要拿這份檔案來找的東西。
      這張表涵蓋帳單上的每一種費用 —— 運費、燃油、附加費、帳單上有而我們沒登記
      的稅費報關費都算 —— 所以有 Group 欄講明每一列是哪一類,不然「基本運費」
-     擺在一張叫附加費的表上會讓人以為歸類歸錯了。 ---- */
+     擺在一張叫附加費的表上會讓人以為歸類歸錯了。
+     Group 有五種:Freight(基本運費)、Fuel(燃油)、Surcharge(內建的附加費)、
+     Custom surcharge(自己加的)、Unregistered(帳單上有而目錄裡沒有的,照原價
+     轉嫁)。 ---- */
   const SURCH=new Set(["Additional Handling Surcharge","DAS Fee","Oversize Fee",
     "Residential Fee","Signature Fee","Declared Value Fee",
     "General Demand Fee","AHS Demand Fee","Oversize Demand Fee"]);
   const custom=new Set((LAST.customCols)||[]);
+  /* 內建的十一種費用有自己的費率表,兩邊差多少看數字就好。掛一句「billed but
+     repriced to 0」只是把「這張費率表還沒填」講成一件錯事,而且十一列講十一
+     次 —— 真正需要一句話的是沒登記的那些:帳單上有,我們的目錄裡查不到。 */
+  const builtin=new Set(PR_ORDER);
   const groupOf=k=>k==="Base Rate"?"Freight"
     :k==="Fuel Fee"?"Fuel"
     :SURCH.has(k)?"Surcharge"
     :custom.has(k)?"Custom surcharge"
-    :"Pass-through";
+    :"Unregistered";
   const d3=[head(["Charge","Group","FedEx Billed","Repriced","Difference","Note"])];
   for(const k of seen){
     const uv=r2(toFloat(bAll0[k],0)), rv=r2(toFloat(rAll0[k],0));
-    const note=(uv!==0&&rv===0)?"billed but repriced to 0"
+    const note=builtin.has(k)?""
+             :!custom.has(k)?"not registered — add it under Custom Surcharges to set your own rate"
+             :(uv!==0&&rv===0)?"billed but repriced to 0"
              :(uv===0&&rv!==0)?"repriced but not on the invoice"
              :(uv===0&&rv===0)?"did not appear this period":"";
     d3.push([{v:prLabelEn(k),t:"s"},{v:groupOf(k),t:"s"},
@@ -6729,6 +6861,8 @@ async function runRepricing(){
     LAST={results,warnings,infos,accountRows,seenFees,customCols,
           billedBuckets,repricedBuckets,issues};
     renderResults();
+    /* 這一期哪些費目還沒登記,跑完就知道了 —— 自訂附加費那顆鈕旁邊直接寫著。 */
+    renderCsSeen();
     await exportResultWorkbook(results,customCols);
     const done=L("完成:已處理 "+results.length+" 筆,repriced_result.xlsx 已下載。",
       "Done — "+results.length+" shipment(s) processed; repriced_result.xlsx downloaded.");
@@ -7333,6 +7467,7 @@ function renderAll(){
   renderFuel();
   renderChannels();
   renderCsur();
+  renderCsSeen();
   refreshServiceSelects();
   renderBaseTable();
   renderAcc();
