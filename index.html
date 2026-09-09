@@ -484,50 +484,13 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
 /* =====================================================================
    第 3 頁 基本費率:表格接管整頁高度,格子就是輸入框,聚焦有餘燼光
    ===================================================================== */
-#p-base.on{display:flex;flex-direction:column;height:100%}
-.chCard>h3{align-items:baseline}
-.chcount{font:600 11px "JetBrains Mono",Consolas,monospace;color:var(--muted);letter-spacing:.04em}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
-.chip{display:inline-flex;align-items:center;gap:9px;padding:6px 7px 6px 13px;
-  border-radius:999px;line-height:1.15;white-space:nowrap;
-  background:color-mix(in srgb,var(--accent) 7%,var(--panel));
-  border:1.5px solid color-mix(in srgb,var(--accent) 24%,var(--line));
-  box-shadow:0 1px 2px rgb(var(--shadow-ink)/.06)}
-.chip b{font:700 12.5px var(--hand);color:var(--head)}
-.chip .zs{font:600 10.5px "JetBrains Mono",Consolas,monospace;color:var(--muted);
-  padding:1px 7px;border-radius:999px;background:color-mix(in srgb,var(--head) 7%,transparent)}
-.chip .chx{flex:none;width:19px;height:19px;display:grid;place-items:center;
-  border:none;border-radius:50%;background:transparent;color:var(--muted);
-  font:600 11px var(--hand);cursor:pointer;padding:0;transition:.14s}
-.chip .chx:hover{background:color-mix(in srgb,var(--neg) 15%,transparent);color:var(--neg)}
-.chip.add{cursor:pointer;background:transparent;border-style:dashed;
-  border-color:color-mix(in srgb,var(--accent) 45%,transparent);
-  padding:6px 15px;font:700 12.5px var(--hand);color:var(--accent);gap:6px;box-shadow:none}
-.chip.add:hover{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+/* Channels 頁:一般流排版,四張卡各自照內容長高;費率表自己捲動 */
 #tChan .tag{font:600 9.5px var(--hand);letter-spacing:.06em;color:var(--muted);
   padding:1px 6px;border-radius:999px;border:1px solid var(--line)}
 #tChan tr.off td{opacity:.45}
 #tChan .zonecell{font:600 11.5px "JetBrains Mono",Consolas,monospace;color:var(--muted)}
-.chip.def{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
-.chip.restore{cursor:pointer;background:transparent;border-style:dashed;
-  border-color:var(--line);color:var(--muted);padding:6px 14px;
-  font:600 12px var(--hand);box-shadow:none}
-.chip.restore:hover{color:var(--head);border-color:color-mix(in srgb,var(--head) 30%,transparent)}
-.chip.add .plus{font-size:13px;line-height:1}
-#p-base .lf{display:flex;flex-direction:column;flex:1;min-height:0;
-  margin-bottom:0;padding:0;overflow:hidden}
-#p-base .lf>h3{margin:0;padding:16px 22px 0}
-#p-base .chCard{flex:none;display:block;padding:14px 18px}
-#p-base .chCard>h3{margin:0 0 2px;padding:0;display:flex;gap:10px}
-#p-base .chCard>.note{margin:0}
-#p-base .lf>.row{margin:0 !important;padding:14px 22px;
-  border-bottom:1px solid var(--line);background:var(--panel)}
-#p-base .hint{margin:0;padding:10px 22px}
-#p-base .lf>.row .act.sm{height:34px;padding:0 16px;font-size:13px;border-radius:10px}
-#p-base .tablewrap{flex:1 1 auto;min-height:0;max-height:none !important;
-  border-radius:0}
-#baseCount{margin:0;padding:10px 22px;border-top:1px solid var(--line);
-  border-left:none;font:500 11.5px "JetBrains Mono",Consolas,monospace;
+#p-base .grid3{align-items:center}
+#baseCount{margin:10px 0 0;font:500 11.5px "JetBrains Mono",Consolas,monospace;
   color:var(--muted)}
 #tBase td,#tBase th{padding-top:3px;padding-bottom:3px}
 #tBase th.num{padding-right:19px}
@@ -714,11 +677,11 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   </div>
 
   <div class="lf sketch filesCard">
-    <h3 class="display"><span class="em">📁</span><span data-i18n="hd.files">FedEx 帳單檔案</span></h3>
+    <h3 class="display"><span class="em">📁</span><span data-i18n="hd.files">Import Files</span></h3>
     <div class="grid3">
-      <label data-i18n="lb.inv">帳單 / 費用資料</label>
+      <label data-i18n="lb.inv">FedEx Billing File</label>
       <input id="pathInv" readonly>
-      <button class="act ghost" id="bInv" data-i18n="btn.browse">選擇檔案</button>
+      <button class="act ghost" id="bInv" data-i18n="btn.browse">Browse</button>
       <input type="file" id="fInv" accept=".csv,.xlsx,.xls">
     </div>
     <p class="hint" id="invNote" style="margin-top:8px"></p>
@@ -791,8 +754,8 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 <!-- ==================== 計價規則 ==================== -->
 <section class="page" id="p-rules">
   <div class="lf sketch coreBar">
-    <h3 class="display"><span class="em">⚙️</span><span data-i18n="hd.core">核心參數</span></h3>
-    <label class="inlab" style="margin-left:0" data-i18n="lb.dim">DIM 除數</label>
+    <h3 class="display"><span class="em">⚙️</span><span data-i18n="hd.core">DIM Factor</span></h3>
+    <label class="inlab" style="margin-left:0" data-i18n="lb.dim">Default DIM factor</label>
     <input class="cell num" id="inDim" list="dimList" style="width:86px">
     <datalist id="dimList"><option value="139"><option value="166"></datalist>
     <p class="note" data-i18n="hint.core">DIM 重 = 長×寬×高 ÷ DIM 除數(無條件進位)。燃油費率請到「燃油附加費」頁設定。</p>
@@ -800,7 +763,8 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 
 
   <div class="lf sketch">
-    <h3 class="display"><span class="em">📦</span><span data-i18n="hd.oversize">Oversize 門檻</span></h3>
+    <h3 class="display"><span class="em">📏</span><span data-i18n="hd.oversize">Rules in Force</span></h3>
+    <div class="subhd" style="margin-top:0" data-i18n="hd.osrules">📦 Oversize</div>
     <div class="row" style="gap:9px 26px">
       <span class="row" style="gap:8px"><label class="chk"><input type="checkbox" id="chkOsLongest"><span data-i18n="lb.oslongest">最長邊 (in)</span></label><input class="cell num" id="inOsLongest"></span>
       <span class="row" style="gap:8px"><label class="chk"><input type="checkbox" id="chkOsWeight"><span data-i18n="lb.osweight">實重 (lb)</span></label><input class="cell num" id="inOsWeight"></span>
@@ -815,7 +779,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   </div>
 
   <div class="lf sketch">
-    <h3 class="display"><span class="em">⚖️</span><span data-i18n="hd.ahs">AHS 門檻(Additional Handling)</span></h3>
+    <h3 class="display"><span class="em">⚖️</span><span data-i18n="hd.ahs">Additional Handling</span></h3>
     <div class="row" style="gap:9px 26px">
       <span class="row" style="gap:8px"><label class="inlab" style="margin-left:0" data-i18n="lb.ahswt">重量門檻 (lb)</label><input class="cell num" id="inAhsWt"></span>
       <span class="row" style="gap:8px"><label class="inlab" style="margin-left:0" data-i18n="lb.ahslg">長 + 圍長上限 (in)</label><input class="cell num" id="inAhsLg"></span>
@@ -897,27 +861,27 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 <!-- ==================== 附加費(含燃油,照 UPS 版式) ==================== -->
 <section class="page" id="p-sur">
   <div class="lf sketch fuelBar">
-    <h3 class="display"><span class="em">⛽</span><span data-i18n="hd.fuelcard">燃油</span></h3>
+    <h3 class="display"><span class="em">⛽</span><span data-i18n="hd.fuelcard">Fuel</span></h3>
     <dl class="kv" id="fuelKV"></dl>
     <div class="row" style="margin-left:auto">
-      <button class="act sm" id="bSetFuel" data-i18n="btn.setfuel">設定燃油費率</button>
+      <button class="act sm" id="bSetFuel" data-i18n="btn.setfuel">Set Fuel Percentage</button>
       <a class="act alt sm" id="bFuelLookup" href="https://www.fedex.com/en-us/shipping/fuel-surcharge.html"
-         target="_blank" rel="noopener" data-i18n="btn.fuellookup">查詢燃油百分比</a>
+         target="_blank" rel="noopener" data-i18n="btn.fuellookup">Look Up FedEx Fuel Percentage</a>
     </div>
   </div>
 
   <div class="lf sketch">
-    <h3 class="display"><span class="em">➕</span><span data-i18n="hd.csur">自訂附加費</span></h3>
+    <h3 class="display"><span class="em">➕</span><span data-i18n="hd.csur">Custom Surcharges</span></h3>
     <div class="tablewrap" style="max-height:230px">
       <table id="tCsur"><thead></thead><tbody></tbody></table>
     </div>
     <div class="row" style="margin-top:8px">
-      <button class="act sm" id="bCsurAdd" data-i18n="btn.csuradd">新增費目</button>
+      <button class="act sm" id="bCsurAdd" data-i18n="btn.csuradd">Custom Surcharges…</button>
     </div>
     <p class="note" data-i18n="hint.csur">費目名稱與帳單 Charge Description 比對(不分大小寫、包含即符合)。費率 0 = 先登記、金額照原帳單轉嫁;填費率後改收自訂費率,並在結果 Excel 獨立一欄。</p>
   </div>
   <div class="lf sketch">
-    <h3 class="display"><span class="em">🎠</span><span data-i18n="hd.zonestudio">Zone 費率工作室</span></h3>
+    <h3 class="display"><span class="em">🎠</span><span data-i18n="hd.zonestudio">Surcharge Rates</span></h3>
     <div class="subtabs" id="surTabs" style="margin-top:12px">
       <button data-s="ahs"  aria-selected="true"  data-i18n="st.ahs">AHS</button>
       <button data-s="das"  aria-selected="false" data-i18n="st.das">DAS</button>
@@ -1046,7 +1010,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
         <div class="subpane on" id="dpane-g">
           <div class="tablewrap" style="max-height:38vh;margin-top:10px"><table id="tDem-g"><thead></thead><tbody></tbody></table></div>
           <div class="row" style="margin-top:9px">
-            <button class="act ghost sm" id="bDemAdd-g" data-i18n="btn.demadd">＋ 新增期間</button>
+            <button class="act ghost sm" id="bDemAdd-g" data-i18n="btn.demadd">Add period</button>
             <span style="flex:1 1 auto"></span>
             <span class="tplgrp">
               <button class="act ghost sm" id="bDemExp-g" data-i18n="btn.tplexp">匯出範本</button>
@@ -1058,7 +1022,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
         <div class="subpane" id="dpane-a">
           <div class="tablewrap" style="max-height:38vh;margin-top:10px"><table id="tDem-a"><thead></thead><tbody></tbody></table></div>
           <div class="row" style="margin-top:9px">
-            <button class="act ghost sm" id="bDemAdd-a" data-i18n="btn.demadd">＋ 新增期間</button>
+            <button class="act ghost sm" id="bDemAdd-a" data-i18n="btn.demadd">Add period</button>
             <span style="flex:1 1 auto"></span>
             <span class="tplgrp">
               <button class="act ghost sm" id="bDemExp-a" data-i18n="btn.tplexp">匯出範本</button>
@@ -1070,7 +1034,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
         <div class="subpane" id="dpane-o">
           <div class="tablewrap" style="max-height:38vh;margin-top:10px"><table id="tDem-o"><thead></thead><tbody></tbody></table></div>
           <div class="row" style="margin-top:9px">
-            <button class="act ghost sm" id="bDemAdd-o" data-i18n="btn.demadd">＋ 新增期間</button>
+            <button class="act ghost sm" id="bDemAdd-o" data-i18n="btn.demadd">Add period</button>
             <span style="flex:1 1 auto"></span>
             <span class="tplgrp">
               <button class="act ghost sm" id="bDemExp-o" data-i18n="btn.tplexp">匯出範本</button>
@@ -1107,7 +1071,8 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 <!-- ==================== Settings ==================== -->
 <section class="page" id="p-settings">
   <div class="lf sketch">
-    <h3 class="display"><span class="em">💾</span><span data-i18n="hd.cfg">費率設定檔</span></h3>
+    <h3 class="display"><span class="em">⚙️</span><span data-i18n="hd.setting">Settings</span></h3>
+    <div class="subhd" style="margin-top:0" data-i18n="hd.cfgfile">📄 Rate Configuration File</div>
     <p class="hint" style="margin-top:10px" data-i18n="hint.cfg">與桌面版 billing_tool_config.json 完全互通;網頁上的改動會自動存在這個瀏覽器。</p>
     <div class="row">
       <button class="act ghost sm" id="bCfgLoad" data-i18n="btn.cfgload">載入設定 JSON</button>
@@ -1116,6 +1081,11 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <button class="act danger sm" id="bCfgReset" data-i18n="btn.cfgreset">還原預設值</button>
       <button class="act ghost sm" id="bSample" data-i18n="btn.sample">下載帳單範例</button>
       <span id="cfgNote" class="savenote"></span>
+    </div>
+    <div class="subhd" data-i18n="hd.chanpol">🚚 Channel &amp; Zone Policy</div>
+    <p class="hint" data-i18n="hint.chanpol">渠道清單、每個渠道的 Zone 與啟用狀態都在 Channels 頁管理;那裡的「從帳單掃描 Zone」會用實際帳單把 Zone 補齊。</p>
+    <div class="row">
+      <button class="act ghost sm" id="bGoChan" data-i18n="btn.gochan">Open Channels page</button>
     </div>
   </div>
 </section>
@@ -1291,9 +1261,9 @@ const I18N={
  "tab.dash":["Dashboard","Dashboard"],
  "hd.demand":["Demand Surcharge","Demand Surcharge"],
  "tab.run":["重新計價","Reprice & Review"],
- "hd.files":["FedEx 帳單檔案","FedEx Billing File"],
- "lb.inv":["帳單 / 費用資料","Billing / invoice data"],
- "btn.browse":["選擇檔案","Browse"],
+ "hd.files":["Import Files","Import Files"],
+ "lb.inv":["FedEx Billing File","FedEx Billing File"],
+ "btn.browse":["Browse","Browse"],
  "btn.run":["Reprice","Reprice"],
  "btn.statement":["Statement","Statement"],
  "hd.channels":["渠道","Channels"],
@@ -1324,18 +1294,24 @@ const I18N={
    "Zones this channel uses (comma-separated; 2–9 and 17 supported, matching the desktop config). AHS/DAS/Oversize seed only the chosen zones; the base rate table is created in full. Invoice service names containing the channel name map to it."],
  "hint.channels":["✕ 可移除用不到的渠道(標「預設」的 FedEx 官方渠道也能移除,費率表列會保留,按「還原預設渠道」可補回)。新增渠道會依所選 Zone 長出 0 費率列,在下方基本費率表與附加費頁填數字;帳單服務名稱包含渠道名即歸入該渠道。",
    "Use ✕ to drop channels you do not ship (FedEx presets included — their rate rows stay, and Restore presets brings them back). Adding a channel seeds zero-rate rows for the zones you pick; fill them in the base rate table below and on the Surcharge pages. Invoice service names containing a channel name map to it."],
- "hd.csur":["自訂附加費","Custom Surcharges"],
+ "hd.csur":["Custom Surcharges","Custom Surcharges"],
  "hd.csuradd":["新增自訂附加費","Add Custom Surcharge"],
  "lb.csname":["表頭名稱","Display name"],
  "lb.csalias":["帳單費目名稱","Invoice charge names"],
  "lb.csfee":["費率","Rate"],
  "hint.csmodal":["帳單費目名稱可填多個(用,分隔),任一出現即符合;表頭名稱是報表欄位名。費率 0 = 先登記、金額照原帳單轉嫁。",
    "List one or more invoice charge names (comma-separated) — any match counts; the display name becomes the report column. Rate 0 = registered only; original amounts pass through."],
- "btn.csuradd":["新增費目","Add surcharge"],
+ "btn.csuradd":["Custom Surcharges…","Custom Surcharges…"],
  "hint.csur":["帳單費目名稱可填多個別名(,分隔),任一出現即符合;表頭名稱是結果 Excel 的欄位名。費率 0 = 先登記、照原帳單轉嫁;填費率後改收自訂費率並獨立一欄。",
    "Invoice charge names accept multiple aliases (comma-separated) — any match counts; the display name is the workbook column. Rate 0 = registered only (passthrough); set a rate to charge it with its own column."],
  "hd.new":["本期新出現","New This Period"],
  "hd.cfg":["費率設定檔","Rate Configuration"],
+ "hd.setting":["Settings","Settings"],
+ "hd.cfgfile":["📄 Rate Configuration File","📄 Rate Configuration File"],
+ "hd.chanpol":["🚚 Channel & Zone Policy","🚚 Channel & Zone Policy"],
+ "btn.gochan":["Open Channels page","Open Channels page"],
+ "hint.chanpol":["渠道清單、每個渠道的 Zone 與啟用狀態都在 Channels 頁管理;那裡的「從帳單掃描 Zone」會用實際帳單把 Zone 補齊。",
+   "Channels, their zones and enabled state live on the Channels page; Scan zones from invoice there fills zones in from a real invoice."],
  "hint.cfg":["與桌面版 billing_tool_config.json 完全互通;網頁上的改動會自動存在這個瀏覽器。",
    "Fully interchangeable with the desktop billing_tool_config.json; edits auto-save in this browser."],
  "btn.cfgload":["載入設定 JSON","Load config JSON"],
@@ -1345,14 +1321,14 @@ const I18N={
  "hint.start":["第一次用?先下載帳單範例,確認欄位格式,再匯入正式帳單。",
    "New to the tool? Download the billing sample to confirm the required columns before importing live data."],
  "btn.sample":["下載帳單範例","Download billing sample"],
- "hd.core":["核心參數","Core Calculations"],
- "lb.dim":["DIM 除數","DIM factor"],
+ "hd.core":["DIM Factor","DIM Factor"],
+ "lb.dim":["Default DIM factor","Default DIM factor"],
  "lb.fuel":["燃油附加費 (%)","Fuel surcharge (%)"],
  "hint.core":["DIM 重 = 長×寬×高 ÷ DIM 除數(無條件進位)。燃油費率請到「燃油附加費」頁設定。",
    "DIM weight = L×W×H ÷ DIM factor, rounded up. Set the fuel rate on the Fuel Surcharge page."],
  "tab.fuel":["燃油附加費","Fuel Surcharge"],
- "hd.fuelcard":["燃油","Fuel"],
- "btn.setfuel":["設定燃油費率","Set Fuel Percentage"],
+ "hd.fuelcard":["Fuel","Fuel"],
+ "btn.setfuel":["Set Fuel Percentage","Set Fuel Percentage"],
  "hd.fuelsetup":["燃油設定","Fuel Setup"],
  "lb.deffuel":["預設燃油 %","Default Fuel %"],
  "hd.newrange":["新增燃油區間","New Fuel Range"],
@@ -1377,7 +1353,7 @@ const I18N={
  "hd.fuellookup":["查 FedEx 官方燃油費率","Look Up FedEx's Official Rate"],
  "hint.fuellookup":["FedEx 每週依 EIA 燃料價格指數更新 Ground 燃油附加費。開官方頁面查最新百分比,回來填進左邊即可。",
    "FedEx updates the Ground fuel surcharge weekly from the EIA fuel price index. Open the official page, read the latest percentage, and enter it on the left."],
- "btn.fuellookup":["查詢燃油百分比","Look up fuel %"],
+ "btn.fuellookup":["Look Up FedEx Fuel Percentage","Look Up FedEx Fuel Percentage"],
  "hint.fuellookup2":["FedEx 每週更新;查到最新百分比填進上面即可。","FedEx updates weekly; enter the latest percentage above."],
  "hd.fuelperiods":["按日期區間的費率(選填)","Rates by Date Range (optional)"],
  "hint.fuelperiods":["出貨日落在區間內,就用該區間的費率;沒設定或沒命中時,用上面的預設費率。區間重疊時取開始日最新的一筆。",
@@ -1389,7 +1365,8 @@ const I18N={
  "lb.fcbase":["費用小計","Charge subtotal"],
  "lb.fcfee":["燃油","Fuel"],
  "lb.fctotal":["合計","Total"],
- "hd.oversize":["Oversize 門檻","Oversize Thresholds"],
+ "hd.oversize":["Rules in Force","Rules in Force"],
+ "hd.osrules":["📦 Oversize","📦 Oversize"],
  "lb.oslongest":["最長邊 (in)","Longest side (in)"],
  "lb.osweight":["實重 (lb)","Actual weight (lb)"],
  "lb.oscubic":["體積 (in³)","Cubic inches"],
@@ -1397,7 +1374,7 @@ const I18N={
  "lb.osminwt":["Oversize 最低計費重 (lb)","Oversize minimum billable weight (lb)"],
  "hint.oversize":["勾選的條件任一成立即判為 Oversize:收 Oversize 費、壓最低計費重、並停收 AHS。",
    "Any enabled condition marks the shipment Oversize: the oversize fee applies, minimum billable weight kicks in, and AHS is suppressed."],
- "hd.ahs":["AHS 門檻(Additional Handling)","AHS Thresholds (Additional Handling)"],
+ "hd.ahs":["Additional Handling","Additional Handling"],
  "lb.ahswt":["重量門檻 (lb)","Weight threshold (lb)"],
  "lb.ahslg":["長 + 圍長上限 (in)","Length + girth limit (in)"],
  "lb.ahslongest":["最長邊 (in)","Longest side (in)"],
@@ -1413,7 +1390,7 @@ const I18N={
  "btn.baseclear":["此服務全部歸零","Zero this service"],
  "hint.base":["1–150 lb × 每個 Zone 的費率。可直接在格子裡改,或匯出範本到 Excel 填好再匯入(匯入只取代範本裡出現的服務)。",
    "1–150 lb by zone. Edit cells directly, or export the template, fill it in Excel, and import it back (import replaces only the services present in the file)."],
- "hd.zonestudio":["Zone 費率工作室","Zone Rate Studio"],
+ "hd.zonestudio":["Surcharge Rates","Surcharge Rates"],
  "st.ahs":["AHS","AHS"],"st.das":["DAS","DAS"],"st.os":["Oversize","Oversize"],
  "st.resi":["Residential","Residential"],"st.sig":["Signature","Signature"],
  "st.dem":["Demand 期間費","Demand periods"],
@@ -1433,7 +1410,7 @@ const I18N={
  "dt.g":["一般 Demand","General demand"],
  "dt.a":["AHS Demand","AHS demand"],
  "dt.o":["Oversize Demand","Oversize demand"],
- "btn.demadd":["＋ 新增期間","+ Add period"],
+ "btn.demadd":["Add period","Add period"],
  "hd.run":["執行","Run"],
  "st.ready":["就緒 — 選好帳單、檢查費率,然後執行。","Ready — pick a billing file, review rates, then run."],
  "hint.runsum":["成功執行後,下方會出現統計與逐筆預覽。","After a successful run the summary and per-shipment preview appear below."],
@@ -3816,6 +3793,7 @@ function wireFiles(){
     await exportBillingSample();
     toast(L("帳單範例已下載","Billing sample downloaded"));
   });
+  $("bGoChan").addEventListener("click",()=>switchPage("base"));
   $("bCfgLoad").addEventListener("click",()=>$("fCfg").click());
   $("fCfg").addEventListener("change",async e=>{
     const f=e.target.files[0]; e.target.value="";
