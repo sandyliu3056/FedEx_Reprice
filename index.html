@@ -697,6 +697,36 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   *{transition:none!important}
   button.act{transform:none!important}
 }
+
+/* Soft, rounded delivery-town animation. */
+.scene{overflow:hidden;border-radius:20px;background:linear-gradient(180deg,#f4edfc,#fff7eb)}
+.scene .bld{fill:#eadcf5;stroke:#b7a3c8;rx:9px}
+.scene .bld2{fill:#f7e1cb}.scene .bld3{fill:#deebe3}
+.scene .a1{fill:#bba0d6}.scene .a2{fill:#f0b47f}
+.scene .road{fill:#aaa0b8}.scene .sidewalk{fill:#eee2d8}
+.scene .cloud{fill:#fff;opacity:.85}.scene .glass{fill:#a6c8dc}
+.scene .truckride{transform:translateX(480px)}
+.scene .walkR{transform:translateX(240px)}.scene .walkL{transform:translateX(900px)}
+.scene .pet-tail{transform-box:fill-box;transform-origin:70% 90%}
+.scene .pet-eyes{transform-box:fill-box;transform-origin:center}
+@media(prefers-reduced-motion:no-preference){
+  .scene .truckride{animation:sc-cute-drive 24s linear infinite;animation-delay:-10s}
+  .scene .bob{animation-duration:.85s}
+  .scene .neon{animation:sc-soft-glow 4s ease-in-out infinite}
+  .scene .pet-bounce{animation:sc-pet-bounce 3s ease-in-out infinite}
+  .scene .pet-cat{animation-delay:-1.5s}
+  .scene .pet-tail{animation:sc-pet-tail 1.4s ease-in-out infinite alternate}
+  .scene .pet-eyes{animation:sc-blink 5.6s infinite}
+  .scene .pet-cat .pet-eyes{animation-delay:-2s}
+  @keyframes sc-cute-drive{0%{transform:translateX(-210px)}42%,55%{transform:translateX(500px)}100%{transform:translateX(1230px)}}
+  @keyframes sc-soft-glow{0%,100%{opacity:1}50%{opacity:.7}}
+  @keyframes sc-pet-bounce{0%,65%,100%{transform:translateY(0)}75%,90%{transform:translateY(-3px)}82%{transform:translateY(0)}}
+  @keyframes sc-pet-tail{from{transform:rotate(-9deg)}to{transform:rotate(12deg)}}
+  @keyframes sc-blink{0%,43%,47%,100%{transform:scaleY(1)}45%{transform:scaleY(.08)}}
+}
+@media(max-width:640px){.scene svg{width:760px;max-width:none;position:relative;left:50%;transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.scene *{animation:none!important}}
+
 </style>
 </head>
 <body>
@@ -870,9 +900,37 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <g><line class="lamp" x1="940" y1="136" x2="940" y2="94"/><circle class="lamphead" cx="940" cy="91" r="4"/></g>
     <rect class="sidewalk" x="0" y="136" width="1200" height="10"/>
     <line class="curb" x1="0" y1="146" x2="1200" y2="146"/>
-    <g class="walkR"><g class="step"><circle class="walk" cx="0" cy="119" r="4.4"/><rect class="walk" x="-3.4" y="123" width="6.8" height="12" rx="3"/></g>
-      <g class="tailwag" style="animation-delay:.1s"><ellipse class="dog" cx="-15" cy="130" rx="6" ry="4"/><circle class="dog" cx="-8.5" cy="127" r="2.8"/><rect class="dog" x="-21" y="126" width="4" height="2.4" rx="1.2"/></g></g>
-    <g class="walkL"><g class="step" style="animation-delay:.25s"><circle class="walk" cx="0" cy="120" r="4"/><rect class="walk" x="-3" y="124" width="6" height="11" rx="3"/></g></g>
+    <!-- Rounded corgi and ragdoll companions; animation stays inside the decorative SVG. -->
+    <g transform="translate(330 138)"><g class="pet-bounce">
+      <ellipse fill="#76548a" opacity=".12" cx="0" cy="1" rx="24" ry="3"/>
+      <g class="pet-tail"><path d="M-16 -14 Q-32 -30 -28 -14 Q-26 -7 -17 -8" fill="#eeb570"/></g>
+      <ellipse fill="#eeb570" cx="-3" cy="-13" rx="20" ry="13"/>
+      <rect fill="#fff5df" x="-17" y="-8" width="8" height="9" rx="4"/><rect fill="#fff5df" x="6" y="-8" width="8" height="9" rx="4"/>
+      <path fill="#eeb570" d="M-7 -24 L-8 -43 Q-7 -47 -3 -43 L6 -33 L16 -44 Q20 -47 21 -41 L23 -24Z"/>
+      <path fill="#efacb8" d="M-4 -39 L-3 -30 L3 -32Z M17 -39 L12 -32 L19 -30Z"/>
+      <ellipse fill="#eeb570" cx="8" cy="-23" rx="18" ry="15"/>
+      <path fill="#fff7e8" d="M7 -37 Q1 -27 2 -23 Q-9 -22 -5 -14 Q8 -4 21 -14 Q25 -22 13 -23Z"/>
+      <g class="pet-eyes" fill="#503657"><ellipse cx="0" cy="-24" rx="2" ry="2.8"/><ellipse cx="17" cy="-24" rx="2" ry="2.8"/></g>
+      <ellipse fill="#503657" cx="8.5" cy="-18" rx="2.7" ry="2"/>
+      <path d="M5 -13 Q8.5 -9 12 -13" fill="none" stroke="#503657" stroke-width="1.5" stroke-linecap="round"/>
+      <ellipse fill="#efb4b8" cx="-5" cy="-19" rx="3.5" ry="2"/><ellipse fill="#efb4b8" cx="23" cy="-19" rx="3.5" ry="2"/>
+      <path fill="#9674bd" d="M-4 -9 L18 -9 L8 -2Z"/>
+    </g></g>
+    <g transform="translate(840 138)"><g class="pet-bounce pet-cat">
+      <ellipse fill="#76548a" opacity=".12" cx="0" cy="1" rx="23" ry="3"/>
+      <g class="pet-tail"><path d="M14 -10 Q34 -12 28 -28 Q24 -35 20 -27 Q30 -16 10 -18" fill="#ac9bbb"/></g>
+      <ellipse fill="#fff8ee" cx="0" cy="-15" rx="17" ry="16"/>
+      <path fill="#ac9bbb" d="M-17 -23 L-17 -43 Q-16 -46 -12 -42 L-4 -35 L7 -35 L16 -43 Q19 -45 19 -40 L18 -21Z"/>
+      <path fill="#e9b7c2" d="M-14 -39 L-13 -30 L-6 -33Z M15 -39 L8 -33 L16 -30Z"/>
+      <ellipse fill="#fff8ee" cx="1" cy="-25" rx="19" ry="15"/>
+      <path fill="#ac9bbb" d="M-17 -30 Q-8 -42 0 -34 L-4 -20 Q-13 -16 -17 -24Z M19 -30 Q11 -42 2 -34 L6 -20 Q15 -16 19 -24Z"/>
+      <g class="pet-eyes" fill="#568aa8"><ellipse cx="-8" cy="-26" rx="2.5" ry="3"/><ellipse cx="10" cy="-26" rx="2.5" ry="3"/></g>
+      <path fill="#d696a5" d="M-2 -21 L4 -21 L1 -18Z"/>
+      <path d="M-4 -16 Q-1 -13 1 -17 Q4 -13 7 -16" fill="none" stroke="#66506c" stroke-width="1.2" stroke-linecap="round"/>
+      <ellipse fill="#f0c3c7" cx="-12" cy="-20" rx="3" ry="1.7"/><ellipse fill="#f0c3c7" cx="14" cy="-20" rx="3" ry="1.7"/>
+      <rect fill="#e4dce9" x="-11" y="-6" width="9" height="7" rx="3.5"/><rect fill="#e4dce9" x="3" y="-6" width="9" height="7" rx="3.5"/>
+      <path fill="#eeb570" d="M-8 -10 L8 -10 L1 -3Z"/>
+    </g></g>
 
     <!-- 馬路 + 斑馬線 -->
     <rect class="road" x="0" y="146" width="1200" height="36"/>
