@@ -425,18 +425,17 @@ details.dettbl td:nth-last-child(-n+2):not(.empty){
 /* =====================================================================
    燃油附加費頁:大字費率儀表 + 預設值 + 官方查詢 + 快速試算
    ===================================================================== */
-#p-fuel.on{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;align-items:stretch}
+#p-fuel.on{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;align-items:start}
 #p-fuel .lf{margin-bottom:0}
-#fuelHeroCard{grid-row:span 2;display:flex;flex-direction:column;justify-content:center}
-@media(max-width:1100px){#p-fuel.on{grid-template-columns:1fr}#fuelHeroCard{grid-row:auto}}
+@media(max-width:1100px){#p-fuel.on{grid-template-columns:1fr}}
 .fuelbig{display:flex;align-items:baseline;gap:6px;margin:6px 0 4px}
-.fuelbig #fuelBig{font:700 92px "JetBrains Mono",Consolas,monospace;
+.fuelbig #fuelBig{font:700 48px "JetBrains Mono",Consolas,monospace;
   font-variant-numeric:tabular-nums;font-feature-settings:"zero";
   color:var(--head);line-height:1}
 @supports(-webkit-background-clip:text){
   .fuelbig #fuelBig{background:var(--grad-text);-webkit-background-clip:text;
     background-clip:text;-webkit-text-fill-color:transparent}}
-.fuelbig .pct{font:700 30px "JetBrains Mono",Consolas,monospace;color:var(--brand-ink)}
+.fuelbig .pct{font:700 20px "JetBrains Mono",Consolas,monospace;color:var(--brand-ink)}
 .fpresets{display:inline-flex;gap:2px;
   background:color-mix(in srgb,var(--accent) 7%,var(--panel));
   border:1px solid var(--line);border-radius:12px;padding:3px}
