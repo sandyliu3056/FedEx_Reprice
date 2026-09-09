@@ -319,28 +319,20 @@ td.neg{color:var(--neg)}
 .empty{color:var(--muted);font-style:italic;text-align:center;padding:24px 10px;font-size:13px}
 
 /* ---- Zone power-up 卡片 ---- */
-.zonecols{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:12px}
+.zonecols{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
 .zonecol{position:relative;background:var(--panel);border:1px solid var(--line);
-  border-radius:12px;padding:14px 10px 12px;box-shadow:var(--elev-1);
-  text-align:center;overflow:hidden;
+  border-radius:9px;padding:7px 8px 8px;text-align:center;
   transition:border-color .12s,box-shadow .12s}
-.zonecol::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;
-  background:var(--grad-brand);opacity:.9}
-.zonecol .zt{font:700 11px Inter,sans-serif;letter-spacing:.07em;text-indent:.07em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.zonecol .zt{font:700 10px Inter,sans-serif;letter-spacing:.05em;text-indent:.05em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:3px}
 .zonecol input.cell{width:100%;height:auto;border:none;
   border-bottom:1.5px solid color-mix(in srgb,var(--accent) 28%,var(--line));border-radius:0;background:transparent;
-  text-align:center;font:700 17px "JetBrains Mono",Consolas,monospace;
-  color:var(--head);padding:4px 2px}
+  text-align:center;font:700 14px "JetBrains Mono",Consolas,monospace;
+  color:var(--head);padding:2px 2px}
 .zonecol input.cell:focus{outline:none;border-bottom-color:var(--tab);
   box-shadow:0 1.5px 0 var(--tab)}
-.zonecol::after{content:"USD";display:block;margin-top:6px;
-  font:600 9px Inter,sans-serif;letter-spacing:.24em;text-indent:.24em;color:var(--muted)}
 .zonecol:has(input:focus){
-  border-color:color-mix(in srgb,var(--tab) 45%,var(--line));box-shadow:var(--elev-2)}
-/* Zone 17 是離群值:橘色髮絲頂條 + 燒橙標籤 */
-.zonecol:last-child::before{background:var(--grad-brand)}
-.zonecol:last-child .zt{color:var(--head)}
+  border-color:color-mix(in srgb,var(--tab) 45%,var(--line));box-shadow:var(--elev-1)}
 .tplgrp{display:inline-flex;gap:0;align-items:center;border:none;padding:0}
 .tplgrp>button.act{border-radius:10px 0 0 10px}
 .tplgrp>button.act+button.act{border-radius:0 10px 10px 0;margin-left:-1px}
@@ -376,16 +368,11 @@ details.dettbl summary::before{content:"";width:14px;height:14px;flex:none;
   transition:transform .15s}
 details.dettbl[open] summary::before{transform:rotate(90deg)}
 details.dettbl summary:hover{color:var(--head)}
-details.dettbl .tablewrap{margin-top:8px;max-height:36vh;border:1px solid var(--line);max-width:860px}
+details.dettbl .tablewrap{margin-top:8px;max-height:36vh;border:1px solid var(--line)}
 details.dettbl tr.hl td{background:color-mix(in srgb,var(--tab) 9%,var(--panel))}
 details.dettbl tr.hl td:first-child{box-shadow:inset 2px 0 0 var(--tab)}
-/* 明細表的 Zone / Fee 兩欄照全站的數字紀律:右對齊等寬斜零 */
-details.dettbl th:nth-last-child(-n+2),
-details.dettbl td:nth-last-child(-n+2):not(.empty){text-align:right}
-details.dettbl td:nth-last-child(-n+2):not(.empty){
-  font-family:"JetBrains Mono","Cascadia Mono",Consolas,monospace;
-  font-size:12.5px;font-weight:600;
-  font-variant-numeric:tabular-nums;font-feature-settings:"zero"}
+details.dettbl td.num{font-size:12.5px;font-weight:600}
+details.dettbl td.z0{color:var(--muted);opacity:.6}
 
 /* =====================================================================
    第 1 頁 匯入與設定:帳單英雄卡橫跨全寬,設定檔與新手上路並排
@@ -640,12 +627,12 @@ input.cell,.fpresets button,.fcout b,#runStatus,#baseCount,.grid3 input[readonly
 
   <div class="lf sketch">
     <h3 class="display"><span class="em">💾</span><span data-i18n="hd.cfg">費率設定檔</span></h3>
-    <p class="hint" data-i18n="hint.cfg">設定檔保存所有規則與費率表。格式與桌面版 billing_tool_config.json 完全相同,雙向互通:桌面版存的檔可直接載入,這裡下載的檔也能拿回桌面版用。網頁上的改動會自動存在這個瀏覽器裡。</p>
+    <p class="hint" data-i18n="hint.cfg">與桌面版 billing_tool_config.json 完全互通;網頁上的改動會自動存在這個瀏覽器。</p>
     <div class="row">
-      <button class="act" id="bCfgLoad" data-i18n="btn.cfgload">載入設定 JSON</button>
+      <button class="act ghost sm" id="bCfgLoad" data-i18n="btn.cfgload">載入設定 JSON</button>
       <input type="file" id="fCfg" accept=".json">
-      <button class="act alt" id="bCfgSave" data-i18n="btn.cfgsave">下載設定 JSON</button>
-      <button class="act danger" id="bCfgReset" data-i18n="btn.cfgreset">還原預設值</button>
+      <button class="act ghost sm" id="bCfgSave" data-i18n="btn.cfgsave">下載設定 JSON</button>
+      <button class="act danger sm" id="bCfgReset" data-i18n="btn.cfgreset">還原預設值</button>
       <span id="cfgNote" class="savenote"></span>
     </div>
   </div>
@@ -798,7 +785,7 @@ input.cell,.fpresets button,.fcout b,#runStatus,#baseCount,.grid3 input[readonly
           <span style="flex:1 1 auto"></span>
           <button class="act alt" id="bAhsSave" data-i18n="btn.zonesave">儲存全部 Zone 費用</button>
         </div>
-        <details class="dettbl" open><summary data-i18n="lb.dettbl">明細預覽(全部列)</summary>
+        <details class="dettbl" open><summary data-i18n="lb.dettbl">費率總表(服務 × Zone)</summary>
           <div class="tablewrap"><table id="tDetAhs"><thead></thead><tbody></tbody></table></div>
         </details>
       </div>
@@ -822,7 +809,7 @@ input.cell,.fpresets button,.fcout b,#runStatus,#baseCount,.grid3 input[readonly
           <span style="flex:1 1 auto"></span>
           <button class="act alt" id="bDasSave" data-i18n="btn.zonesave">儲存全部 Zone 費用</button>
         </div>
-        <details class="dettbl" open><summary data-i18n="lb.dettbl">明細預覽(全部列)</summary>
+        <details class="dettbl" open><summary data-i18n="lb.dettbl">費率總表(服務 × Zone)</summary>
           <div class="tablewrap"><table id="tDetDas"><thead></thead><tbody></tbody></table></div>
         </details>
       </div>
@@ -844,7 +831,7 @@ input.cell,.fpresets button,.fcout b,#runStatus,#baseCount,.grid3 input[readonly
           <span style="flex:1 1 auto"></span>
           <button class="act alt" id="bOsSave" data-i18n="btn.zonesave">儲存全部 Zone 費用</button>
         </div>
-        <details class="dettbl" open><summary data-i18n="lb.dettbl">明細預覽(全部列)</summary>
+        <details class="dettbl" open><summary data-i18n="lb.dettbl">費率總表(服務 × Zone)</summary>
           <div class="tablewrap"><table id="tDetOs"><thead></thead><tbody></tbody></table></div>
         </details>
       </div>
@@ -1018,8 +1005,8 @@ const I18N={
    "Accepts the simplified columns (Service, Zone, Length, Width, Height, Actual Weight) or raw FedEx invoice columns (Zone Code, Dim Length…). Everything is computed in your browser — nothing is uploaded anywhere."],
  "btn.run":["執行重新計價並匯出報表","Run repricing & export workbook"],
  "hd.cfg":["費率設定檔","Rate Configuration"],
- "hint.cfg":["設定檔保存所有規則與費率表。格式與桌面版 billing_tool_config.json 完全相同,雙向互通:桌面版存的檔可直接載入,這裡下載的檔也能拿回桌面版用。網頁上的改動會自動存在這個瀏覽器裡。",
-   "The configuration keeps every rule and rate table. It is the exact billing_tool_config.json format of the desktop tool — load a desktop file here, or take this download back to the desktop. Edits are also auto-saved in this browser."],
+ "hint.cfg":["與桌面版 billing_tool_config.json 完全互通;網頁上的改動會自動存在這個瀏覽器。",
+   "Fully interchangeable with the desktop billing_tool_config.json; edits auto-save in this browser."],
  "btn.cfgload":["載入設定 JSON","Load config JSON"],
  "btn.cfgsave":["下載設定 JSON","Download config JSON"],
  "btn.cfgreset":["還原預設值","Reset to defaults"],
@@ -1082,7 +1069,7 @@ const I18N={
    "Pick the service and type first, fill each zone's fee, then save."],
  "hint.zonesave2":["填完各 Zone 的費用再按儲存。","Fill each zone's fee, then save."],
  "btn.zonesave":["儲存全部 Zone 費用","Save all zone fees"],
- "lb.dettbl":["明細預覽(全部列)","Detail preview (all rows)"],
+ "lb.dettbl":["費率總表(服務 × Zone)","Rate matrix (service × zone)"],
  "hint.resi":["帳單判定為住宅配送時,按服務別加收的固定費用。",
    "Flat fee added per service when the shipment is residential."],
  "hint.sig":["帳單出現簽收費項時,按簽收類型收的固定費用。",
@@ -2748,19 +2735,38 @@ function saveZoneEditor(k){
   toast(L("已儲存:FedEx · "+service+" · "+typ,"Saved: FedEx · "+service+" · "+typ));
 }
 function renderDetail(k){
+  /* 樞紐總表:一列一組「服務×類型」,Zone 攤成欄 —— 整張費率表一眼看完,
+     不再一列一個 Zone 重複幾十行。零值淡化,正在編輯的那列高亮。 */
   const cfg=ZONE_EDITORS[k];
   const t=$(cfg.detTable);
-  const cols=TBL[cfg.tbl].cols;
   const service=$(cfg.svcSel).value, typ=zoneEditorType(k);
-  t.querySelector("thead").innerHTML="<tr>"+cols.map(c=>"<th>"+esc(c)+"</th>").join("")+"</tr>";
-  t.querySelector("tbody").innerHTML=TBL[cfg.tbl].rows.map(r=>{
-    /* 正在編輯的那組列亮起來:上面卡片改的就是這幾列 */
-    const hl=cfg.hasType
-      ?(String(r[0])===service&&String(r[1])===typ)
-      :(String(r[0])===service);
-    return "<tr"+(hl?' class="hl"':"")+">"+r.map(v=>"<td>"+esc(v)+"</td>").join("")+"</tr>";
+  const order=[], feeMap=new Map();
+  for(const r of TBL[cfg.tbl].rows){
+    if(!r) continue;
+    const svc=String(r[0]??"").trim();
+    const ty=cfg.hasType?String(r[1]??"").trim():"";
+    const zone=String(Math.trunc(toFloat(cfg.hasType?r[2]:r[1],0)));
+    const fee=String((cfg.hasType?r[3]:r[2])??"");
+    const key=svc+"|"+ty;
+    if(!feeMap.has(key)){ feeMap.set(key,{}); order.push([svc,ty]); }
+    feeMap.get(key)[zone]=fee;
+  }
+  const labelCols=cfg.hasType?2:1;
+  t.querySelector("thead").innerHTML="<tr><th>Service</th>"
+    +(cfg.hasType?"<th>"+esc(TBL[cfg.tbl].cols[1])+"</th>":"")
+    +ZONES.map(z=>'<th class="num">Z'+z+"</th>").join("")+"</tr>";
+  t.querySelector("tbody").innerHTML=order.map(([svc,ty])=>{
+    const hl=cfg.hasType?(svc===service&&ty===typ):(svc===service);
+    const fees=feeMap.get(svc+"|"+ty);
+    return "<tr"+(hl?' class="hl"':"")+"><td>"+esc(svc)+"</td>"
+      +(cfg.hasType?"<td>"+esc(ty)+"</td>":"")
+      +ZONES.map(z=>{
+        const v=fees[String(z)];
+        if(v==null) return '<td class="num z0">—</td>';
+        return '<td class="num'+(toFloat(v,0)>0?"":" z0")+'">'+esc(v)+"</td>";
+      }).join("")+"</tr>";
   }).join("")
-    ||'<tr><td class="empty" colspan="'+cols.length+'">—</td></tr>';
+    ||'<tr><td class="empty" colspan="'+(labelCols+ZONES.length)+'">—</td></tr>';
   const wrap=t.closest(".tablewrap"), first=t.querySelector("tbody tr.hl");
   if(wrap&&first) wrap.scrollTop=Math.max(0,first.offsetTop-44);
 }
