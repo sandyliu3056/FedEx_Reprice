@@ -366,11 +366,23 @@ td.neg{color:var(--neg)}
 .zonecol .zh{width:88px;flex:none;text-align:center;font-size:11px;
   font-weight:700;color:var(--accent);white-space:nowrap}
 .flatgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px 14px}
-.dvgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px 16px}
-.dvgrid label{display:grid;grid-template-columns:1fr 96px;align-items:center;
-  gap:8px;font-size:12.5px}
-.dvgrid label>span{color:var(--text)}
-.dvgrid input.cell{width:100%}
+#tDv input.cell{width:82px}
+#tDv td:first-child{white-space:nowrap}
+#tDv td.derived{font:500 12px "JetBrains Mono",Consolas,monospace;color:var(--muted);
+  text-align:right;white-space:nowrap}
+#tDv tr.unset td:first-child{color:var(--muted)}
+/* 說明視窗:一段一個欄位,底下一張「目前各渠道的費率」 */
+#dvHelp .dvlead{font-size:12.5px;color:var(--muted);line-height:1.7;margin:0 0 12px}
+#dvHelp .dvf{margin-bottom:11px;padding-left:11px;border-left:3px solid var(--line)}
+#dvHelp .dvf i{display:block;font-style:normal;font-weight:700;font-size:13px;color:var(--accent)}
+#dvHelp .dvf p{margin:3px 0 0;font-size:12.5px;color:var(--text);line-height:1.7}
+#dvHelp .dvsec{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--muted);margin:16px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line)}
+#dvHelp table{width:100%;border-collapse:collapse;font-size:12.5px}
+#dvHelp table th{text-align:right;font-size:11.5px;color:var(--muted);padding:4px 8px}
+#dvHelp table th:first-child{text-align:left}
+#dvHelp table td{padding:4px 8px;border-top:1px solid var(--line)}
+#dvHelp table td.num{text-align:right;font:500 12.5px "JetBrains Mono",Consolas,monospace}
 .flatitem{display:flex;align-items:center;gap:6px;font-size:12px}
 .flatitem .fl{flex:1;color:var(--text);line-height:1.25}
 .flatitem input.cell{width:86px;height:26px}
@@ -1146,6 +1158,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <button class="act ghost" id="bChRestore" data-i18n="btn.chrestore">Restore preset channels</button>
       <input type="file" id="fBaseImp" accept=".xlsx,.xls">
     </div>
+    <p class="hint" style="margin:8px 0 0;max-width:820px" data-i18n="hint.basetpl">範本一條渠道一份:Zone 欄只放這條渠道自己跑的那組,重量 1–150 一列不漏,現有費率先填好。匯回來時只更新檔案帶到的 Zone,其餘保留。</p>
     <p class="note" id="baseCount"></p>
   </div>
 
@@ -1206,6 +1219,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       </span>
       <input type="file" id="fAccImp" accept=".xlsx,.xls">
     </div>
+    <p class="hint" style="margin:0 0 8px;max-width:820px" data-i18n="hint.acctpl">範本一條渠道一份,三張分頁:AHS_LPS 是按 Zone 收的(AHS、Oversize),FLAT_CHARGES 是按件收的固定金額,DECLARED_VALUE 是保價級距那六個數。</p>
     <div class="row" style="margin-bottom:12px">
       <label class="inlab" style="margin-left:0" data-i18n="lb.cfgnow">Configuration in use</label>
       <span id="cfgNowAcc" class="savenote"></span>
@@ -1218,9 +1232,19 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <div id="accFlat" class="flatgrid"></div>
 
     <div class="subhd" data-i18n="hd.dv">保價費(Declared Value)</div>
-    <p class="hint" style="margin:0 0 10px" data-i18n="hint.dv">申報金額讀帳單自己的 Declared Value 欄。六個數字沒填齊(至少要級距單位與每級距費率)之前,帳單上那筆保價費照原價轉嫁 —— 不會靜靜算成 0。</p>
-    <div id="dvGrid" class="dvgrid"></div>
-    <p class="hint" id="dvHow" style="margin:9px 0 0"></p>
+    <p class="hint" style="margin:0 0 10px" data-i18n="hint.dv">申報金額讀帳單自己的 Declared Value 欄。一條渠道一組費率,沒有共用的預設值 —— 沒設過的渠道不重算,帳單上那筆保價費照原價轉嫁。</p>
+    <div class="row" style="margin-bottom:9px;flex-wrap:wrap;gap:8px">
+      <button class="act ghost sm" id="bDvHelp">? <span data-i18n="btn.dvhelp">這幾個數字怎麼算</span></button>
+      <span style="flex:1 1 auto"></span>
+      <label class="inlab" style="margin-left:0" data-i18n="lb.dvsrc">複製來源</label>
+      <span class="selw"><select id="dvSrc"></select></span>
+      <button class="act ghost sm" id="bDvFill" data-i18n="btn.dvfill">填入勾選的渠道</button>
+      <button class="act ghost sm" id="bDvClear" data-i18n="btn.dvclear">清除勾選的</button>
+    </div>
+    <div class="tablewrap" style="max-height:46vh">
+      <table id="tDv"><thead></thead><tbody></tbody></table>
+    </div>
+    <div id="dvNote" class="savenote" style="margin-top:8px"></div>
 
   </div>
 </section>
@@ -1414,6 +1438,19 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <div class="modalft">
       <button class="act" id="bSave8" data-i18n="btn.savesettings">Save Settings</button>
       <button class="act ghost" id="rateClose" data-i18n="btn.close">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div id="dvBg" class="modalbg">
+  <div class="modal sketch" id="dvModal" style="width:min(840px,100%)">
+    <div class="modalhd">
+      <span data-i18n="hd.dvhelp">保價費怎麼算</span>
+      <button class="mx" id="dvX">✕</button>
+    </div>
+    <div class="modalbody" id="dvHelp"></div>
+    <div class="modalft">
+      <button class="act ghost" id="dvClose" data-i18n="btn.close">關閉</button>
     </div>
   </div>
 </div>
@@ -1737,6 +1774,10 @@ const I18N={
  "btn.addchan":["新增渠道","Add channel"],
  "btn.delchan":["刪除勾選","Delete selected"],
  "btn.exprate":["匯出基本費率範本","Export base rate template"],
+ "hint.basetpl":["範本一條渠道一份:Zone 欄只放這條渠道自己跑的那組,重量 1–150 一列不漏,現有費率先填好。匯回來時只更新檔案帶到的 Zone,其餘保留。",
+   "One template per channel: the zone columns are the ones that channel actually runs, every weight from 1 to 150 gets a row, and the rates you already have are filled in. Importing only touches the zones the file carries."],
+ "hint.acctpl":["範本一條渠道一份,三張分頁:AHS_LPS 是按 Zone 收的(AHS、Oversize),FLAT_CHARGES 是按件收的固定金額,DECLARED_VALUE 是保價級距那六個數。",
+   "One template per channel, three sheets: AHS_LPS for the fees charged by zone (AHS, Oversize), FLAT_CHARGES for the per-package flat amounts, DECLARED_VALUE for the six declared-value numbers."],
  "btn.imprate":["匯入填好的基本費率","Import completed base rates"],
  "btn.scanzone":["從帳單掃描 Zone","Scan zones from invoice"],
  "hint.addchan":["渠道對應帳單上的 FedEx 服務名稱(Service Type / Ground Service)。新增後會依所選 Zone 在各費率表長出 0 費率列;帳單服務名稱只要包含渠道名就歸入該渠道。",
@@ -1885,16 +1926,21 @@ const I18N={
    "1–150 lb by zone. Edit cells directly, or export the template, fill it in Excel, and import it back (import replaces only the services present in the file)."],
  "hd.zonestudio":["Surcharge Rates","Surcharge Rates"],
  "hd.dv":["保價費(Declared Value)","Declared Value"],
- "hint.dv":["申報金額讀帳單自己的 Declared Value 欄。六個數字沒填齊(至少要級距單位與每級距費率)之前,帳單上那筆保價費照原價轉嫁 —— 不會靜靜算成 0。",
-   "The declared amount comes from the invoice's own Declared Value column. Until the bands are filled in (the unit and the per-unit rate at minimum), the billed declared-value charge passes through at cost — it is not silently priced to 0."],
+ "hd.dvhelp":["保價費怎麼算","How declared value is charged"],
+ "btn.dvhelp":["這幾個數字怎麼算","What these numbers do"],
+ "btn.dvfill":["填入勾選的渠道","Fill ticked channels"],
+ "btn.dvclear":["清除勾選的","Clear ticked"],
+ "lb.dvsrc":["複製來源","Copy from"],
+ "hint.dv":["申報金額讀帳單自己的 Declared Value 欄。一條渠道一組費率,沒有共用的預設值 —— 沒設過的渠道不重算,帳單上那筆保價費照原價轉嫁。",
+   "The declared amount comes from the invoice's own Declared Value column. Each channel has its own bands and there is no shared default — a channel left blank is not repriced, and its billed declared-value charge passes through at cost."],
  "hd.flat":["Flat amounts","Flat amounts"],
  "hd.customlist":["Custom Surcharges","Custom Surcharges"],
  "lb.fuelsur":["Fuel Surcharge","Fuel Surcharge"],
  "lb.cfgnow":["Configuration in use","Configuration in use"],
  "btn.removeticked":["Remove Ticked","Remove Ticked"],
  "hint.cfgwhere":["在 Settings 分頁載入或替換整份設定。","Load or replace it on the Settings tab."],
- "btn.exportacc":["Export Accessorials Template","Export Accessorials Template"],
- "btn.importacc":["Import Accessorials Template","Import Accessorials Template"],
+ "btn.exportacc":["匯出附加費範本","Export Accessorials Template"],
+ "btn.importacc":["匯入附加費範本","Import Accessorials Template"],
  "hint.acc":["依 Zone 收的附加費:一列一項 × 每個 Zone,直接在格子裡改,空白視為 0。DAS 是按件固定費,在下方 Flat amounts 設定。Oversize 成立時不收 AHS;AHS 同時命中多種只收最高。",
    "Zone-based surcharges: one row each × every zone, edit in place, blank counts as 0. DAS is a per-package flat fee — set it under Flat amounts below. Oversize suppresses AHS; when several AHS types hit, only the highest is charged."],
  "hint.flat":["不分 Zone 的按件固定費:DAS 依類型(套用上方選的渠道)、住宅費依渠道、簽收費依簽收類型。",
@@ -3119,6 +3165,7 @@ function repriceCore(columns,rowsIn){
         "Oversize Demand Fee":0,"Fuel Fee":0,
         "Repriced Total":0,
         "_billed":r2(zeroBilled),
+        "_svcRaw":String(coalesce(row,["Service Type","Ground Service","Service"],"")??""),
         "_custom":{},
         "_txKey":parseDateKey(transactionDate),
         "_invKey":parseDateKey(invoiceDate),
@@ -3313,6 +3360,7 @@ function repriceCore(columns,rowsIn){
       "Fuel Fee":r2(fuelFee),
       "Repriced Total":r2(total),
       "_billed":r2(rowBilled),
+      "_svcRaw":String(coalesce(row,["Service Type","Ground Service","Service"],"")??""),
       "_custom":custom,
       "_txKey":parseDateKey(transactionDate),
       "_invKey":parseDateKey(invoiceDate),
@@ -3440,6 +3488,31 @@ async function readTableFile(file){
   if(!ws) return {columns:[],rows:[]};
   const aoa=X.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
   if(!aoa.length) return {columns:[],rows:[]};
+  const headers=dedupHeaders(aoa[0]);
+  return {columns:headers,rows:rowsToObjects(headers,aoa.slice(1))};
+}
+
+/* 讀一整本活頁簿 → {names:[...], sheets:{名稱:二維陣列}}。
+   範本現在一份帶好幾張分頁(照 UPS),readTableFile 只看第一張不夠用。 */
+async function readWorkbookSheets(file){
+  const name=file.name.toLowerCase();
+  if(name.endsWith(".csv")){
+    const text=await readAsText(file);
+    return {names:["Sheet1"],sheets:{Sheet1:parseCSV(text)}};
+  }
+  const X=await loadXLSX();
+  const buf=await readAsArrayBuffer(file);
+  const wb=X.read(buf,{type:"array",cellDates:true});
+  const sheets={};
+  for(const n of (wb.SheetNames||[])){
+    const ws=wb.Sheets[n];
+    sheets[n]=ws?X.utils.sheet_to_json(ws,{header:1,defval:null,raw:true}):[];
+  }
+  return {names:(wb.SheetNames||[]).slice(),sheets};
+}
+/* 二維陣列 → {columns,rows(物件)},和 readTableFile 出來的形狀一樣 */
+function aoaToTable(aoa){
+  if(!aoa||!aoa.length) return {columns:[],rows:[]};
   const headers=dedupHeaders(aoa[0]);
   return {columns:headers,rows:rowsToObjects(headers,aoa.slice(1))};
 }
@@ -3668,7 +3741,8 @@ async function xlWrite(sheets,fname){
       +"xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">"
       +"<bookViews><workbookView/></bookViews><sheets>"
       +sheets.map((sh,i)=>"<sheet name=\""+xe(xlSheetName(sh.name,i))
-          +"\" sheetId=\""+(i+1)+"\" r:id=\"rId"+(i+1)+"\"/>").join("")
+          +"\" sheetId=\""+(i+1)+"\""+(sh.hidden?" state=\"hidden\"":"")
+          +" r:id=\"rId"+(i+1)+"\"/>").join("")
       +"</sheets></workbook>")},
     {name:"xl/_rels/workbook.xml.rels",bytes:B("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
       +"<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">"
@@ -3896,6 +3970,23 @@ async function exportTemplate(cols,dataRows,fname){
     cols:widths.map(w=>({w:Math.min(Math.max(w+2,10),30)}))}],fname);
 }
 
+/* ---- 一張範本分頁:第一列是標頭(上色粗體),其餘照值寫 ---- */
+function tplSheet(name,aoa,opts){
+  const HEAD={bold:true,fill:"D9EAF7"};
+  const widths=[];
+  const rows=(aoa||[]).map((r,ri)=>(r||[]).map((v,i)=>{
+    const str=v==null?"":String(v);
+    if(str.length>(widths[i]||0)) widths[i]=str.length;
+    if(ri===0) return {v:str,t:"s",s:HEAD};
+    if(str==="") return "";
+    const n=Number(str);
+    return (str.trim()!==""&&isFinite(n))?{v:n,t:"n"}:{v:str,t:"s"};
+  }));
+  return Object.assign({name,rows,
+    cols:widths.map(w=>({w:Math.min(Math.max((w||0)+2,10),30)})),
+    freeze:{r:1}},opts||{});
+}
+
 /* ---- 帳單範例(欄位照桌面版 export_billing_sample) ---- */
 async function exportBillingSample(){
   const cols=["Tracking Number","Service","Zone","Length","Width","Height",
@@ -3943,7 +4034,16 @@ function checkTemplateColumns(title,gotCols,expected){
     templateError(title,"Expected columns:\n"+pyList(expected)+"\n\nGot:\n"+pyList(got));
 }
 
-function validateBaseTemplate(rowsObjs){
+function validateBaseTemplate(rowsObjs,gotCols){
+  /* 檔案帶哪幾個 Zone 就更新哪幾個 —— 一條渠道的範本只有它自己的 Zone,
+     沒帶到的 Zone(和留白的格)保留原值,不要被空白洗掉。 */
+  const got=(gotCols||[]).map(c=>String(c).trim());
+  const has=new Set(got.filter(c=>/^Zone\s+-?\d+$/i.test(c)));
+  if(gotCols&&!has.size) templateError("Base Rate","No 'Zone n' column found.");
+  const cur=(TBL.base.cols||BASE_COLS).map(c=>String(c).trim());
+  const old=new Map();
+  for(const r of TBL.base.rows)
+    old.set(String(r[0]??"").trim()+"|"+Math.trunc(toFloat(r[1],0)),r);
   const rows=[],seen=new Set();
   rowsObjs.forEach((row,i)=>{
     const excelRow=i+2;
@@ -3960,11 +4060,19 @@ function validateBaseTemplate(rowsObjs){
     if(seen.has(key))
       templateError("Base Rate","Row "+excelRow+": Duplicate Service + Weight: "+service+", "+weight);
     seen.add(key);
+    const was=old.get(key);
     const newRow=[service,String(weight)];
     for(const z of ZONES){
       const col="Zone "+z;
+      const oi=cur.indexOf(col);
+      const keep=(was&&oi>=0&&was[oi]!=null&&String(was[oi]).trim()!=="")
+        ?String(was[oi]):"0";
+      const raw=row[col];
+      if((gotCols&&!has.has(col))||raw==null||String(raw).trim()===""){
+        newRow.push(keep); continue;
+      }
       let fee;
-      try{ fee=normNum(row[col],0.0); }
+      try{ fee=normNum(raw,0.0); }
       catch(e){ templateError("Base Rate","Row "+excelRow+": "+col+" must be numeric"); }
       newRow.push(String(fee));
     }
@@ -4504,23 +4612,72 @@ function wireBaseTable(){
   });
   $("bBaseExp").addEventListener("click",async()=>{
     const svc=$("baseSvc").value;
-    const rows=TBL.base.rows.filter(r=>String(r[0])===svc);
-    await exportTemplate(BASE_COLS,rows,svc+"_Base_Rate_template.xlsx");
-    toast(L(svc+" 基本費率範本已匯出",svc+" base rate template exported"));
+    if(!svc){ toast(L("請先選渠道","Pick a channel first")); return; }
+    /* 照 UPS 的模板:
+       ① Zone 欄只放這條渠道自己跑的那組 —— 整張表的 Zone 聯集倒出去,
+          填的人得先猜哪幾欄和自己有關;
+       ② 重量 1–150 一列不漏,沒費率的留空,填的人不必自己補列;
+       ③ 已載入的費率先填進去 —— 倒一張空表出去,填的人一存檔就把現有
+          費率換成空的。 */
+    const zs=(CUSTOM_SERVICE_ZONES[svc]||ZONES).slice();
+    const cur=(TBL.base.cols||BASE_COLS).map(c=>String(c).trim());
+    const byW=new Map();
+    for(const r of TBL.base.rows)
+      if(String(r[0]??"").trim()===svc) byW.set(Math.trunc(toFloat(r[1],0)),r);
+    const head=["Service","Weight"].concat(zs.map(z=>"Zone "+z));
+    const body=[];
+    for(let w=BASE_RATE_MIN_WEIGHT;w<=BASE_RATE_MAX_WEIGHT;w++){
+      const src=byW.get(w);
+      body.push([svc,w].concat(zs.map(z=>{
+        if(!src) return "";
+        const i=cur.indexOf("Zone "+z);
+        const v=i<0?null:src[i];
+        return (v==null||String(v).trim()==="")?"":r2(toFloat(v,0));
+      })));
+    }
+    const fname="FedEx_BaseRate_"+svc.replace(/[^A-Za-z0-9]+/g,"_")+".xlsx";
+    await xlWrite([
+      tplSheet("Base Rate",[head].concat(body),
+        {filter:"A1:"+xlCol(head.length-1)+(body.length+1)}),
+      /* 哪一張是哪一條渠道,寫在這裡 —— 匯回來時就不必靠分頁名字猜。 */
+      tplSheet("_ChannelInfo",[["Sheet","Service","Zones","Built By"],
+        ["Base Rate",svc,zs.join(","),"web"]],{hidden:true}),
+    ],fname);
+    toast(L(svc+" 基本費率範本已匯出:Zone "+zs.join("、")+",1–"+BASE_RATE_MAX_WEIGHT+" lb",
+            svc+" base rate template exported: zones "+zs.join(", ")
+            +", 1–"+BASE_RATE_MAX_WEIGHT+" lb"));
   });
   $("bBaseImp").addEventListener("click",()=>$("fBaseImp").click());
   $("fBaseImp").addEventListener("change",async e=>{
     const file=e.target.files[0]; e.target.value="";
     if(!file) return;
     try{
-      const {columns,rows}=await readTableFile(file);
-      checkTemplateColumns("Base Rate",columns,BASE_COLS);
-      const newRows=validateBaseTemplate(rows);
+      /* 範本現在一份帶兩張分頁(第二張是藏起來的 _ChannelInfo),
+         第一張就是費率。舊的單張範本走同一條路。 */
+      const bk=await readWorkbookSheets(file);
+      const first=bk.names.filter(n=>n!=="_ChannelInfo")[0]||bk.names[0];
+      const {columns,rows}=aoaToTable(bk.sheets[first]||[]);
+      const got=columns.map(c=>String(c).trim());
+      if(got.indexOf("Service")<0||got.indexOf("Weight")<0)
+        templateError("Base Rate","Expected a 'Service' and a 'Weight' column.\n\nGot:\n"
+          +pyList(got));
+      const newRows=validateBaseTemplate(rows,got);
+      /* 一列一列換上去。整條渠道砍掉重建的話,範本沒帶到的重量會一起不見。 */
+      const at=new Map();
+      TBL.base.rows.forEach((r,i)=>
+        at.set(String(r[0]??"").trim()+"|"+Math.trunc(toFloat(r[1],0)),i));
+      for(const nr of newRows){
+        const k=nr[0]+"|"+Math.trunc(toFloat(nr[1],0));
+        if(at.has(k)) TBL.base.rows[at.get(k)]=nr;
+        else{ at.set(k,TBL.base.rows.length); TBL.base.rows.push(nr); }
+      }
       const services=[...new Set(newRows.map(r=>String(r[0]).trim()))].sort();
-      TBL.base.rows=TBL.base.rows.filter(r=>!services.includes(String(r[0]).trim()))
-        .concat(newRows);
+      const zs=got.filter(c=>/^Zone\s+-?\d+$/i.test(c));
       renderBaseTable(); markDirty();
-      toast(L("已匯入基本費率:","Base rates imported for ")+services.join(", "));
+      toast(L("已匯入基本費率:"+services.join("、")+"("+zs.join("、")+",共 "
+                +newRows.length+" 列)",
+              "Base rates imported for "+services.join(", ")+" ("+zs.join(", ")
+                +", "+newRows.length+" rows)"));
     }catch(err){
       showError(L("範本錯誤","Template error"),err.message||String(err));
     }
@@ -4541,6 +4698,61 @@ const ACC_ROWS=()=>{
   out.push({tbl:"oversize",label:"Oversize",type:""});
   return out;
 };
+/* 分區費在範本裡的名字(AHS Weight / Oversize…),匯出匯入共用一份對照 */
+const accFeeLabel=r=>r.label+(r.type?" "+r.type:"");
+function accFeeSpec(name){
+  const t=String(name??"").trim().toLowerCase();
+  for(const r of ACC_ROWS()) if(accFeeLabel(r).toLowerCase()===t) return r;
+  return null;
+}
+/* 固定金額那一頁的名字。DAS / Signature / 自訂附加費三組名稱互不重疊,
+   所以範本裡一欄名字就夠,不必再多一欄講它屬於哪一組。 */
+function flatFeeSpec(name){
+  const t=String(name??"").trim().toLowerCase();
+  for(const x of DAS_TYPES) if(x.toLowerCase()===t) return {tbl:"das",key:x};
+  if(t==="residential") return {tbl:"residential",key:""};
+  for(const x of SIGNATURE_TYPES) if(x.toLowerCase()===t) return {tbl:"signature",key:x};
+  for(const r of TBL.csur.rows){
+    const d=String(r[0]??"").trim();
+    if(d&&d.toLowerCase()===t) return {tbl:"csur",key:d};
+  }
+  return null;
+}
+function flatFeeGet(spec,svc){
+  if(!spec) return "0";
+  if(spec.tbl==="das") return dasFlat(svc,spec.key);
+  if(spec.tbl==="residential"){
+    const r=TBL.residential.rows.find(x=>String(x[0]??"").trim()===svc);
+    return r?String(r[1]??"0"):"0";
+  }
+  if(spec.tbl==="signature"){
+    const r=TBL.signature.rows.find(x=>String(x[0]??"").trim()===spec.key);
+    return r?String(r[1]??"0"):"0";
+  }
+  const r=TBL.csur.rows.find(x=>String(x[0]??"").trim()===spec.key);
+  return r?String(r[2]??"0"):"0";
+}
+function flatFeeSet(spec,svc,val){
+  if(!spec) return false;
+  if(spec.tbl==="das"){ setDasFlat(svc,spec.key,val); return true; }
+  if(spec.tbl==="residential"){
+    const r=TBL.residential.rows.find(x=>String(x[0]??"").trim()===svc);
+    if(r) r[1]=val; else TBL.residential.rows.push([svc,val]);
+    return true;
+  }
+  if(spec.tbl==="signature"){
+    const r=TBL.signature.rows.find(x=>String(x[0]??"").trim()===spec.key);
+    if(r) r[1]=val; else TBL.signature.rows.push([spec.key,val]);
+    return true;
+  }
+  const r=TBL.csur.rows.find(x=>String(x[0]??"").trim()===spec.key);
+  if(r){ r[2]=val; return true; }
+  return false;
+}
+/* 保價級距在範本裡的欄名 —— 和畫面上那六格同一組字 */
+const DV_TPL_COLS={free:"Free up to",min:"Minimum charge",unit:"Step",
+                   rate:"Per step",max:"Max value",flat:"Flat up to"};
+
 /* DAS 固定費:存回 das 表時所有 Zone 寫同一個數字,
    設定檔格式與桌面版 das_rate_table 維持一致 */
 function dasFlat(svc,type){
@@ -4639,53 +4851,160 @@ function renderFlat(){
       +'" value="'+esc(toFloat(x.val,0)>0?x.val:"")+'"></div>').join("")
     :'<div class="empty">—</div>';
 }
-/* 保價級距的六個格子。標籤照 UPS 的講法,順序也照它:先講免費到哪裡,
-   再講最低收多少、平段收到哪裡,最後才是級距怎麼跳、上限在哪。 */
+/* 保價級距。照 UPS:一條渠道一列,沒有預設列 —— 每條線的費率都是明寫的。
+   十幾條渠道手動填一遍太苦,所以上面有一條「填入」列:勾要套用的渠道、
+   選一個已經填好的渠道當來源,按一下複製過去。
+   程式裡不寫任何費率 —— 寫死一組「今年的公告價」,明年就是錯的,而且錯得
+   很安靜。所以「來源」只能是已經填好的渠道:第一條自己打,其餘複製。 */
 const DV_LABELS={
-  free:["免費額度(申報金額 ≤)","Free up to"],
+  free:["免費額度","Free up to"],
   min: ["最低收費","Minimum charge"],
-  flat:["固定費率適用至","Fixed rate applies up to"],
-  unit:["級距單位","Per unit of"],
-  rate:["每級距費率","Rate per unit"],
-  max: ["申報金額上限","Maximum declared value"],
+  flat:["固定費率適用至","Flat up to"],
+  unit:["級距單位","Step"],
+  rate:["每級距費率","Per step"],
+  max: ["承保上限","Max value"],
 };
+function dvSet(svc){ return DV_BY_CHAN[svc]||null; }
+function dvIsSet(svc){
+  const o=dvSet(svc);
+  return !!(o&&DV_KEYS.some(k=>String(o[k]??"").trim()!==""));
+}
+function dvM(v){
+  const t="$"+r2(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  return t.endsWith(".00")?t.slice(0,-3):t;
+}
+function dvTicked(){
+  return [...document.querySelectorAll("#tDv .dvc:checked")].map(c=>c.value);
+}
+function dvNote(m){ const e=$("dvNote"); if(e) e.textContent=m||""; }
 function renderDv(){
-  const host=$("dvGrid"); if(!host) return;
-  const svc=$("accChan")?$("accChan").value:SERVICES[0];
-  const o=DV_BY_CHAN[svc]||{};
-  host.innerHTML=DV_KEYS.map(k=>
-    '<label><span>'+esc(DV_LABELS[k][LANG])+"</span>"
-    +'<input class="cell num dv" data-k="'+k+'" value="'+esc(o[k]==null?"":String(o[k]))+'"></label>'
-  ).join("");
-  const how=$("dvHow"); if(!how) return;
-  const b=dvBandsFor(svc);
-  if(!b){
-    how.textContent=L("這條渠道還沒設級距 —— 帳單上的保價費照原價轉嫁。",
-      "No bands set for this channel — the billed declared-value charge passes through at cost.");
+  const t=$("tDv"); if(!t) return;
+  t.querySelector("thead").innerHTML='<tr><th style="width:28px"></th><th>'
+    +L("渠道","Channel")+"</th>"
+    +DV_KEYS.map(k=>'<th class="num">'+esc(DV_LABELS[k][LANG])+"</th>").join("")
+    +'<th class="num">'+L("固定費率上界(算出來的)","Flat ceiling (derived)")+"</th></tr>";
+  const was=new Set(dvTicked());
+  t.querySelector("tbody").innerHTML=SERVICES.map(svc=>{
+    const o=dvSet(svc)||{};
+    const set=dvIsSet(svc);
+    const b=dvBandsFor(svc);
+    /* 最後一欄是算出來的固定費率上界,填完當場看得到,不必自己去除 */
+    const derived=b
+      ? (b.flatEnd>b.free?dvM(b.flatEnd)+(b.explicit?"":" ~"):"—")
+      : L("級距單位或每級距費率未填","step or per-step missing");
+    return "<tr"+(set?"":' class="unset"')+">"
+      +'<td><input type="checkbox" class="dvc" value="'+esc(svc)+'"'
+        +(was.has(svc)?" checked":"")+"></td>"
+      +"<td>"+esc(svc)+"</td>"
+      +DV_KEYS.map(k=>'<td class="num"><input class="cell num dv" data-svc="'+esc(svc)
+        +'" data-k="'+k+'" value="'+esc(o[k]==null?"":String(o[k]))+'"></td>').join("")
+      +'<td class="derived">'+esc(derived)+"</td></tr>";
+  }).join("");
+  /* 來源只列已經填好的渠道 */
+  const done=SERVICES.filter(dvIsSet);
+  fillSelect("dvSrc",done.length?done.map(x=>[x,x])
+    :[["",L("(還沒有填好的渠道)","(no channel filled in yet)")]],done[0]||"");
+}
+function dvFill(){
+  const list=dvTicked();
+  if(!list.length){ dvNote(L("請先勾選要套用的渠道。","Tick the channels to write to first.")); return; }
+  const src=$("dvSrc")?$("dvSrc").value:"";
+  const o=dvSet(src);
+  if(!src||!o){
+    dvNote(L("還沒有任何渠道填好費率 —— 先手動填一條,其餘才複製得過去。",
+      "No channel has rates yet — fill one in by hand first, then copy it to the rest."));
     return;
   }
-  /* 收法用實際的數字講一次。平段止於哪裡不是填的就是算的,印出來才看得到:
-     想收 $10 平段、$300 之後才跳,填最低收費 10 / 每級距 1.70 會一路平到
-     $500,因為 $10 要到第 6 級距才被超過。 */
-  const m=v=>"$"+r2(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-  const parts=[];
-  if(b.free>0) parts.push(L("申報 "+m(b.free)+" 以內免費","free up to "+m(b.free)));
-  if(b.flatEnd>b.free)
-    parts.push(L(m(b.free)+" 以上到 "+m(b.flatEnd)+" 收 "+m(b.min)
-        +(b.explicit?"":L("(平段止於此,是算出來的)"," (derived, not typed)")),
-      "over "+m(b.free)+" to "+m(b.flatEnd)+": "+m(b.min)
-        +(b.explicit?"":" (derived, not typed)")));
-  parts.push(L("再往上每 "+m(b.unit)+" 收 "+m(b.rate),
-    "above that, "+m(b.rate)+" per "+m(b.unit)));
-  if(b.cap>0) parts.push(L("申報超過 "+m(b.cap)+" 照上限計費",
-    "declared over "+m(b.cap)+" is charged at the cap"));
-  how.textContent=parts.join(L(";","; "))+"。";
+  let n=0;
+  for(const svc of list){
+    if(svc===src) continue;
+    DV_BY_CHAN[svc]={...o}; n++;
+  }
+  renderDv(); markDirty(); saveSettings();
+  dvNote(L("已把「"+src+"」的費率填進 "+n+" 條渠道。",
+    "Copied "+src+"'s rates into "+n+" channel"+(n===1?"":"s")+"."));
+}
+function dvClear(){
+  const list=dvTicked();
+  if(!list.length){ dvNote(L("請先勾選要清除的渠道。","Tick the channels to clear first.")); return; }
+  for(const svc of list) delete DV_BY_CHAN[svc];
+  renderDv(); markDirty(); saveSettings();
+  dvNote(L("已清除 "+list.length+" 條渠道的費率 —— 那幾條的保價費會照原帳單轉嫁。",
+    "Cleared "+list.length+" channel"+(list.length===1?"":"s")
+    +" — their declared-value charge passes through at cost."));
+}
+/* 說明:一段一個欄位。那五個數字合起來到底是什麼收法,用字講清楚一次,
+   底下再列出目前各渠道實際的級距 —— 填完當場對照得到。 */
+function paintDvHelp(){
+  const box=$("dvHelp"); if(!box) return;
+  const fld=(name,body)=>'<div class="dvf"><i>'+esc(name)+"</i><p>"+body+"</p></div>";
+  const step=(()=>{ for(const svc of SERVICES){ const o=dvSet(svc);
+    if(o&&toFloat(o.unit,0)>0) return toFloat(o.unit,0); } return 100; })();
+  let h='<p class="dvlead">'+L(
+    "以下設定僅於 FedEx 帳單載有申報價值(Declared Value)費用時套用;帳單未計收該項費用者,系統不予計算。"
+    +"每一條渠道各自設定,沒有共用的預設值 —— 未設定的渠道不予重算,帳單原價轉嫁。",
+    "These settings apply only when the FedEx invoice carries a Declared Value charge. "
+    +"Each channel is set separately; there is no shared default, and a channel left blank "
+    +"is not repriced — its billed amount passes through at cost.")+"</p>";
+  h+=fld(DV_LABELS.free[LANG],L(
+    "申報金額在此額度以內不予計費。設為 <b>100</b> 表示 $100 以內免費;設為 <b>0</b> 表示自第一元起計費。",
+    "No charge applies up to this amount. <b>100</b> means the first $100 is free; "
+    +"<b>0</b> means charging starts at the first dollar."));
+  h+=fld(DV_LABELS.min[LANG],L(
+    "計費後的收費下限。低申報金額區間之所以呈現單一固定費率,即由此下限所形成。",
+    "The floor once a charge applies. It is what turns the low band into a single flat price."));
+  h+=fld(DV_LABELS.unit[LANG],L(
+    "每一級距所對應的申報金額。<b>不足一級者以一級計</b> —— 申報 "+dvM(step*2.5)+" 計 3 級,非 2.5 級。",
+    "The declared amount that makes one step. <b>A part step counts as a whole one</b> — "
+    +dvM(step*2.5)+" counts as 3 steps, not 2.5."));
+  h+=fld(DV_LABELS.rate[LANG],L(
+    "每一級距的費用。級數以<b>申報金額全額</b>換算,非僅就超出免費額度的部分計算。",
+    "The cost of one step. Steps are counted on the <b>full declared amount</b>, "
+    +"not only the part above the free allowance."));
+  h+=fld(DV_LABELS.max[LANG],L(
+    "承保責任的上限。申報金額超出部分不在承保範圍,系統<b>以此上限計費</b>。留白表示不設限。",
+    "The ceiling on liability. Any declared amount above it is not covered, so the system "
+    +"<b>prices at the ceiling</b>. Blank means no ceiling."));
+  h+=fld(DV_LABELS.flat[LANG],L(
+    "固定費率收到哪個金額為止。免費額度以上、這個金額以內,一律收<b>最低收費</b>;超過之後才按級距計算。"
+    +"<b>留空</b>表示沒有固定區間,最低收費退回去當<b>下限</b>用 —— 此時低金額之所以看起來是一個固定價,"
+    +"是最低收費撐出來的,會一路撐到「最低收費 ÷ 每級距費率」那個級數為止。",
+    "The amount the flat price runs to. Above the free allowance and up to here, the "
+    +"<b>minimum charge</b> is what is billed; only past it does the step calculation apply. "
+    +"<b>Leave it empty</b> for no flat band: the minimum charge then acts as a <b>floor</b>, "
+    +"and the low band it produces runs as far as minimum ÷ per-step."));
+  const line=svc=>{
+    if(!dvIsSet(svc)) return "<tr><td>"+esc(svc)+'</td><td colspan="5" style="color:var(--muted)">'
+      +L("未設定,保價費不予重算(原價轉嫁)","not set — passed through at cost")+"</td></tr>";
+    const b=dvBandsFor(svc);
+    if(!b) return "<tr><td>"+esc(svc)+'</td><td colspan="5" style="color:var(--neg)">'
+      +L("級距單位或每級距費率未填","step or per-step is missing")+"</td></tr>";
+    return "<tr><td>"+esc(svc)+'</td><td class="num">'+dvM(b.free)+"</td>"
+      +'<td class="num">'+(b.flatEnd>b.free?dvM(b.min):"—")+"</td>"
+      +'<td class="num">'+(b.flatEnd>b.free?dvM(b.flatEnd)+(b.explicit?"":" ~"):"—")+"</td>"
+      +'<td class="num">'+dvM(b.rate)+" / "+dvM(b.unit)+"</td>"
+      +'<td class="num">'+(b.cap>0?dvM(b.cap):L("不設限","none"))+"</td></tr>";
+  };
+  h+='<div class="dvsec">'+L("各渠道目前的費率","Rates in force by channel")+"</div>"
+    +"<table><thead><tr>"
+    +[L("渠道","Channel"),L("免費額度","Free"),L("固定費率","Flat"),
+      L("適用至","Up to"),L("之後每級距","Then per step"),L("承保上限","Ceiling")]
+      .map(x=>"<th>"+esc(x)+"</th>").join("")
+    +"</tr></thead><tbody>"+SERVICES.map(line).join("")+"</tbody></table>"
+    +'<p class="dvlead" style="margin:12px 0 0">'+L(
+      "「適用至」帶 ~ 的表示它是算出來的,不是填的 —— 那一格留空時,平段止於"
+      +"「最低收費 ÷ 每級距費率」的級數。",
+      "A ~ on 'Up to' means it was derived, not typed — with that field empty, the flat band "
+      +"ends at minimum ÷ per-step.")+"</p>";
+  box.innerHTML=h;
 }
 function wireDv(){
-  const g=$("dvGrid"); if(!g) return;
-  g.addEventListener("change",e=>{
-    const el=e.target; if(!el.classList.contains("dv")) return;
-    const svc=$("accChan").value, k=el.dataset.k;
+  const t=$("tDv"); if(!t) return;
+  t.addEventListener("change",e=>{
+    const el=e.target;
+    if(el.classList.contains("dvc")) return;
+    if(!el.classList.contains("dv")) return;
+    const svc=el.dataset.svc, k=el.dataset.k;
     const raw=String(el.value).trim();
     if(raw===""){
       if(DV_BY_CHAN[svc]){
@@ -4700,9 +5019,15 @@ function wireDv(){
     }
     markDirty(); renderDv();
   });
+  $("bDvFill").addEventListener("click",dvFill);
+  $("bDvClear").addEventListener("click",dvClear);
+  $("bDvHelp").addEventListener("click",()=>{ paintDvHelp(); $("dvBg").style.display="flex"; });
+  $("dvX").addEventListener("click",()=>{ $("dvBg").style.display="none"; });
+  $("dvClose").addEventListener("click",()=>{ $("dvBg").style.display="none"; });
+  $("dvBg").addEventListener("click",e=>{ if(e.target===$("dvBg")) $("dvBg").style.display="none"; });
 }
 function wireAcc(){
-  const redraw=()=>{ renderAcc(); renderFlat(); renderDv(); };
+  const redraw=()=>{ renderAcc(); renderFlat(); };
   $("accChan").addEventListener("change",redraw);
   $("accSearch").addEventListener("input",redraw);
   $("accZoneCols").addEventListener("change",e=>{
@@ -4758,40 +5083,133 @@ function wireAcc(){
     toast(L("已清除勾選的費率","Ticked rates cleared"));
   });
   $("bAccExp").addEventListener("click",async()=>{
-    const cols=["Service","Surcharge","Type","Zone","Fee"];
-    const rows=[];
-    for(const svc of SERVICES){
-      for(const r of ACC_ROWS())
-        for(const z of (CUSTOM_SERVICE_ZONES[svc]||ZONES))
-          rows.push([svc,r.label,r.type,String(z),accFee(r.tbl,svc,r.type,z)]);
-      for(const t of DAS_TYPES) rows.push([svc,"DAS",t,"FLAT",dasFlat(svc,t)]);
+    /* 照 UPS 的模板:一個渠道一份檔,三張分頁 ——
+       AHS_LPS 是按 Zone 收的(AHS、Oversize),FLAT_CHARGES 是按件收的
+       固定金額,DECLARED_VALUE 是保價級距那六個數。
+       整張表全渠道倒成一份長清單的話,填的人得先在幾百列裡找自己那幾列,
+       而 Zone 欄還是全渠道的聯集 —— 大半和他無關。 */
+    const svc=$("accChan").value;
+    if(!svc){ toast(L("請先選渠道","Pick a channel first")); return; }
+    const zs=(CUSTOM_SERVICE_ZONES[svc]||ZONES).slice();
+    const zHead=["Fee Type","Shipment Type"].concat(zs.map(z=>"Zone "+z));
+    const zRows=ACC_ROWS().map(r=>[accFeeLabel(r),svc].concat(
+      zs.map(z=>r2(toFloat(accFee(r.tbl,svc,r.type,z),0)))));
+    /* 固定金額不帶 Shipment Type:住宅／商業的區別已經在費用名稱裡
+       (DAS Resi / DAS Comm…),再掛一欄渠道只是重複。
+       簽收費和自訂附加費是全域的,一份範本帶同一組值。 */
+    const fRows=[];
+    for(const t of DAS_TYPES) fRows.push([t,r2(toFloat(dasFlat(svc,t),0))]);
+    fRows.push(["Residential",
+      r2(toFloat(flatFeeGet({tbl:"residential",key:""},svc),0))]);
+    for(const t of SIGNATURE_TYPES)
+      fRows.push([t,r2(toFloat(flatFeeGet({tbl:"signature",key:t},svc),0))]);
+    /* 自訂附加費只倒「重算」那一種 —— 另外兩種(照帳單、僅顯示)不看費率,
+       在範本裡給人填一個不會被讀到的數字,填的人會以為自己設好了。 */
+    for(const r of TBL.csur.rows){
+      const d=String(r[0]??"").trim();
+      if(d&&normCsurType(r[3],r[2])==="reprice") fRows.push([d,r2(toFloat(r[2],0))]);
     }
-    await exportTemplate(cols,rows,"Accessorials_template.xlsx");
-    toast(L("附加費範本已匯出","Accessorials template exported"));
+    const dvO=DV_BY_CHAN[svc]||{};
+    const dvC=k=>String(dvO[k]??"").trim()===""?"":r2(toFloat(dvO[k],0));
+    const dvRow=[svc].concat(["free","min","unit","rate","max","flat"].map(dvC));
+    const fname="FedEx_Accessorials_"+svc.replace(/[^A-Za-z0-9]+/g,"_")+".xlsx";
+    await xlWrite([
+      tplSheet("AHS_LPS",[zHead].concat(zRows)),
+      tplSheet("FLAT_CHARGES",[["Fee Type","Amount"]].concat(fRows)),
+      tplSheet("DECLARED_VALUE",
+        [["Service"].concat(["free","min","unit","rate","max","flat"]
+          .map(k=>DV_TPL_COLS[k])), dvRow]),
+      tplSheet("_ChannelInfo",[["Sheet","Service","Zones","Built By"],
+        ["AHS_LPS",svc,zs.join(","),"web"]],{hidden:true}),
+    ],fname);
+    toast(L("附加費範本已匯出:"+svc+"("+(zRows.length+fRows.length)+" 列)",
+            "Accessorials template exported for "+svc
+            +" ("+(zRows.length+fRows.length)+" rows)"));
   });
   $("bAccImp").addEventListener("click",()=>$("fAccImp").click());
   $("fAccImp").addEventListener("change",async e=>{
     const file=e.target.files[0]; e.target.value="";
     if(!file) return;
     try{
-      const {columns,rows}=await readTableFile(file);
-      checkTemplateColumns("Accessorials",columns,["Service","Surcharge","Type","Zone","Fee"]);
-      const kind={AHS:"ahs",DAS:"das",Oversize:"oversize"};
+      const bk=await readWorkbookSheets(file);
+      const names=bk.names||[];
+      const three=["AHS_LPS","FLAT_CHARGES","DECLARED_VALUE"];
       let n=0;
-      rows.forEach(row=>{
-        const svc=String(row["Service"]??"").trim();
-        const label=String(row["Surcharge"]??"").trim();
-        const tbl=kind[label];
-        const type=String(row["Type"]??"").trim();
-        if(!svc||!tbl) return;
-        if(label==="DAS"){ setDasFlat(svc,type,String(r2(normNum(row["Fee"],0)))); n++; return; }
-        const zone=Math.trunc(toFloat(row["Zone"],0));
-        if(!(zone>0)) return;
-        setAccFee(tbl,svc,type,zone,String(r2(normNum(row["Fee"],0))));
-        n++;
-      });
+      const touched=new Set();
+      if(three.some(x=>names.includes(x))){
+        /* 新版(照 UPS)的三張分頁。渠道以檔案為準:AHS_LPS 每一列自己帶,
+           帶不出來就看 _ChannelInfo,再不然就是畫面上選的那條。 */
+        const info=aoaToTable(bk.sheets["_ChannelInfo"]||[]);
+        const infoSvc=info.rows.length?cellStr(info.rows[0]["Service"]):"";
+        const here=$("accChan")?$("accChan").value:"";
+        const pick=v=>{
+          const t=cellStr(v)||infoSvc||here;
+          return SERVICES.includes(t)?t:"";
+        };
+        const zoneOf=c=>Math.trunc(toFloat(String(c).replace(/[^\-\d.]/g,""),0));
+        const z=aoaToTable(bk.sheets["AHS_LPS"]||[]);
+        const zcols=z.columns.filter(c=>/^Zone\s+-?\d+$/i.test(String(c).trim()));
+        for(const row of z.rows){
+          const target=pick(row["Shipment Type"]);
+          const spec=accFeeSpec(row["Fee Type"]);
+          if(!target||!spec) continue;
+          for(const c of zcols){
+            const zone=zoneOf(c);
+            const raw=row[c];
+            if(!(zone>0)||raw==null||String(raw).trim()==="") continue;
+            setAccFee(spec.tbl,target,spec.type,zone,String(r2(normNum(raw,0))));
+            n++; touched.add(target);
+          }
+        }
+        const f=aoaToTable(bk.sheets["FLAT_CHARGES"]||[]);
+        for(const row of f.rows){
+          const spec=flatFeeSpec(row["Fee Type"]);
+          const target=pick(row["Shipment Type"]);
+          const raw=row["Amount"];
+          if(!spec||!target||raw==null||String(raw).trim()==="") continue;
+          if(flatFeeSet(spec,target,String(r2(normNum(raw,0))))){ n++; touched.add(target); }
+        }
+        const dv=aoaToTable(bk.sheets["DECLARED_VALUE"]||[]);
+        for(const row of dv.rows){
+          const target=pick(row["Service"]);
+          if(!target) continue;
+          const o={}; let any=false;
+          for(const k of DV_KEYS){
+            const raw=row[DV_TPL_COLS[k]];
+            if(raw==null||String(raw).trim()===""){ o[k]=""; continue; }
+            o[k]=String(r2(normNum(raw,0))); any=true;
+          }
+          if(!any) continue;
+          DV_BY_CHAN[target]=o; n++; touched.add(target);
+        }
+        if(!n) templateError("Accessorials",
+          "None of AHS_LPS / FLAT_CHARGES / DECLARED_VALUE had a value to import.");
+        if(typeof renderDv==="function") renderDv();
+      }else{
+        /* 舊版的單張長清單(Service / Surcharge / Type / Zone / Fee)。
+           發出去的範本還在別人手上,照收。 */
+        const first=names.filter(x=>x!=="_ChannelInfo")[0]||names[0];
+        const {columns,rows}=aoaToTable(bk.sheets[first]||[]);
+        checkTemplateColumns("Accessorials",columns,["Service","Surcharge","Type","Zone","Fee"]);
+        const kind={AHS:"ahs",DAS:"das",Oversize:"oversize"};
+        rows.forEach(row=>{
+          const svc=String(row["Service"]??"").trim();
+          const label=String(row["Surcharge"]??"").trim();
+          const tbl=kind[label];
+          const type=String(row["Type"]??"").trim();
+          if(!svc||!tbl) return;
+          if(label==="DAS"){ setDasFlat(svc,type,String(r2(normNum(row["Fee"],0)))); n++;
+            touched.add(svc); return; }
+          const zone=Math.trunc(toFloat(row["Zone"],0));
+          if(!(zone>0)) return;
+          setAccFee(tbl,svc,type,zone,String(r2(normNum(row["Fee"],0))));
+          n++; touched.add(svc);
+        });
+      }
       redraw(); markDirty();
-      toast(L("已匯入 "+n+" 列附加費","Imported "+n+" surcharge row(s)"));
+      const who=[...touched].sort().join("、");
+      toast(L("已匯入 "+n+" 筆附加費費率"+(who?"("+who+")":""),
+              "Imported "+n+" surcharge rate(s)"+(who?" for "+[...touched].sort().join(", "):"")));
     }catch(err){
       showError(L("範本錯誤","Template error"),err.message||String(err));
     }
@@ -6077,6 +6495,7 @@ async function exportIssues(){
     if(!g.invDate) g.invDate=String(r["Invoice Date"]||"");
     if(!g.date) g.date=String(r["Transaction Date"]||"");
     if(!g.chan) g.chan=String(r["Service"]||"");
+    if(!g.svcRaw) g.svcRaw=String(r._svcRaw||"");
     if(!g.zone) g.zone=String(r["Zone"]??"");
     g.ent=Math.max(g.ent,toFloat(r["Actual Weight"],0));
     g.dim=Math.max(g.dim,toFloat(r["DIM Weight"],0));
@@ -6092,7 +6511,12 @@ async function exportIssues(){
   }
   for(const x of rows){
     const g=byTrk.get(x.trk);
-    if(g) g.probs.add(ISSUE_KIND[x.kind]?ISSUE_KIND[x.kind].en:x.kind);
+    if(g){
+      g.probs.add(ISSUE_KIND[x.kind]?ISSUE_KIND[x.kind].en:x.kind);
+      if(!g.svcRaw) g.svcRaw=String(x.svcRaw||"");
+      if(!g.zone) g.zone=String(x.zone??"");
+      if(!g.chan) g.chan=String(x.chan||"");
+    }
     if(!g&&x.trk){
       /* 只出現在異常清單、結果列裡沒有的追蹤號(整列被當成帳戶層級或轉嫁) */
       byTrk.set(x.trk,{trk:x.trk,inv:x.inv,invDate:x.invDate,date:x.date,chan:x.chan,
@@ -6146,6 +6570,30 @@ async function exportIssues(){
     d2.push(r);
   }
 
+  /* ---- ③ 附加費對照:每一項都列,包含算出來是 0 的和本期完全沒出現的。
+     「這一項是 0」和「這一項不存在」不是同一件事;只印有金額的,少收的那幾項
+     永遠不會被發現,而那正是要拿這份檔案來找的東西。 ---- */
+  const bAll=(LAST.billedBuckets)||{}, rAll=(LAST.repricedBuckets)||{};
+  const allKeys=[...new Set(PR_ORDER.concat((LAST.customCols)||[])
+    .concat(Object.keys(bAll)).concat(Object.keys(rAll)))];
+  const d3=[head(["Charge","FedEx Billed","Repriced","Difference","Note"])];
+  for(const k of allKeys){
+    const uv=r2(toFloat(bAll[k],0)), rv=r2(toFloat(rAll[k],0));
+    const note=(uv!==0&&rv===0)?"billed but repriced to 0"
+             :(uv===0&&rv!==0)?"repriced but not on the invoice"
+             :(uv===0&&rv===0)?"did not appear this period":"";
+    d3.push([{v:prLabelEn(k),t:"s"},
+      {v:uv,t:"n",s:MONEY},{v:rv,t:"n",s:MONEY},
+      {v:r2(rv-uv),t:"n",s:MONEY},{v:note,t:"s"}]);
+  }
+  {
+    const tu=r2(allKeys.reduce((a,k)=>a+toFloat(bAll[k],0),0));
+    const tr=r2(allKeys.reduce((a,k)=>a+toFloat(rAll[k],0),0));
+    const B={bold:true}, BM={bold:true,fmt:"$#,##0.00"};
+    d3.push([{v:"TOTAL",t:"s",s:B},{v:tu,t:"n",s:BM},{v:tr,t:"n",s:BM},
+      {v:r2(tr-tu),t:"n",s:BM},{v:"",t:"s"}]);
+  }
+
   await xlWrite([
     {name:"Exceptions",rows:d1,
      cols:[{w:18},{w:13},{w:13},{w:11},{w:22},{w:10},{w:40},{w:9},{w:26},{w:22},
@@ -6156,6 +6604,8 @@ async function exportIssues(){
        .concat(seen.flatMap(()=>[{w:13},{w:13}]))
        .concat([{w:15},{w:15},{w:14},{w:40}]),
      merges,freeze:{r:2,c:1}},
+    {name:"Surcharges",rows:d3,
+     cols:[{w:30},{w:15},{w:15},{w:15},{w:34}],freeze:{r:1}},
   ],"exceptions.xlsx");
   toast(L("exceptions.xlsx 已下載","exceptions.xlsx downloaded"));
 }
