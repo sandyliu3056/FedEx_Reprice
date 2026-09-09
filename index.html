@@ -699,7 +699,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 }
 
 /* Soft, rounded delivery-town animation. */
-.scene{overflow:hidden;border-radius:20px;background:linear-gradient(180deg,#f4edfc,#fff7eb)}
+.scene{overflow:hidden;border-radius:20px;background:linear-gradient(180deg,#c3e3f9 0%,#e4f2fd 52%,#fff7eb 100%)}
 .scene .bld{fill:#eadcf5;stroke:#b7a3c8;rx:9px}
 .scene .bld2{fill:#f7e1cb}.scene .bld3{fill:#deebe3}
 .scene .a1{fill:#bba0d6}.scene .a2{fill:#f0b47f}
@@ -707,20 +707,32 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 .scene .cloud{fill:#fff;opacity:.85}.scene .glass{fill:#a6c8dc}
 .scene .truckride{transform:translateX(480px)}
 .scene .walkR{transform:translateX(240px)}.scene .walkL{transform:translateX(900px)}
+.scene .cornice{fill:#cfbce0}.scene .cornice2{fill:#e6c6a2}.scene .cornice3{fill:#c2d8ca}
+.scene .sill{fill:#cbb9da}
+.scene .roofbit{fill:#e6dbf2;stroke:#b7a3c8;stroke-width:1}
+.scene .fanblade{stroke:#b7a3c8;stroke-width:1.2;stroke-linecap:round}
+.scene .can1{fill:#93bd8b}.scene .can2{fill:#abd0a1}.scene .can3{fill:#c6e0b8}
+.scene .trunkR{fill:#a3795a}
+.scene .pet-run-r{transform:translateX(300px)}
+.scene .pet-run-l{transform:translateX(880px)}
 .scene .pet-tail{transform-box:fill-box;transform-origin:70% 90%}
 .scene .pet-eyes{transform-box:fill-box;transform-origin:center}
 @media(prefers-reduced-motion:no-preference){
   .scene .truckride{animation:sc-cute-drive 24s linear infinite;animation-delay:-10s}
   .scene .bob{animation-duration:.85s}
   .scene .neon{animation:sc-soft-glow 4s ease-in-out infinite}
-  .scene .pet-bounce{animation:sc-pet-bounce 3s ease-in-out infinite}
-  .scene .pet-cat{animation-delay:-1.5s}
+  .scene .pet-run-r{animation:sc-run-r 22s linear infinite}
+  .scene .pet-run-l{animation:sc-run-l 29s linear infinite;animation-delay:-9s}
+  .scene .pet-bounce{animation:sc-pet-bounce .42s ease-in-out infinite}
+  .scene .pet-cat{animation-duration:.52s}
   .scene .pet-tail{animation:sc-pet-tail 1.4s ease-in-out infinite alternate}
   .scene .pet-eyes{animation:sc-blink 5.6s infinite}
   .scene .pet-cat .pet-eyes{animation-delay:-2s}
   @keyframes sc-cute-drive{0%{transform:translateX(-210px)}42%,55%{transform:translateX(500px)}100%{transform:translateX(1230px)}}
   @keyframes sc-soft-glow{0%,100%{opacity:1}50%{opacity:.7}}
-  @keyframes sc-pet-bounce{0%,65%,100%{transform:translateY(0)}75%,90%{transform:translateY(-3px)}82%{transform:translateY(0)}}
+  @keyframes sc-pet-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  @keyframes sc-run-r{from{transform:translateX(-70px)}to{transform:translateX(1270px)}}
+  @keyframes sc-run-l{from{transform:translateX(1270px)}to{transform:translateX(-70px)}}
   @keyframes sc-pet-tail{from{transform:rotate(-9deg)}to{transform:rotate(12deg)}}
   @keyframes sc-blink{0%,43%,47%,100%{transform:scaleY(1)}45%{transform:scaleY(.08)}}
 }
@@ -782,6 +794,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <p class="hint" id="invNote" style="margin-top:8px"></p>
     <div class="row" style="margin-top:12px">
       <button class="act run" id="bRunTop" data-i18n="btn.run" disabled>Reprice</button>
+      <button class="act ghost sm" id="bStatement" data-i18n="btn.statement" disabled>Statement</button>
       <span id="runStatus" class="savenote" data-i18n="st.ready">就緒 — 選好帳單、檢查費率,然後執行。</span>
     </div>
     <p class="note" id="runSummary" style="display:none"></p>
@@ -822,7 +835,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <g class="cloud cloudB"><ellipse cx="720" cy="18" rx="40" ry="10"/><ellipse cx="752" cy="12" rx="24" ry="8"/></g>
     <g class="flock"><path class="bird" d="M0 30 q5 -6 10 0 q5 -6 10 0"/><path class="bird" d="M26 40 q4 -5 8 0 q4 -5 8 0"/></g>
 
-    <!-- 建築群 -->
+    <!-- 建築群(簷口、窗台、屋頂設備) -->
     <rect class="bld bld2" x="8"   y="38" width="128" height="102" rx="4"/>
     <rect class="bld"      x="146" y="58" width="150" height="82" rx="4"/>
     <rect class="bld bld3" x="306" y="30" width="120" height="110" rx="4"/>
@@ -835,17 +848,31 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <rect class="shade" x="418" y="30" width="8" height="110" rx="3"/>
     <rect class="shade" x="710" y="22" width="8" height="118" rx="3"/>
     <rect class="shade" x="1006" y="40" width="8" height="100" rx="3"/>
-
-    <!-- 上層窗(亮/暗交錯) -->
+    <rect class="cornice2" x="5"    y="35" width="134" height="6" rx="3"/>
+    <rect class="cornice"  x="143"  y="55" width="156" height="6" rx="3"/>
+    <rect class="cornice3" x="303"  y="27" width="126" height="6" rx="3"/>
+    <rect class="cornice"  x="433"  y="51" width="166" height="6" rx="3"/>
+    <rect class="cornice2" x="603"  y="19" width="118" height="6" rx="3"/>
+    <rect class="cornice3" x="725"  y="53" width="156" height="6" rx="3"/>
+    <rect class="cornice"  x="885"  y="37" width="132" height="6" rx="3"/>
+    <rect class="cornice2" x="1021" y="59" width="174" height="6" rx="3"/>
+    <g><rect class="roofbit" x="30" y="26" width="20" height="10" rx="2"/><circle class="roofbit" cx="40" cy="31" r="3.2"/><line class="fanblade" x1="37" y1="31" x2="43" y2="31"/></g>
+    <g><line class="lamp" x1="368" y1="27" x2="368" y2="12"/><circle class="lamphead" cx="368" cy="10" r="2.4"/></g>
+    <g><rect class="roofbit" x="638" y="8" width="26" height="12" rx="3"/><line class="fanblade" x1="642" y1="20" x2="642" y2="24"/><line class="fanblade" x1="660" y1="20" x2="660" y2="24"/></g>
+    <g><rect class="roofbit" x="972" y="26" width="12" height="12" rx="1.5"/><rect class="cornice" x="970" y="24" width="16" height="3" rx="1.5"/></g>
     <g>
-      <rect class="lit" x="22" y="50" width="16" height="12" rx="2"/><rect class="win" x="46" y="50" width="16" height="12" rx="2"/><rect class="lit" x="70" y="50" width="16" height="12" rx="2"/><rect class="win" x="94" y="50" width="16" height="12" rx="2"/>
-      <rect class="win" x="22" y="72" width="16" height="12" rx="2"/><rect class="lit" x="46" y="72" width="16" height="12" rx="2"/><rect class="win" x="70" y="72" width="16" height="12" rx="2"/><rect class="lit" x="94" y="72" width="16" height="12" rx="2"/>
-      <rect class="lit" x="320" y="44" width="15" height="11" rx="2"/><rect class="win" x="343" y="44" width="15" height="11" rx="2"/><rect class="lit" x="366" y="44" width="15" height="11" rx="2"/><rect class="win" x="389" y="44" width="15" height="11" rx="2"/>
-      <rect class="win" x="320" y="64" width="15" height="11" rx="2"/><rect class="lit" x="343" y="64" width="15" height="11" rx="2"/><rect class="win" x="366" y="64" width="15" height="11" rx="2"/><rect class="lit" x="389" y="64" width="15" height="11" rx="2"/>
-      <rect class="lit" x="620" y="36" width="15" height="11" rx="2"/><rect class="win" x="643" y="36" width="15" height="11" rx="2"/><rect class="lit" x="666" y="36" width="15" height="11" rx="2"/><rect class="win" x="689" y="36" width="15" height="11" rx="2"/>
-      <rect class="win" x="620" y="56" width="15" height="11" rx="2"/><rect class="lit" x="643" y="56" width="15" height="11" rx="2"/><rect class="win" x="666" y="56" width="15" height="11" rx="2"/><rect class="lit" x="689" y="56" width="15" height="11" rx="2"/>
-      <rect class="lit" x="902" y="52" width="15" height="11" rx="2"/><rect class="win" x="925" y="52" width="15" height="11" rx="2"/><rect class="lit" x="948" y="52" width="15" height="11" rx="2"/><rect class="win" x="971" y="52" width="15" height="11" rx="2"/>
+    <rect class="lit" x="20" y="50" width="16" height="12" rx="2"/><rect class="sill" x="18" y="62" width="20" height="2" rx="1"/><rect class="win" x="48" y="50" width="16" height="12" rx="2"/><rect class="sill" x="46" y="62" width="20" height="2" rx="1"/><rect class="lit" x="76" y="50" width="16" height="12" rx="2"/><rect class="sill" x="74" y="62" width="20" height="2" rx="1"/><rect class="win" x="104" y="50" width="16" height="12" rx="2"/><rect class="sill" x="102" y="62" width="20" height="2" rx="1"/><rect class="win" x="20" y="72" width="16" height="12" rx="2"/><rect class="sill" x="18" y="84" width="20" height="2" rx="1"/><rect class="lit" x="48" y="72" width="16" height="12" rx="2"/><rect class="sill" x="46" y="84" width="20" height="2" rx="1"/><rect class="win" x="76" y="72" width="16" height="12" rx="2"/><rect class="sill" x="74" y="84" width="20" height="2" rx="1"/><rect class="lit" x="104" y="72" width="16" height="12" rx="2"/><rect class="sill" x="102" y="84" width="20" height="2" rx="1"/><rect class="lit" x="20" y="94" width="16" height="12" rx="2"/><rect class="sill" x="18" y="106" width="20" height="2" rx="1"/><rect class="win" x="48" y="94" width="16" height="12" rx="2"/><rect class="sill" x="46" y="106" width="20" height="2" rx="1"/><rect class="lit" x="76" y="94" width="16" height="12" rx="2"/><rect class="sill" x="74" y="106" width="20" height="2" rx="1"/><rect class="win" x="104" y="94" width="16" height="12" rx="2"/><rect class="sill" x="102" y="106" width="20" height="2" rx="1"/>
+    <rect class="win" x="158" y="64" width="16" height="12" rx="2"/><rect class="sill" x="156" y="76" width="20" height="2" rx="1"/><rect class="lit" x="190" y="64" width="16" height="12" rx="2"/><rect class="sill" x="188" y="76" width="20" height="2" rx="1"/><rect class="win" x="222" y="64" width="16" height="12" rx="2"/><rect class="sill" x="220" y="76" width="20" height="2" rx="1"/><rect class="lit" x="254" y="64" width="16" height="12" rx="2"/><rect class="sill" x="252" y="76" width="20" height="2" rx="1"/>
+    <rect class="lit" x="318" y="42" width="15" height="11" rx="2"/><rect class="sill" x="316" y="53" width="19" height="2" rx="1"/><rect class="win" x="346" y="42" width="15" height="11" rx="2"/><rect class="sill" x="344" y="53" width="19" height="2" rx="1"/><rect class="lit" x="374" y="42" width="15" height="11" rx="2"/><rect class="sill" x="372" y="53" width="19" height="2" rx="1"/><rect class="win" x="402" y="42" width="15" height="11" rx="2"/><rect class="sill" x="400" y="53" width="19" height="2" rx="1"/><rect class="win" x="318" y="64" width="15" height="11" rx="2"/><rect class="sill" x="316" y="75" width="19" height="2" rx="1"/><rect class="lit" x="346" y="64" width="15" height="11" rx="2"/><rect class="sill" x="344" y="75" width="19" height="2" rx="1"/><rect class="win" x="374" y="64" width="15" height="11" rx="2"/><rect class="sill" x="372" y="75" width="19" height="2" rx="1"/><rect class="lit" x="402" y="64" width="15" height="11" rx="2"/><rect class="sill" x="400" y="75" width="19" height="2" rx="1"/><rect class="lit" x="318" y="86" width="15" height="11" rx="2"/><rect class="sill" x="316" y="97" width="19" height="2" rx="1"/><rect class="win" x="346" y="86" width="15" height="11" rx="2"/><rect class="sill" x="344" y="97" width="19" height="2" rx="1"/><rect class="lit" x="374" y="86" width="15" height="11" rx="2"/><rect class="sill" x="372" y="97" width="19" height="2" rx="1"/><rect class="win" x="402" y="86" width="15" height="11" rx="2"/><rect class="sill" x="400" y="97" width="19" height="2" rx="1"/>
+    <rect class="lit" x="448" y="60" width="16" height="12" rx="2"/><rect class="sill" x="446" y="72" width="20" height="2" rx="1"/><rect class="win" x="482" y="60" width="16" height="12" rx="2"/><rect class="sill" x="480" y="72" width="20" height="2" rx="1"/><rect class="lit" x="516" y="60" width="16" height="12" rx="2"/><rect class="sill" x="514" y="72" width="20" height="2" rx="1"/><rect class="win" x="550" y="60" width="16" height="12" rx="2"/><rect class="sill" x="548" y="72" width="20" height="2" rx="1"/>
+    <rect class="win" x="618" y="34" width="15" height="11" rx="2"/><rect class="sill" x="616" y="45" width="19" height="2" rx="1"/><rect class="lit" x="644" y="34" width="15" height="11" rx="2"/><rect class="sill" x="642" y="45" width="19" height="2" rx="1"/><rect class="win" x="670" y="34" width="15" height="11" rx="2"/><rect class="sill" x="668" y="45" width="19" height="2" rx="1"/><rect class="lit" x="696" y="34" width="15" height="11" rx="2"/><rect class="sill" x="694" y="45" width="19" height="2" rx="1"/><rect class="lit" x="618" y="56" width="15" height="11" rx="2"/><rect class="sill" x="616" y="67" width="19" height="2" rx="1"/><rect class="win" x="644" y="56" width="15" height="11" rx="2"/><rect class="sill" x="642" y="67" width="19" height="2" rx="1"/><rect class="lit" x="670" y="56" width="15" height="11" rx="2"/><rect class="sill" x="668" y="67" width="19" height="2" rx="1"/><rect class="win" x="696" y="56" width="15" height="11" rx="2"/><rect class="sill" x="694" y="67" width="19" height="2" rx="1"/>
+    <rect class="lit" x="740" y="62" width="16" height="12" rx="2"/><rect class="sill" x="738" y="74" width="20" height="2" rx="1"/><rect class="win" x="772" y="62" width="16" height="12" rx="2"/><rect class="sill" x="770" y="74" width="20" height="2" rx="1"/><rect class="lit" x="804" y="62" width="16" height="12" rx="2"/><rect class="sill" x="802" y="74" width="20" height="2" rx="1"/><rect class="win" x="836" y="62" width="16" height="12" rx="2"/><rect class="sill" x="834" y="74" width="20" height="2" rx="1"/>
+    <rect class="win" x="900" y="52" width="15" height="11" rx="2"/><rect class="sill" x="898" y="63" width="19" height="2" rx="1"/><rect class="lit" x="928" y="52" width="15" height="11" rx="2"/><rect class="sill" x="926" y="63" width="19" height="2" rx="1"/><rect class="win" x="956" y="52" width="15" height="11" rx="2"/><rect class="sill" x="954" y="63" width="19" height="2" rx="1"/><rect class="lit" x="984" y="52" width="15" height="11" rx="2"/><rect class="sill" x="982" y="63" width="19" height="2" rx="1"/><rect class="lit" x="900" y="74" width="15" height="11" rx="2"/><rect class="sill" x="898" y="85" width="19" height="2" rx="1"/><rect class="win" x="928" y="74" width="15" height="11" rx="2"/><rect class="sill" x="926" y="85" width="19" height="2" rx="1"/><rect class="lit" x="956" y="74" width="15" height="11" rx="2"/><rect class="sill" x="954" y="85" width="19" height="2" rx="1"/><rect class="win" x="984" y="74" width="15" height="11" rx="2"/><rect class="sill" x="982" y="85" width="19" height="2" rx="1"/><rect class="win" x="900" y="94" width="15" height="11" rx="2"/><rect class="sill" x="898" y="105" width="19" height="2" rx="1"/><rect class="lit" x="928" y="94" width="15" height="11" rx="2"/><rect class="sill" x="926" y="105" width="19" height="2" rx="1"/><rect class="win" x="956" y="94" width="15" height="11" rx="2"/><rect class="sill" x="954" y="105" width="19" height="2" rx="1"/><rect class="lit" x="984" y="94" width="15" height="11" rx="2"/><rect class="sill" x="982" y="105" width="19" height="2" rx="1"/>
+    <rect class="lit" x="1036" y="66" width="16" height="12" rx="2"/><rect class="sill" x="1034" y="78" width="20" height="2" rx="1"/><rect class="win" x="1072" y="66" width="16" height="12" rx="2"/><rect class="sill" x="1070" y="78" width="20" height="2" rx="1"/><rect class="lit" x="1108" y="66" width="16" height="12" rx="2"/><rect class="sill" x="1106" y="78" width="20" height="2" rx="1"/><rect class="win" x="1144" y="66" width="16" height="12" rx="2"/><rect class="sill" x="1142" y="78" width="20" height="2" rx="1"/>
     </g>
+    <rect class="door" x="60" y="112" width="22" height="24" rx="2"/><rect class="doorwin" x="64" y="116" width="14" height="9" rx="1.5"/><circle class="knob" cx="78" cy="126" r="1.6"/>
+    <rect class="door" x="354" y="112" width="22" height="24" rx="2"/><rect class="doorwin" x="358" y="116" width="14" height="9" rx="1.5"/><circle class="knob" cx="372" cy="126" r="1.6"/>
+    <rect class="door" x="936" y="112" width="22" height="24" rx="2"/><rect class="doorwin" x="940" y="116" width="14" height="9" rx="1.5"/><circle class="knob" cx="954" cy="126" r="1.6"/>
 
     <!-- 店面:CAFE / MART / OPEN / BAKERY / FLORA(波浪遮陽棚+櫥窗) -->
     <text class="sgn" x="196" y="76">CAFE</text>
@@ -893,15 +920,21 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <rect class="doorwin" x="1096" y="110" width="16" height="10" rx="1.5"/><circle class="knob" cx="1112" cy="122" r="1.8"/>
 
     <!-- 樹、消防栓、路燈、人行道 -->
-    <g><rect class="trunk" x="416" y="118" width="5" height="18" rx="2"/><circle class="canopy" cx="418.5" cy="108" r="14"/></g>
-    <g><rect class="trunk" x="1000" y="118" width="5" height="18" rx="2"/><circle class="canopy" cx="1002.5" cy="108" r="14"/></g>
+    <g><ellipse fill="#76548a" opacity=".1" cx="419" cy="137" rx="12" ry="2.5"/>
+       <path class="trunkR" d="M416 137 L417 121 q-4 -5 -6 -9 l3 -2 q3 4 5 7 q1 -8 3 -12 l3 1 q-2 5 -2 13 q3 -3 6 -5 l2 3 q-5 3 -8 8 L422 137 Z"/>
+       <ellipse class="can1" cx="412" cy="107" rx="12" ry="10"/><ellipse class="can1" cx="427" cy="105" rx="11" ry="9"/>
+       <ellipse class="can2" cx="419" cy="98" rx="12" ry="10"/><ellipse class="can3" cx="415" cy="94" rx="7" ry="5"/></g>
+    <g><ellipse fill="#76548a" opacity=".1" cx="1003" cy="137" rx="12" ry="2.5"/>
+       <path class="trunkR" d="M1000 137 L1001 121 q-4 -5 -6 -9 l3 -2 q3 4 5 7 q1 -8 3 -12 l3 1 q-2 5 -2 13 q3 -3 6 -5 l2 3 q-5 3 -8 8 L1006 137 Z"/>
+       <ellipse class="can1" cx="996" cy="107" rx="12" ry="10"/><ellipse class="can1" cx="1011" cy="105" rx="11" ry="9"/>
+       <ellipse class="can2" cx="1003" cy="98" rx="12" ry="10"/><ellipse class="can3" cx="999" cy="94" rx="7" ry="5"/></g>
     <g><rect class="hyd" x="588" y="122" width="9" height="13" rx="3"/><rect class="hyd" x="586" y="132" width="13" height="4" rx="2"/><circle class="hyd" cx="592.5" cy="120" r="3.4"/></g>
     <g><line class="lamp" x1="356" y1="136" x2="356" y2="94"/><circle class="lamphead" cx="356" cy="91" r="4"/></g>
     <g><line class="lamp" x1="940" y1="136" x2="940" y2="94"/><circle class="lamphead" cx="940" cy="91" r="4"/></g>
     <rect class="sidewalk" x="0" y="136" width="1200" height="10"/>
     <line class="curb" x1="0" y1="146" x2="1200" y2="146"/>
     <!-- Rounded corgi and ragdoll companions; animation stays inside the decorative SVG. -->
-    <g transform="translate(330 138)"><g class="pet-bounce">
+    <g class="pet-run-r"><g transform="translate(0 138) scale(.42)"><g class="pet-bounce">
       <ellipse fill="#76548a" opacity=".12" cx="0" cy="1" rx="24" ry="3"/>
       <g class="pet-tail"><path d="M-16 -14 Q-32 -30 -28 -14 Q-26 -7 -17 -8" fill="#eeb570"/></g>
       <ellipse fill="#eeb570" cx="-3" cy="-13" rx="20" ry="13"/>
@@ -915,8 +948,8 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <path d="M5 -13 Q8.5 -9 12 -13" fill="none" stroke="#503657" stroke-width="1.5" stroke-linecap="round"/>
       <ellipse fill="#efb4b8" cx="-5" cy="-19" rx="3.5" ry="2"/><ellipse fill="#efb4b8" cx="23" cy="-19" rx="3.5" ry="2"/>
       <path fill="#9674bd" d="M-4 -9 L18 -9 L8 -2Z"/>
-    </g></g>
-    <g transform="translate(840 138)"><g class="pet-bounce pet-cat">
+    </g></g></g>
+    <g class="pet-run-l"><g transform="translate(0 138) scale(-.42,.42)"><g class="pet-bounce pet-cat">
       <ellipse fill="#76548a" opacity=".12" cx="0" cy="1" rx="23" ry="3"/>
       <g class="pet-tail"><path d="M14 -10 Q34 -12 28 -28 Q24 -35 20 -27 Q30 -16 10 -18" fill="#ac9bbb"/></g>
       <ellipse fill="#fff8ee" cx="0" cy="-15" rx="17" ry="16"/>
@@ -930,7 +963,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <ellipse fill="#f0c3c7" cx="-12" cy="-20" rx="3" ry="1.7"/><ellipse fill="#f0c3c7" cx="14" cy="-20" rx="3" ry="1.7"/>
       <rect fill="#e4dce9" x="-11" y="-6" width="9" height="7" rx="3.5"/><rect fill="#e4dce9" x="3" y="-6" width="9" height="7" rx="3.5"/>
       <path fill="#eeb570" d="M-8 -10 L8 -10 L1 -3Z"/>
-    </g></g>
+    </g></g></g>
 
     <!-- 馬路 + 斑馬線 -->
     <rect class="road" x="0" y="146" width="1200" height="36"/>
@@ -1340,6 +1373,7 @@ const I18N={
  "lb.inv":["帳單 / 費用資料","Billing / invoice data"],
  "btn.browse":["選擇檔案","Browse"],
  "btn.run":["Reprice","Reprice"],
+ "btn.statement":["Statement","Statement"],
  "hd.cfg":["費率設定檔","Rate Configuration"],
  "hint.cfg":["與桌面版 billing_tool_config.json 完全互通;網頁上的改動會自動存在這個瀏覽器。",
    "Fully interchangeable with the desktop billing_tool_config.json; edits auto-save in this browser."],
@@ -2194,6 +2228,7 @@ function repriceCore(columns,rowsIn){
   const sigLookup=buildSigLookup();
 
   const results=[], warnings=[];
+  const accountRows=[];          /* account-level 費用列 → Statement 對帳單,不進計價結果 */
   const chargeStats=new Map();   /* 全帳單費目盤點(含轉嫁與略過列) */
   const infoMap=new Map();       /* account-level / 未設費率渠道統計 */
 
@@ -2225,6 +2260,17 @@ function repriceCore(columns,rowsIn){
       st.rows+=1; st.total+=passTotal; infoMap.set(label,st);
       const transactionDate=coalesce(row,["Shipment Date","Transaction Date","Tendered Date"],"");
       const invoiceDate=coalesce(row,["Invoice Date"],"");
+      if(isAccountLevel){
+        /* 帳戶層級費用不是包裹 —— 收進 Statement 對帳單,不出現在計價結果 */
+        accountRows.push({
+          "Invoice Date":invoiceDate,
+          "Invoice Number":coalesce(row,["Invoice Number","Invoice No","Invoice #"],""),
+          pairs:iterChargePairs(row),
+          net:r2(passTotal),
+          _invKey:parseDateKey(invoiceDate),
+        });
+        return;
+      }
       results.push({
         "Transaction Date":transactionDate,
         "Invoice Date":invoiceDate,
@@ -2340,7 +2386,7 @@ function repriceCore(columns,rowsIn){
 
   return {results,warnings,
     infos:[...infoMap.values()].sort((a,b)=>b.total-a.total),
-    chargeStats};
+    chargeStats,accountRows};
 }
 </script>
 <script>
@@ -2713,6 +2759,32 @@ function classifyChargeDesc(desc,total){
   if(recalc.some(k=>d.includes(k))) return "Recalculated by engine";
   if(Math.abs(total)<=0) return "Informational ($0)";
   return "Passed through as-is";
+}
+/* Account Level 對帳單:每列逐費項攤開 + 總計 */
+async function exportAccountStatement(accountRows){
+  const HEAD={bold:true,fill:"D9EAF7"};
+  const rows=[["Invoice Date","Invoice Number","Charge Description","Amount"]
+    .map(c=>({v:c,t:"s",s:HEAD}))];
+  let grand=0, wDesc=20, wInv=14;
+  for(const ar of accountRows){
+    const dateCell=ar._invKey
+      ?{v:keyToSerial(ar._invKey),t:"n",s:{fmt:"mm/dd/yyyy"}}
+      :(ar["Invoice Date"]?{v:String(ar["Invoice Date"]),t:"s"}:"");
+    const inv=String(ar["Invoice Number"]??"");
+    if(inv.length>wInv) wInv=inv.length;
+    const pairs=ar.pairs&&ar.pairs.length?ar.pairs:[["(no itemized charges)",ar.net]];
+    for(const[desc,amt] of pairs){
+      if(String(desc).length>wDesc) wDesc=String(desc).length;
+      grand+=amt;
+      rows.push([dateCell,inv?{v:inv,t:"s"}:"",
+        {v:String(desc),t:"s"},{v:r2(amt),t:"n",s:{fmt:"$#,##0.00"}}]);
+    }
+  }
+  rows.push(["","",{v:"TOTAL",t:"s",s:{bold:true}},
+    {v:r2(grand),t:"n",s:{bold:true,fmt:"$#,##0.00"}}]);
+  await xlWrite([{name:"Account Statement",rows,
+    cols:[{w:13},{w:Math.min(wInv+2,20)},{w:Math.min(wDesc+2,42)},{w:14}],
+    freeze:{r:1},filter:"A1:D"+(rows.length-1)}],"account_statement.xlsx");
 }
 async function exportResultWorkbook(results,chargeStats){
   const HEAD={bold:true,fill:"D9EAF7"};
@@ -3485,10 +3557,11 @@ function renderResults(){
   $("sumBox").hidden=false;
   /* 警告 + 轉嫁說明 */
   const infoLines=infos.map(x=>x.label==="Account Level"
-    ?L("Account Level 帳戶層級費用:"+x.rows+" 列、$"+x.total.toFixed(2)+" —— 非包裹,原價轉嫁。",
-       "Account-level charges: "+x.rows+" row(s), $"+x.total.toFixed(2)+" — not shipments, passed through.")
+    ?L("Account Level 帳戶層級費用:"+x.rows+" 列、$"+x.total.toFixed(2)+" —— 不列入計價結果,按 Statement 下載對帳單。",
+       "Account-level charges: "+x.rows+" row(s), $"+x.total.toFixed(2)+" — kept out of repricing; click Statement to download.")
     :L("服務「"+x.label+"」未設費率:"+x.rows+" 筆、$"+x.total.toFixed(2)+" 原價轉嫁。",
        "Service '"+x.label+"' has no rate table: "+x.rows+" row(s), $"+x.total.toFixed(2)+" passed through."));
+  $("bStatement").disabled=!(LAST.accountRows&&LAST.accountRows.length);
   $("warnBox").innerHTML=(warnings.length
     ?'<p class="note warn">'+warnings.slice(0,8).map(esc).join("<br>")
       +(warnings.length>8?"<br>… +"+(warnings.length-8):"")+"</p>":"")
@@ -3521,10 +3594,11 @@ async function runRepricing(){
   }
   setStatus(L("計算中…","Repricing…"));
   $("bRunTop").disabled=true;
+  $("bStatement").disabled=true;
   try{
     await new Promise(r=>setTimeout(r,30)); /* 讓狀態字先畫出來 */
-    const {results,warnings,infos,chargeStats}=repriceCore(BILLING.columns,BILLING.rows);
-    LAST={results,warnings,infos,chargeStats};
+    const {results,warnings,infos,chargeStats,accountRows}=repriceCore(BILLING.columns,BILLING.rows);
+    LAST={results,warnings,infos,chargeStats,accountRows};
     renderResults();
     await exportResultWorkbook(results,chargeStats);
     const done=L("完成:已處理 "+results.length+" 筆,repriced_result.xlsx 已下載。",
@@ -3907,6 +3981,12 @@ function init(){
   wireRules(); wireFuel(); wireBaseTable(); wireZoneEditors(); wireResiSig();
   wireDemand(); wireFiles();
   $("bRunTop").addEventListener("click",runRepricing);
+  $("bStatement").addEventListener("click",async()=>{
+    if(LAST&&LAST.accountRows&&LAST.accountRows.length){
+      await exportAccountStatement(LAST.accountRows);
+      toast(L("account_statement.xlsx 已下載","account_statement.xlsx downloaded"));
+    }
+  });
   document.querySelectorAll("#tabs button").forEach(b=>
     b.addEventListener("click",()=>switchPage(b.dataset.p)));
   document.querySelectorAll("#surTabs button").forEach(b=>
