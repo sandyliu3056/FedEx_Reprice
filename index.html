@@ -1220,7 +1220,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       </span>
       <input type="file" id="fAccImp" accept=".xlsx,.xls">
     </div>
-    <p class="hint" style="margin:0 0 8px;max-width:820px" data-i18n="hint.acctpl">範本一條渠道一份,三張分頁:AHS_LPS 是按 Zone 收的(AHS、Oversize),FLAT_CHARGES 是按件收的固定金額,DECLARED_VALUE 是保價級距那六個數。</p>
+    <p class="hint" style="margin:0 0 8px;max-width:820px" data-i18n="hint.acctpl">範本一條渠道一份,三張分頁:AHS_LPS 是按 Zone 收的(AHS、Oversize),FLAT_CHARGES 是按件收的固定金額,DECLARED_VALUE 是保險附加費級距那六個數。</p>
     <div class="row" style="margin-bottom:12px">
       <label class="inlab" style="margin-left:0" data-i18n="lb.cfgnow">Configuration in use</label>
       <span id="cfgNowAcc" class="savenote"></span>
@@ -1232,10 +1232,10 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <div class="subhd" data-i18n="hd.flat">Flat amounts</div>
     <div id="accFlat" class="flatgrid"></div>
 
-    <div class="subhd" data-i18n="hd.dv">保價費(Declared Value)</div>
-    <p class="hint" style="margin:0 0 10px" data-i18n="hint.dv">申報金額讀帳單自己的 Declared Value 欄。一條渠道一組費率,沒有共用的預設值 —— 沒設過的渠道不重算,帳單上那筆保價費照原價轉嫁。</p>
+    <div class="subhd" data-i18n="hd.dv">保險附加費(Declared Value)</div>
+    <p class="hint" style="margin:0 0 10px" data-i18n="hint.dv">申報金額讀帳單自己的 Declared Value 欄。一條渠道一組費率,沒有共用的預設值 —— 沒設過的渠道不重算,帳單上那筆保險附加費照原價轉嫁。</p>
     <div class="row" style="margin-bottom:9px;flex-wrap:wrap;gap:8px">
-      <button class="act ghost sm" id="bDvHelp">? <span data-i18n="btn.dvhelp">這幾個數字怎麼算</span></button>
+      <button class="act ghost sm" id="bDvHelp">? <span data-i18n="btn.dvhelp">欄位說明</span></button>
       <span style="flex:1 1 auto"></span>
       <label class="inlab" style="margin-left:0" data-i18n="lb.dvsrc">複製來源</label>
       <span class="selw"><select id="dvSrc"></select></span>
@@ -1446,7 +1446,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 <div id="dvBg" class="modalbg">
   <div class="modal sketch" id="dvModal" style="width:min(840px,100%)">
     <div class="modalhd">
-      <span data-i18n="hd.dvhelp">保價費怎麼算</span>
+      <span data-i18n="hd.dvhelp">保險附加費級距設定說明</span>
       <button class="mx" id="dvX">✕</button>
     </div>
     <div class="modalbody" id="dvHelp"></div>
@@ -1777,7 +1777,7 @@ const I18N={
  "btn.exprate":["匯出基本費率範本","Export base rate template"],
  "hint.basetpl":["範本一條渠道一份:Zone 欄只放這條渠道自己跑的那組,重量 1–150 一列不漏,現有費率先填好。匯回來時只更新檔案帶到的 Zone,其餘保留。",
    "One template per channel: the zone columns are the ones that channel actually runs, every weight from 1 to 150 gets a row, and the rates you already have are filled in. Importing only touches the zones the file carries."],
- "hint.acctpl":["範本一條渠道一份,三張分頁:AHS_LPS 是按 Zone 收的(AHS、Oversize),FLAT_CHARGES 是按件收的固定金額,DECLARED_VALUE 是保價級距那六個數。",
+ "hint.acctpl":["範本一條渠道一份,三張分頁:AHS_LPS 是按 Zone 收的(AHS、Oversize),FLAT_CHARGES 是按件收的固定金額,DECLARED_VALUE 是保險附加費級距那六個數。",
    "One template per channel, three sheets: AHS_LPS for the fees charged by zone (AHS, Oversize), FLAT_CHARGES for the per-package flat amounts, DECLARED_VALUE for the six declared-value numbers."],
  "btn.imprate":["匯入填好的基本費率","Import completed base rates"],
  "btn.scanzone":["從帳單掃描 Zone","Scan zones from invoice"],
@@ -1926,13 +1926,13 @@ const I18N={
  "hint.base":["1–150 lb × 每個 Zone 的費率。可直接在格子裡改,或匯出範本到 Excel 填好再匯入(匯入只取代範本裡出現的服務)。",
    "1–150 lb by zone. Edit cells directly, or export the template, fill it in Excel, and import it back (import replaces only the services present in the file)."],
  "hd.zonestudio":["Surcharge Rates","Surcharge Rates"],
- "hd.dv":["保價費(Declared Value)","Declared Value"],
- "hd.dvhelp":["保價費怎麼算","How declared value is charged"],
- "btn.dvhelp":["這幾個數字怎麼算","What these numbers do"],
+ "hd.dv":["保險附加費(Declared Value)","Declared Value"],
+ "hd.dvhelp":["保險附加費級距設定說明","Declared value tiers — field guide"],
+ "btn.dvhelp":["欄位說明","Field guide"],
  "btn.dvfill":["填入勾選的渠道","Fill ticked channels"],
  "btn.dvclear":["清除勾選的","Clear ticked"],
  "lb.dvsrc":["複製來源","Copy from"],
- "hint.dv":["申報金額讀帳單自己的 Declared Value 欄。一條渠道一組費率,沒有共用的預設值 —— 沒設過的渠道不重算,帳單上那筆保價費照原價轉嫁。",
+ "hint.dv":["申報金額讀帳單自己的 Declared Value 欄。一條渠道一組費率,沒有共用的預設值 —— 沒設過的渠道不重算,帳單上那筆保險附加費照原價轉嫁。",
    "The declared amount comes from the invoice's own Declared Value column. Each channel has its own bands and there is no shared default — a channel left blank is not repriced, and its billed declared-value charge passes through at cost."],
  "hd.flat":["Flat amounts","Flat amounts"],
  "hd.customlist":["Custom Surcharges","Custom Surcharges"],
@@ -2081,10 +2081,10 @@ let RULES={...RULE_DEFAULTS};
    0 或空 = 該條件不啟用(對應 UPS 空格的語意)。 */
 let SIZE_RULES={};
 let DIM_BY_CHAN={};   /* 渠道 → DIM 除數覆寫(空 = 用預設) */
-/* 保價費(Declared Value)級距,一條渠道一份。照 UPS 的做法:沒有「全域
+/* 保險附加費(Declared Value)級距,一條渠道一份。照 UPS 的做法:沒有「全域
    預設」可以躲 —— 合約通常只有一條線有折扣,其餘照公告價,兩者都是明寫
    出來的數字,不是繼承來的。沒設過的渠道就是沒設過:算不出級距時,帳單上
-   那筆保價費照原價轉嫁,不會拿別條線的費率悄悄頂上,也不會靜靜算成 0。 */
+   那筆保險附加費照原價轉嫁,不會拿別條線的費率悄悄頂上,也不會靜靜算成 0。 */
 let DV_BY_CHAN={};
 const DV_KEYS=["free","min","flat","unit","rate","max"];
 /* 五個數字合起來到底是什麼收法:
@@ -2875,8 +2875,8 @@ function collectPassThrough(row,service){
     /* 「照帳單轉嫁」的費目不擋 —— 擋下來它就不見了,那正是要它做的事。 */
     if(type!=="invoice") for(const a of aliases) activeCustom.push(normChargeDesc(a));
   }
-  /* 這條渠道設過保價級距,保價費才由我們自己算 —— 沒設過就讓它照原價轉嫁,
-     不然畫面上會出現一個算成 0 的保價費,看不出是「沒設定」還是「真的 0」。 */
+  /* 這條渠道設過保險附加費級距,保險附加費才由我們自己算 —— 沒設過就讓它照原價轉嫁,
+     不然畫面上會出現一個算成 0 的保險附加費,看不出是「沒設定」還是「真的 0」。 */
   if(dvBandsFor(service)) excludedKeywords.push("declared value");
   const isExcludedName=name=>{
     const d=normChargeDesc(name);
@@ -3268,7 +3268,7 @@ function repriceCore(columns,rowsIn){
     const ahsDemandFee=ahsFee>0?matchDemandFee(TBL.ademand.rows,service,effKey):0.0;
     const oversizeDemandFee=oversizeFee>0?matchDemandFee(TBL.odemand.rows,service,effKey):0.0;
 
-    /* 保價費:申報金額在帳單自己的欄位裡,不是費用行 */
+    /* 保險附加費:申報金額在帳單自己的欄位裡,不是費用行 */
     const declaredValue=toFloat(coalesce(row,
       ["Declared Value","Declared Value Amount","Carriage Value"],0),0);
     const dvB=dvBandsFor(service);
@@ -4786,7 +4786,7 @@ function flatFeeSet(spec,svc,val){
   if(r){ r[2]=val; return true; }
   return false;
 }
-/* 保價級距在範本裡的欄名 —— 和畫面上那六格同一組字 */
+/* 保險附加費級距在範本裡的欄名 —— 和畫面上那六格同一組字 */
 const DV_TPL_COLS={free:"Free up to",min:"Minimum charge",unit:"Step",
                    rate:"Per step",max:"Max value",flat:"Flat up to"};
 
@@ -4888,7 +4888,7 @@ function renderFlat(){
       +'" value="'+esc(toFloat(x.val,0)>0?x.val:"")+'"></div>').join("")
     :'<div class="empty">—</div>';
 }
-/* 保價級距。照 UPS:一條渠道一列,沒有預設列 —— 每條線的費率都是明寫的。
+/* 保險附加費級距。照 UPS:一條渠道一列,沒有預設列 —— 每條線的費率都是明寫的。
    十幾條渠道手動填一遍太苦,所以上面有一條「填入」列:勾要套用的渠道、
    選一個已經填好的渠道當來源,按一下複製過去。
    程式裡不寫任何費率 —— 寫死一組「今年的公告價」,明年就是錯的,而且錯得
@@ -4966,7 +4966,7 @@ function dvClear(){
   if(!list.length){ dvNote(L("請先勾選要清除的渠道。","Tick the channels to clear first.")); return; }
   for(const svc of list) delete DV_BY_CHAN[svc];
   renderDv(); markDirty(); saveSettings();
-  dvNote(L("已清除 "+list.length+" 條渠道的費率 —— 那幾條的保價費會照原帳單轉嫁。",
+  dvNote(L("已清除 "+list.length+" 條渠道的費率 —— 那幾條的保險附加費會照原帳單轉嫁。",
     "Cleared "+list.length+" channel"+(list.length===1?"":"s")
     +" — their declared-value charge passes through at cost."));
 }
@@ -5012,7 +5012,7 @@ function paintDvHelp(){
     +"and the low band it produces runs as far as minimum ÷ per-step."));
   const line=svc=>{
     if(!dvIsSet(svc)) return "<tr><td>"+esc(svc)+'</td><td colspan="5" style="color:var(--muted)">'
-      +L("未設定,保價費不予重算(原價轉嫁)","not set — passed through at cost")+"</td></tr>";
+      +L("未設定,保險附加費不予重算(原價轉嫁)","not set — passed through at cost")+"</td></tr>";
     const b=dvBandsFor(svc);
     if(!b) return "<tr><td>"+esc(svc)+'</td><td colspan="5" style="color:var(--neg)">'
       +L("級距單位或每級距費率未填","step or per-step is missing")+"</td></tr>";
@@ -5122,7 +5122,7 @@ function wireAcc(){
   $("bAccExp").addEventListener("click",async()=>{
     /* 照 UPS 的模板:一個渠道一份檔,三張分頁 ——
        AHS_LPS 是按 Zone 收的(AHS、Oversize),FLAT_CHARGES 是按件收的
-       固定金額,DECLARED_VALUE 是保價級距那六個數。
+       固定金額,DECLARED_VALUE 是保險附加費級距那六個數。
        整張表全渠道倒成一份長清單的話,填的人得先在幾百列裡找自己那幾列,
        而 Zone 欄還是全渠道的聯集 —— 大半和他無關。 */
     const svc=$("accChan").value;
@@ -6328,7 +6328,7 @@ const PR_LABEL={
   "Oversize Fee":["超大件附加費","Oversize"],
   "Residential Fee":["住宅地址附加費","Residential"],
   "Signature Fee":["簽收服務費","Signature"],
-  "Declared Value Fee":["保價費","Declared Value"],
+  "Declared Value Fee":["保險附加費","Declared Value"],
   "General Demand Fee":["旺季附加費","General Demand"],
   "AHS Demand Fee":["旺季 AHS 附加費","AHS Demand"],
   "Oversize Demand Fee":["旺季超大件附加費","Oversize Demand"],
@@ -6486,12 +6486,15 @@ function dashIssueCard(){
         +esc(L(SEV_NOTE[v][0],SEV_NOTE[v][1]))+"</span>").join("")+"</div>"
     +"</div>";
 }
-/* 異常明細倒成 Excel,兩張分頁照 UPS:
+/* 異常明細倒成 Excel,三張分頁照 UPS:
      ① 一列就是帳單的一列。同一個追蹤號出現好幾次是正常的 —— 一顆箱子上
         可以同時有查不到費率的運費行和沒登記的附加費行,那是兩個不同的問題,
-        各自指向不同的列。這張表到渠道為止。
+        各自指向不同的列。
      ② 一個追蹤號一列,每一種費用兩欄(FedEx / 重算)。第一張回答「哪一列
         出問題」,這一張回答「這顆箱子整筆長什麼樣、我們和 FedEx 差在哪一項」。
+     ③ 一種費用一列的對帳:整期 FedEx 收多少、我們算多少、差多少。前兩張是
+        逐列、逐箱,這一張是整期的合計 —— 「這一項整期都算 0」只有在這裡看得
+        出來。涵蓋每一種費用(運費、燃油、附加費、稅費轉嫁),所以有 Group 欄。
    欄名一律英文 —— 這份檔案是拿去和 FedEx 自己的帳單並排看的。 */
 async function exportIssues(){
   const rows=(LAST&&LAST.issues)||[];
@@ -6604,6 +6607,40 @@ async function exportIssues(){
     d2.push(r);
   }
 
+  /* ---- ③ 費用對帳:每一種費用都列,包含算出來是 0 的和本期完全沒出現的。
+     「這一項是 0」和「這一項不存在」不是同一件事;只印有金額的,少收的那幾項
+     永遠不會被發現,而那正是要拿這份檔案來找的東西。
+     這張表涵蓋帳單上的每一種費用 —— 運費、燃油、附加費、帳單上有而我們沒登記
+     的稅費報關費都算 —— 所以有 Group 欄講明每一列是哪一類,不然「基本運費」
+     擺在一張叫附加費的表上會讓人以為歸類歸錯了。 ---- */
+  const SURCH=new Set(["Additional Handling Surcharge","DAS Fee","Oversize Fee",
+    "Residential Fee","Signature Fee","Declared Value Fee",
+    "General Demand Fee","AHS Demand Fee","Oversize Demand Fee"]);
+  const custom=new Set((LAST.customCols)||[]);
+  const groupOf=k=>k==="Base Rate"?"Freight"
+    :k==="Fuel Fee"?"Fuel"
+    :SURCH.has(k)?"Surcharge"
+    :custom.has(k)?"Custom surcharge"
+    :"Pass-through";
+  const d3=[head(["Charge","Group","FedEx Billed","Repriced","Difference","Note"])];
+  for(const k of seen){
+    const uv=r2(toFloat(bAll0[k],0)), rv=r2(toFloat(rAll0[k],0));
+    const note=(uv!==0&&rv===0)?"billed but repriced to 0"
+             :(uv===0&&rv!==0)?"repriced but not on the invoice"
+             :(uv===0&&rv===0)?"did not appear this period":"";
+    d3.push([{v:prLabelEn(k),t:"s"},{v:groupOf(k),t:"s"},
+      {v:uv,t:"n",s:MONEY},{v:rv,t:"n",s:MONEY},
+      {v:r2(rv-uv),t:"n",s:MONEY},{v:note,t:"s"}]);
+  }
+  {
+    const tu=r2(seen.reduce((a,k)=>a+toFloat(bAll0[k],0),0));
+    const tr=r2(seen.reduce((a,k)=>a+toFloat(rAll0[k],0),0));
+    const B={bold:true}, BM={bold:true,fmt:"$#,##0.00"};
+    d3.push([{v:"TOTAL",t:"s",s:B},{v:"",t:"s",s:B},
+      {v:tu,t:"n",s:BM},{v:tr,t:"n",s:BM},
+      {v:r2(tr-tu),t:"n",s:BM},{v:"",t:"s"}]);
+  }
+
   await xlWrite([
     {name:"Exceptions",rows:d1,
      cols:[{w:18},{w:13},{w:13},{w:11},{w:22},{w:10},{w:40},{w:26},{w:22},
@@ -6614,6 +6651,8 @@ async function exportIssues(){
        .concat(seen.flatMap(()=>[{w:13},{w:13}]))
        .concat([{w:15},{w:15},{w:14}]),
      merges,freeze:{r:2,c:1}},
+    {name:"Charge Summary",rows:d3,
+     cols:[{w:30},{w:17},{w:15},{w:15},{w:15},{w:34}],freeze:{r:1}},
   ],"exceptions.xlsx");
   toast(L("exceptions.xlsx 已下載","exceptions.xlsx downloaded"));
 }
