@@ -350,6 +350,25 @@ td.neg{color:var(--neg)}
 .chkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
   gap:4px 12px;max-height:150px;overflow:auto}
 .chkgrid label{display:flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer}
+/* Rating Breakdown:資料密集的視窗改用中性字體,金額一律等寬對齊 */
+#bkdBody{font-family:"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei UI",sans-serif}
+#bkdBody .subhd{font:700 11.5px "Segoe UI","Noto Sans TC",sans-serif;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);
+  padding-bottom:5px;margin:14px 0 8px}
+#bkdBody .bkdno{font:700 15px "JetBrains Mono",Consolas,monospace;letter-spacing:.02em;color:var(--head)}
+#bkdBody .bkdinv{font:700 12.5px "JetBrains Mono",Consolas,monospace;color:var(--head);
+  margin:14px 0 6px;padding-bottom:5px;border-bottom:1px solid var(--line);
+  display:flex;gap:10px;align-items:baseline}
+#bkdBody .bkdinv i{font-style:normal;font:500 11.5px "JetBrains Mono",Consolas,monospace;color:var(--muted)}
+#bkdBody table{width:100%;border-collapse:collapse;font-size:12.5px}
+#bkdBody table td{padding:5px 8px;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent)}
+#bkdBody table td:first-child{color:var(--text)}
+#bkdBody .m{font:600 12.5px "JetBrains Mono",Consolas,monospace;
+  font-variant-numeric:tabular-nums;font-feature-settings:"zero";text-align:right;white-space:nowrap}
+#bkdBody .tot td{border-top:1.5px solid var(--accent);border-bottom:none;
+  background:color-mix(in srgb,var(--accent) 7%,transparent);font-weight:700}
+#bkdBody .pos{color:var(--pos)}#bkdBody .neg{color:var(--neg)}
+#bkdBody .note{margin:6px 0 0}
 .tplgrp{display:inline-flex;gap:0;align-items:center;border:none;padding:0}
 .tplgrp>button.act{border-radius:10px 0 0 10px}
 .tplgrp>button.act+button.act{border-radius:0 10px 10px 0;margin-left:-1px}
@@ -1866,11 +1885,12 @@ const SERVICE_MAP=[
 const SERVICE_CANON=new Set(SERVICE_MAP.map(([,c])=>c));
 /* FedEx 官方服務 → 預設渠道。本土快遞用 Zone 2–8,
    Ground 家族與國際用全表 2–9、17(工具支援的 Zone 網格)。 */
+const INTL_ZONES=[51,52,53,54,55,56,57,58];
 const DEFAULT_CHANNELS=[
   ["Ground Economy",        [2,3,4,5,6,7,8,9,17]],
-  ["International Ground",  [2,3,4,5,6,7,8,9,17]],
-  ["International Economy", [2,3,4,5,6,7,8,9,17]],
-  ["International Priority",[2,3,4,5,6,7,8,9,17]],
+  ["International Ground",  INTL_ZONES],
+  ["International Economy", INTL_ZONES],
+  ["International Priority",INTL_ZONES],
   ["Priority Overnight",    [2,3,4,5,6,7,8]],
   ["Standard Overnight",    [2,3,4,5,6,7,8]],
   ["First Overnight",       [2,3,4,5,6,7,8]],
@@ -3822,26 +3842,26 @@ function wireHist(){
     ["Fuel Fee","Fuel"]];
   function bkdSection(o){
     const H=[];
-    H.push('<div class="subhd" style="margin-top:6px">'+L("帳單逐項","Billed charges")+"</div>");
-    H.push('<table style="width:100%;font-size:12.5px;margin-bottom:10px">');
+    H.push('<div class="subhd">'+L("帳單逐項","Billed charges")+"</div>");
+    H.push("<table>");
     for(const r of o.rows)
-      H.push("<tr><td>"+esc(r.desc)+'</td><td class="num" style="text-align:right;font-family:monospace">'
-        +money2(r.amt)+"</td></tr>");
-    H.push('<tr><td><b>'+L("帳單合計","Billed total")+'</b></td>'
-      +'<td class="num" style="text-align:right;font-family:monospace"><b>'+money2(o.billed)+"</b></td></tr></table>");
+      H.push("<tr><td>"+esc(r.desc)+'</td><td class="m">'+money2(r.amt)+"</td></tr>");
+    H.push('<tr class="tot"><td>'+L("帳單合計","Billed total")
+      +'</td><td class="m">'+money2(o.billed)+"</td></tr></table>");
     if(o.res){
       H.push('<div class="subhd">'+L("Reprice 逐項","Repriced charges")+"</div>");
-      H.push('<table style="width:100%;font-size:12.5px;margin-bottom:6px">');
+      H.push("<table>");
       H.push("<tr><td>"+L("服務 / Zone / 計費重","Service / Zone / Billable")+"</td>"
-        +'<td style="text-align:right">'+esc(o.res["Service"])+" · Zone "+esc(o.res["Zone"])
+        +'<td class="m">'+esc(o.res["Service"])+" · Zone "+esc(o.res["Zone"])
         +" · "+esc(o.res["Billable Weight"])+" lb</td></tr>");
       for(const[k,lab] of FEE_COLS)
         if(toFloat(o.res[k],0)!==0)
-          H.push("<tr><td>"+lab+'</td><td class="num" style="text-align:right;font-family:monospace">'
-            +money2(toFloat(o.res[k],0))+"</td></tr>");
-      H.push("<tr><td><b>"+L("Reprice 合計","Repriced total")
-        +'</b></td><td class="num" style="text-align:right;font-family:monospace"><b>'
-        +money2(toFloat(o.res["Repriced Total"],0))+"</b></td></tr></table>");
+          H.push("<tr><td>"+lab+'</td><td class="m">'+money2(toFloat(o.res[k],0))+"</td></tr>");
+      const diff=toFloat(o.res["Repriced Total"],0)-o.billed;
+      H.push('<tr class="tot"><td>'+L("Reprice 合計","Repriced total")
+        +'</td><td class="m">'+money2(toFloat(o.res["Repriced Total"],0))+"</td></tr>");
+      H.push('<tr class="tot"><td>'+L("差異(Reprice − 帳單)","Diff (repriced − billed)")
+        +'</td><td class="m '+(diff<0?"neg":"pos")+'">'+money2(diff)+"</td></tr></table>");
     }else{
       H.push('<p class="note warn">'+esc(o.err||L("這一期無法計價(Zone 或費率未設定)。",
         "Could not price this period (zone or rate not configured)."))+"</p>");
@@ -3889,16 +3909,16 @@ function wireHist(){
     }
     out.sort((a,b)=>(parseDateKey(a.invDate)||0)-(parseDateKey(b.invDate)||0));
     const H=[];
-    H.push('<div class="row" style="margin-bottom:10px"><b style="font-size:15px">'+esc(t)+"</b>"
+    H.push('<div class="row" style="margin-bottom:10px"><span class="bkdno">'+esc(t)+"</span>"
       +'<span style="flex:1 1 auto"></span>'
       +'<button class="act ghost sm" id="bkdXls">⬇ '+L("匯出 Excel","Export to Excel")+"</button></div>");
     H.push('<div class="subhd" style="margin-top:0">'+L("各期比對","Per-invoice comparison")+"</div>");
-    H.push('<table style="width:100%;font-size:12.5px;margin-bottom:12px"><tr>'
+    H.push('<table><tr class="hdr">'
       +"<td><b>Invoice</b></td><td><b>"+L("帳單日期","Invoice date")+"</b></td>"
-      +'<td style="text-align:right"><b>Reprice</b></td>'
-      +'<td style="text-align:right"><b>'+L("FedEx 實收","FedEx billed")+"</b></td>"
-      +'<td style="text-align:right"><b>'+L("差異","Diff")+"</b></td>"
-      +'<td style="text-align:right"><b>%</b></td></tr>');
+      +'<td class="m"><b>Reprice</b></td>'
+      +'<td class="m"><b>'+L("FedEx 實收","FedEx billed")+"</b></td>"
+      +'<td class="m"><b>'+L("差異","Diff")+"</b></td>"
+      +'<td class="m"><b>%</b></td></tr>');
     let tRe=0,tBi=0,allPriced=true;
     for(const o of out){
       const rp=o.res?toFloat(o.res["Repriced Total"],0):null;
@@ -3906,27 +3926,26 @@ function wireHist(){
       const pc=(rp!=null&&Math.abs(rp)>1e-9)?(d/rp*100):null;
       if(rp!=null) tRe+=rp; else allPriced=false;
       tBi+=o.billed;
-      const col=d==null?"":(d<0?";color:var(--neg);font-weight:600":";color:var(--pos);font-weight:600");
-      H.push("<tr><td>"+esc(o.inv||"—")+"</td><td>"+esc(o.invDate||"—")+"</td>"
-        +'<td style="text-align:right;font-family:monospace">'+(rp==null?"—":money2(rp))+"</td>"
-        +'<td style="text-align:right;font-family:monospace">'+money2(o.billed)+"</td>"
-        +'<td style="text-align:right;font-family:monospace'+col+'">'+(d==null?"—":money2(d))+"</td>"
-        +'<td style="text-align:right;font-family:monospace">'+(pc==null?"—":pc.toFixed(2)+"%")+"</td></tr>");
+      const col=d==null?"":(d<0?" neg":" pos");
+      H.push('<tr><td class="m" style="text-align:left">'+esc(o.inv||"—")
+        +'</td><td class="m" style="text-align:left">'+esc(o.invDate||"—")+"</td>"
+        +'<td class="m">'+(rp==null?"—":money2(rp))+"</td>"
+        +'<td class="m">'+money2(o.billed)+"</td>"
+        +'<td class="m'+col+'">'+(d==null?"—":money2(d))+"</td>"
+        +'<td class="m">'+(pc==null?"—":pc.toFixed(2)+"%")+"</td></tr>");
     }
     if(out.length>1){
       const td=allPriced?tRe-tBi:null;
       const tp=(allPriced&&Math.abs(tRe)>1e-9)?(td/tRe*100):null;
-      const tc='style="text-align:right;font-family:monospace;border-top:1.5px solid var(--accent);background:var(--select)"';
-      H.push('<tr><td style="border-top:1.5px solid var(--accent);background:var(--select)"><b>'
-        +L("合計","Total")+'</b></td><td style="border-top:1.5px solid var(--accent);background:var(--select)"></td>'
-        +"<td "+tc+"><b>"+(allPriced?money2(tRe):"—")+"</b></td>"
-        +"<td "+tc+"><b>"+money2(tBi)+"</b></td>"
-        +"<td "+tc+"><b>"+(td==null?"—":money2(td))+"</b></td>"
-        +"<td "+tc+"><b>"+(tp==null?"—":tp.toFixed(2)+"%")+"</b></td></tr>");
+      H.push('<tr class="tot"><td>'+L("合計","Total")+"</td><td></td>"
+        +'<td class="m">'+(allPriced?money2(tRe):"—")+"</td>"
+        +'<td class="m">'+money2(tBi)+"</td>"
+        +'<td class="m'+(td==null?"":(td<0?" neg":" pos"))+'">'+(td==null?"—":money2(td))+"</td>"
+        +'<td class="m">'+(tp==null?"—":tp.toFixed(2)+"%")+"</td></tr>");
     }
     H.push("</table>");
     for(const o of out){
-      H.push('<div class="subhd">'+esc(o.inv||"—")+"  ·  "+esc(o.invDate||"")+"</div>");
+      H.push('<div class="bkdinv">'+esc(o.inv||"—")+"<i>"+esc(o.invDate||"")+"</i></div>");
       H.push(bkdSection(o));
     }
     body.innerHTML=H.join("");
