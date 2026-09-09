@@ -377,6 +377,7 @@ td.neg{color:var(--neg)}
 .bkhd{font-weight:800;font-size:13px;margin-bottom:8px;
   border-bottom:1.5px solid var(--line);padding-bottom:6px}
 .bkgrid{display:grid;grid-template-columns:1fr 128px 96px;gap:6px 8px;align-items:center;font-size:12px}
+.dtgrid{grid-template-columns:1fr 120px}
 .bkgrid .selw{width:100%}
 .bkgrid .selw>select{font-size:12.5px;padding:5px 26px 5px 10px;border-radius:9px}
 .bkgrid .selw::after{right:10px}
@@ -467,6 +468,70 @@ td.neg{color:var(--neg)}
 #bkdBody .bkdtot .p,#bkdBody .bkdtot td.p,#bkdBody .bkdtot td.m.p{color:#9FDF9F}
 #bkdBody .bkdtot .d,#bkdBody .bkdtot td.d,#bkdBody .bkdtot td.m.d{color:#FFB3AD}
 @media(max-width:680px){#bkdBody .bkdcols,#bkdBody .bkdtot{grid-template-columns:1fr}}
+/* =====================================================================
+   儀表板(照抄 UPS):錢的流向一條、費用組成兩張餅、渠道與 Zone 各一張餅、
+   本期異常。逐筆明細不放在這裡 —— 要看細節就用匯出的報表,那份欄位是完整的;
+   畫面上留分析數字就好。
+   ===================================================================== */
+#p-dash .dwrap{max-width:1360px;margin:0 auto}
+#p-dash .dhead{margin:0 0 14px;display:flex;align-items:flex-start;gap:12px}
+#p-dash .dhead>button{margin-left:auto}
+#p-dash .dtitle{font:700 20px var(--hand);margin:0;color:var(--accent)}
+#p-dash .dsub{font-size:12.5px;color:var(--muted);margin-top:1px}
+#p-dash .dempty{background:var(--panel);border:2px dashed var(--line);border-radius:16px;
+  padding:34px 22px;text-align:center;color:var(--muted);font-size:14px;line-height:1.7}
+#p-dash .dcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  padding:15px 17px;box-shadow:var(--elev-1)}
+#p-dash .dcard+.dcard{margin-top:12px}
+#p-dash .dcard.warn{border-color:color-mix(in srgb,var(--neg) 45%,var(--line))}
+#p-dash .dcard.warn .ch h3{color:var(--neg)}
+#p-dash .ch{display:flex;align-items:baseline;gap:9px;margin-bottom:13px}
+#p-dash .ch h3{font:600 15px var(--hand);margin:0;flex:1;color:var(--accent)}
+#p-dash .ch .cnote{font-size:11.5px;color:var(--muted)}
+#p-dash .dfoot{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:12px}
+/* 錢的流向:向客戶收 − FedEx 實收 = 毛利。運算符號用 ::before 印在格子邊上,
+   讀起來就是一條算式;帳戶層費用不在這條算式裡,所以隔開來擺。 */
+#p-dash .dflow{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));
+  background:var(--panel);border:2px solid var(--accent);border-radius:var(--rad);
+  overflow:hidden;margin-bottom:14px}
+#p-dash .dcell{border-right:1px solid var(--line)}
+#p-dash .dcell:last-child{border-right:none}
+#p-dash .dk{font-size:11.5px;letter-spacing:.9px;color:var(--accent);font-weight:700;
+  text-transform:uppercase;background:var(--select);padding:7px 16px;
+  border-bottom:1.5px solid var(--line)}
+#p-dash .dv{font:800 27px "JetBrains Mono",Consolas,monospace;
+  color:var(--accent);line-height:1.25;padding:12px 16px}
+#p-dash .dv.neg{color:var(--neg)}
+/* 和算式無關的那一格:中間拉一條線隔開,前面不放運算子。 */
+#p-dash .dcell.dapart{border-left:2px solid var(--line)}
+#p-dash .dcell.dapart .dk,#p-dash .dcell.dapart .dv{color:var(--muted)}
+#p-dash .dop{position:relative}
+#p-dash .dop::before{content:attr(data-op);position:absolute;left:-10px;top:calc(50% + 14px);
+  transform:translateY(-50%);width:20px;height:20px;line-height:18px;text-align:center;
+  font-weight:800;font-size:13px;color:var(--accent);background:var(--panel);
+  border:1.5px solid var(--line);border-radius:50%}
+/* 圓餅:左邊圖、右邊圖例。圖例才是讀數字的地方,圓只負責講比例。 */
+.pie2{display:grid;grid-template-columns:repeat(auto-fit,minmax(345px,1fr));gap:16px}
+.pie{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.pcap{display:flex;align-items:baseline;font-size:11.5px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+.pcap b{margin-left:auto;font:700 14px "JetBrains Mono",Consolas,monospace;
+  color:var(--accent);letter-spacing:0;text-transform:none}
+.pnote{font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:9px}
+.phole{fill:var(--accent)}
+.plegend{flex:1 1 190px;min-width:0}
+.plegend table{width:100%;border-collapse:collapse;background:transparent;font-size:12.5px}
+.plegend tbody tr,.plegend tbody tr:nth-child(even),.plegend tbody tr:hover{background:transparent}
+.plegend td{padding:2px 0;border-bottom:none;white-space:normal}
+.plegend td.pnm{width:100%;word-break:break-word;color:var(--text)}
+.plegend td.pamt{text-align:right;white-space:nowrap;padding-left:10px;
+  font:600 12.5px "JetBrains Mono",Consolas,monospace}
+.plegend td.ppct{text-align:right;white-space:nowrap;padding-left:10px;color:var(--muted);
+  font:500 12px "JetBrains Mono",Consolas,monospace}
+.plegend tr.pfold{opacity:.6}
+.plegend tr.pfold td{font-size:11.5px}
+.pdot{display:inline-block;width:10px;height:10px;border-radius:3px;
+  margin-right:7px;vertical-align:-1px}
 /* 已匯入的帳單:摘要三格、瀏覽器空間量表、就地攤開的預覽 */
 .strow{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px}
 .strow .stat{flex:1 1 150px;padding:10px 12px;border:2px solid var(--line);
@@ -698,16 +763,6 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
   display:inline-flex;align-items:center;gap:8px}
 #runStatus::before{content:"";width:7px;height:7px;border-radius:99px;
   background:currentColor;box-shadow:0 0 6px currentColor;flex:none}
-#warnBox>*{background:color-mix(in srgb,var(--warn) 9%,var(--panel));
-  border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);
-  border-left:3px solid var(--warn);border-radius:10px;
-  padding:10px 14px;margin-top:10px;color:var(--warn)}
-#prevBox .tablewrap{border:1px solid var(--line);border-radius:10px}
-#tPrev td:last-child{font-weight:700;color:var(--head);
-  background:color-mix(in srgb,var(--run) 6%,var(--panel));
-  border-left:2px solid color-mix(in srgb,var(--run) 40%,transparent)}
-#tPrev th:last-child{border-left:2px solid color-mix(in srgb,var(--run) 40%,transparent)}
-#tPrev td.neg{color:var(--neg)}
 
 /* ---- 狀態列(32px chrome,狀態 LED) ---- */
 .statusbar{flex:none;
@@ -1165,24 +1220,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 
 <!-- ==================== Dashboard ==================== -->
 <section class="page" id="p-dash">
-  <div id="warnBox"></div>
-<div class="lf sketch" id="sumBox" hidden>
-    <h3 class="display"><span class="em">📊</span><span data-i18n="hd.sum">這次計價</span></h3>
-    <div class="tiles" id="tiles"></div>
-  </div>
-
-<div class="lf sketch" id="newBox" hidden>
-    <h3 class="display"><span class="em">🆕</span><span data-i18n="hd.new">本期新出現</span></h3>
-    <div id="newList"></div>
-  </div>
-
-<div class="lf sketch" id="prevBox" hidden>
-    <h3 class="display"><span class="em">🔍</span><span data-i18n="hd.prev">逐筆預覽</span></h3>
-    <p class="hint" id="prevNote" data-i18n="hint.prev">完整欄位(日期、追蹤號、各費項明細)在匯出的 Excel 裡。</p>
-    <div class="tablewrap" style="max-height:58vh">
-      <table id="tPrev"><thead></thead><tbody></tbody></table>
-    </div>
-  </div>
+  <div class="dwrap" id="dashBody"></div>
 </section>
 
 <!-- ==================== Settings ==================== -->
@@ -1280,6 +1318,33 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <div class="modalft">
       <button class="act" id="bSave8" data-i18n="btn.savesettings">Save Settings</button>
       <button class="act ghost" id="rateClose" data-i18n="btn.close">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div id="dtBg" class="modalbg">
+  <div class="modal sketch" id="dtModal" style="width:min(860px,100%)">
+    <div class="modalhd">
+      <span data-i18n="hd.defthr">預設門檻</span>
+      <button class="mx" id="dtX">✕</button>
+    </div>
+    <div class="modalbody">
+      <p class="hint" style="margin:0 0 10px" data-i18n="hint.defthr">這裡是所有渠道共用的門檻:沒有自訂值的渠道都跟著這一份走,改這裡它們就一起改。某一條留白 = 那條規則不使用。</p>
+      <div class="bkwrap">
+        <div class="bkbox sketch-soft">
+          <div class="bkhd"><span class="em">📦</span> <span data-i18n="hd.osgrp">Oversize</span></div>
+          <div id="dtOs" class="bkgrid dtgrid"></div>
+        </div>
+        <div class="bkbox sketch-soft">
+          <div class="bkhd"><span class="em">📐</span> <span data-i18n="hd.ahsgrp">Additional Handling (AHS)</span></div>
+          <div id="dtAhs" class="bkgrid dtgrid"></div>
+        </div>
+      </div>
+      <div id="dtNote" class="savenote" style="margin-top:8px"></div>
+    </div>
+    <div class="modalft">
+      <button class="act" id="dtSave" data-i18n="btn.savesettings">Save Settings</button>
+      <button class="act ghost" id="dtClose" data-i18n="btn.close">關閉</button>
     </div>
   </div>
 </div>
@@ -1595,7 +1660,6 @@ const I18N={
  "btn.csuradd":["Custom Surcharges…","Custom Surcharges…"],
  "hint.csur":["帳單費目名稱可填多個別名(,分隔),任一出現即符合;表頭名稱是結果 Excel 的欄位名。費率 0 = 先登記、照原帳單轉嫁;填費率後改收自訂費率並獨立一欄。",
    "Invoice charge names accept multiple aliases (comma-separated) — any match counts; the display name is the workbook column. Rate 0 = registered only (passthrough); set a rate to charge it with its own column."],
- "hd.new":["本期新出現","New This Period"],
  "hd.cfg":["費率設定檔","Rate Configuration"],
  "hd.setting":["Settings","Settings"],
  "hd.cfgfile":["📄 Rate Configuration File","📄 Rate Configuration File"],
@@ -1689,6 +1753,9 @@ const I18N={
    "Tick channels, type a divisor, apply. Reset to default clears the override and follows the global one."],
  "btn.viewrates":["View loaded rates","View loaded rates"],
  "btn.defthr":["Default Thresholds","Default Thresholds"],
+ "hd.defthr":["預設門檻","Default thresholds"],
+ "hint.defthr":["這裡是所有渠道共用的門檻:沒有自訂值的渠道都跟著這一份走,改這裡它們就一起改。某一條留白 = 那條規則不使用。",
+   "These are the thresholds every channel follows unless it has been given its own. Change one here and every channel without its own value moves with it. Leave a field blank to switch that rule off."],
  "btn.bulkchan":["Bulk Set Channels","Bulk Set Channels"],
  "hint.size":["一個渠道一列。0 或空白 = 該條件不啟用。Oversize 任一條件成立就收 Oversize 費、壓最低計費重並停收 AHS;AHS 只收最高的一種,最低計費重只在尺寸型觸發時套用。",
    "One row per channel. 0 or blank means the condition is off. Any Oversize condition that trips charges Oversize, forces the minimum billable weight and suppresses AHS; AHS charges only the highest single type, and its minimum billable weight applies only to dimension triggers."],
@@ -1751,10 +1818,6 @@ const I18N={
  "hd.run":["執行","Run"],
  "st.ready":["就緒 — 選好帳單、檢查費率,然後執行。","Ready — pick a billing file, review rates, then run."],
  "hint.runsum":["成功執行後,下方會出現統計與逐筆預覽。","After a successful run the summary and per-shipment preview appear below."],
- "hd.sum":["這次計價","This Run"],
- "hd.prev":["逐筆預覽","Per-shipment Preview"],
- "hint.prev":["完整欄位(日期、追蹤號、各費項明細)在匯出的 Excel 裡。",
-   "The full column set (dates, tracking, every fee) is in the exported workbook."],
  "btn.cancel":["取消","Cancel"],
 };
 function applyI18n(){
@@ -2050,9 +2113,9 @@ function markDirty(){
 function saveSettings(){
   try{
     localStorage.setItem(CFG_KEY,JSON.stringify(buildConfig()));
-    const t=new Date();
-    const stamp=L("已儲存 ","Saved ")+String(t.getHours()).padStart(2,"0")+":"
-      +String(t.getMinutes()).padStart(2,"0")+":"+String(t.getSeconds()).padStart(2,"0");
+    /* 只說有沒有存成功。時間戳沒有人會拿來對照什麼 —— 按下去的那一秒本來
+       就是現在,寫出來只是多一行會變動的字。 */
+    const stamp=L("已儲存","Saved");
     document.querySelectorAll(".savenote").forEach(el=>{ el.textContent=stamp; });
     toast(L("設定已儲存","Settings saved"));
   }catch(e){
@@ -2776,6 +2839,7 @@ function repriceCore(columns,rowsIn){
         "Residential Fee":0,"Signature Fee":0,"General Demand Fee":0,"AHS Demand Fee":0,
         "Oversize Demand Fee":0,"Fuel Fee":0,
         "Repriced Total":r2(passTotal),
+        "_billed":r2(passTotal),
         "_txKey":parseDateKey(transactionDate),
         "_invKey":parseDateKey(invoiceDate),
         "_ahsType":"",
@@ -2793,15 +2857,16 @@ function repriceCore(columns,rowsIn){
          所以不進警告區。 */
       const transactionDate=coalesce(row,["Shipment Date","Transaction Date","Tendered Date"],"");
       const invoiceDate=coalesce(row,["Invoice Date"],"");
-      const tc=toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
-      if(tc){
+      let zeroBilled=toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
+      if(zeroBilled){
         const k=billedBucketOf("Transportation Charge");
-        billedBuckets.set(k,(billedBuckets.get(k)||0)+tc);
+        billedBuckets.set(k,(billedBuckets.get(k)||0)+zeroBilled);
       }
       for(const[bd,bamt] of iterChargePairs(row)){
         if(!bamt) continue;
         const k=billedBucketOf(bd);
         billedBuckets.set(k,(billedBuckets.get(k)||0)+bamt);
+        zeroBilled+=bamt;
       }
       results.push({
         "Transaction Date":transactionDate,
@@ -2816,6 +2881,7 @@ function repriceCore(columns,rowsIn){
         "Residential Fee":0,"Signature Fee":0,"General Demand Fee":0,"AHS Demand Fee":0,
         "Oversize Demand Fee":0,"Fuel Fee":0,
         "Repriced Total":0,
+        "_billed":r2(zeroBilled),
         "_custom":{},
         "_txKey":parseDateKey(transactionDate),
         "_invKey":parseDateKey(invoiceDate),
@@ -2910,16 +2976,19 @@ function repriceCore(columns,rowsIn){
     for(const[pk,pv] of Object.entries(otherPass)) addRep(billedBucketOf(pk),pv);
     /* 帳單側逐類累計。只累計「有算出結果」的那些列,兩側才蓋同一批貨件;
        Transportation Charge 在成對欄位之外,要另外加。 */
+    let rowBilled=0;
     {
       const tc=toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
       if(tc){
         const k=billedBucketOf("Transportation Charge");
         billedBuckets.set(k,(billedBuckets.get(k)||0)+tc);
+        rowBilled+=tc;
       }
       for(const[bd,bamt] of iterChargePairs(row)){
         if(!bamt) continue;
         const k=billedBucketOf(bd);
         billedBuckets.set(k,(billedBuckets.get(k)||0)+bamt);
+        rowBilled+=bamt;
       }
     }
     results.push({
@@ -2944,6 +3013,7 @@ function repriceCore(columns,rowsIn){
       "Oversize Demand Fee":r2(oversizeDemandFee),
       "Fuel Fee":r2(fuelFee),
       "Repriced Total":r2(total),
+      "_billed":r2(rowBilled),
       "_custom":custom,
       "_txKey":parseDateKey(transactionDate),
       "_invKey":parseDateKey(invoiceDate),
@@ -3329,34 +3399,55 @@ const CURRENCY_COLS=new Set([
 const DATE_COLS=new Set(["Transaction Date","Invoice Date"]);
 const NUMERIC_COLS=new Set(["Length","Width","Height","Actual Weight","DIM Weight","Billable Weight"]);
 /* =====================================================================
-   Statement —— 就是 UPS 第一頁那份 Profit report:這一期的成本結構。
-   兩張分頁:本期摘要(向客戶收多少、FedEx 收多少、毛利、毛利率),
-   費用組成(一列一種費用,帳單與重算並排,附佔比與差額)。
-   帳單側的數字不是另外估的,是計價當下把每一行費用照同一套規則歸類累計的
-   —— 兩側蓋的是同一批貨件,所以合計對得起來。
+   Statement —— 就是 UPS 那份 Profit report,三張分頁、同一組欄名、同一個順序:
+     ① 逐筆明細(分頁名 = 帳單日 MMDDYY):一列一個追蹤號,向客戶收 / FedEx
+        實收 / 毛利 / 毛利率。
+     ② Overview:一列一期,同樣四個數字。
+     ③ Account Charges:帳戶層級費用逐項。
+   欄名照 UPS 的講法(只有「UPS」換成「FedEx」)—— 那些名字是給人拿去和帳單
+   並排對照的,自己另外取一套,兩邊就沒辦法一起看。
    ===================================================================== */
 function paintStatementBtn(){
   const b=$("bStatement"); if(!b) return;
   b.disabled=!(LAST&&LAST.results&&LAST.results.length);
 }
-/* 報表上的排列順序:先運費,再各項附加費,最後燃油;轉嫁的費目排在後面,
-   照金額大小。和計價結果的欄位順序一致。 */
-const PR_ORDER=["Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
-  "Residential Fee","Signature Fee","General Demand Fee","AHS Demand Fee",
-  "Oversize Demand Fee","Fuel Fee"];
-const PR_LABEL={
-  "Base Rate":["基本運費","Base Rate"],
-  "Additional Handling Surcharge":["額外處理費 (AHS)","Additional Handling (AHS)"],
-  "DAS Fee":["偏遠地區附加費 (DAS)","Delivery Area (DAS)"],
-  "Oversize Fee":["超大件附加費","Oversize"],
-  "Residential Fee":["住宅地址附加費","Residential"],
-  "Signature Fee":["簽收服務費","Signature"],
-  "General Demand Fee":["旺季附加費","General Demand"],
-  "AHS Demand Fee":["旺季 AHS 附加費","AHS Demand"],
-  "Oversize Demand Fee":["旺季超大件附加費","Oversize Demand"],
-  "Fuel Fee":["燃油附加費","Fuel"],
-};
-function prLabel(k){ const t=PR_LABEL[k]; return t?t[LANG]:k; }
+/* 一個追蹤號可能有好幾列(FedEx 後來補收的費用),兩側都要加總起來才是
+   這一件的全貌 —— 一列一列列出來的話,同一個追蹤號會出現好幾次,毛利率
+   也算不出東西。 */
+function stmtByTracking(res){
+  const m=new Map();
+  for(const r of res){
+    const t=String(r["Tracking Number"]||"").trim()||"(no tracking)";
+    let g=m.get(t);
+    if(!g){ g={trk:t,inv:String(r["Invoice Number"]||"").trim(),
+              invKey:r._invKey||0,rep:0,bil:0}; m.set(t,g); }
+    if(!g.inv) g.inv=String(r["Invoice Number"]||"").trim();
+    if(!g.invKey) g.invKey=r._invKey||0;
+    g.rep=r2(g.rep+toFloat(r["Repriced Total"],0));
+    g.bil=r2(g.bil+toFloat(r._billed,0));
+  }
+  return [...m.values()].sort((a,b)=>
+    (a.invKey-b.invKey)||(a.inv<b.inv?-1:a.inv>b.inv?1:0)||(a.trk<b.trk?-1:1));
+}
+function stmtByInvoice(res){
+  const m=new Map();
+  for(const r of res){
+    const k=String(r["Invoice Number"]||"").trim()||"(no invoice no.)";
+    let g=m.get(k);
+    if(!g){ g={inv:k,invKey:r._invKey||0,n:0,rep:0,bil:0}; m.set(k,g); }
+    if(!g.invKey) g.invKey=r._invKey||0;
+    g.n++;
+    g.rep=r2(g.rep+toFloat(r["Repriced Total"],0));
+    g.bil=r2(g.bil+toFloat(r._billed,0));
+  }
+  return [...m.values()].sort((a,b)=>(a.invKey-b.invKey)||(a.inv<b.inv?-1:1));
+}
+/* 分頁名照 UPS:帳單日寫成 MMDDYY */
+function stmtSheetName(key){
+  if(!key) return "Detail";
+  const y=Math.floor(key/10000), mo=Math.floor(key/100)%100, d=key%100;
+  return String(mo).padStart(2,"0")+String(d).padStart(2,"0")+String(y%100).padStart(2,"0");
+}
 async function exportProfitReport(){
   if(!(LAST&&LAST.results&&LAST.results.length)){
     showError(L("還沒有可以做報表的資料","Nothing to report on yet"),
@@ -3364,83 +3455,75 @@ async function exportProfitReport(){
     return;
   }
   const res=LAST.results;
-  const billed=LAST.billedBuckets||{};
-  const rep=LAST.repricedBuckets||{};
-  const customCols=LAST.customCols||[];
-  /* 排序:先照報表既定的順序,自訂附加費接在後面,轉嫁的費目照金額大小排最後 */
-  const known=PR_ORDER.concat(customCols);
-  const passKeys=[...new Set(Object.keys(billed).concat(Object.keys(rep)))]
-    .filter(k=>known.indexOf(k)<0)
-    .sort((a,b)=>Math.abs(toFloat(billed[b],0)+toFloat(rep[b],0))
-                -Math.abs(toFloat(billed[a],0)+toFloat(rep[a],0)));
-  const keys=known.filter(k=>(k in rep)||(k in billed)).concat(passKeys);
-  const totRep=r2(Object.values(rep).reduce((a,b)=>a+toFloat(b,0),0));
-  const totBil=r2(Object.values(billed).reduce((a,b)=>a+toFloat(b,0),0));
-  const profit=r2(totBil-totRep);
-  const acctTotal=r2((LAST.accountRows||[]).reduce((a,r)=>a+toFloat(r.net,0),0));
-  const invs=[...new Set(res.map(r=>String(r["Invoice Number"]||"").trim()).filter(Boolean))];
-  const invDate=(res.find(r=>r._invKey)||{})._invKey||0;
+  const MONEY="$#,##0.00", PCT="0.00%", DATE="mm/dd/yyyy";
+  const HEAD={bold:true,fill:"D9EAF7"};
+  const dateCell=k=>k?{v:keyToSerial(k),t:"n",s:{fmt:DATE}}:"";
+  const m=v=>({v:r2(v),t:"n",s:{fmt:MONEY}});
+  /* 毛利率是真正的比例值再套百分比格式,不是先算成 "20.1%" 這種字串貼上去
+     —— 字串排不了序,也沒辦法再拿去算。 */
+  const pctCell=(profit,rev)=>Math.abs(rev)>1e-9
+    ? {v:profit/rev,t:"n",s:{fmt:PCT}} : "";
 
-  const MONEY="$#,##0.00", PCT="0.0%", INT="#,##0", DATE="mm/dd/yyyy";
-  const HEAD="E8E2D6", FOOT="FFF2CC", RED="C00000";
-  /* 帳單藍、重算橘 —— 兩欄一眼分得出誰是誰。內文同色系但淡很多。 */
-  const BIL="DDEBF7", REP="FCE4D6", BILB="EFF6FD", REPB="FDF3EC";
-  const hc=(v,fill,al)=>({v,t:"s",s:{bold:true,fill:fill||HEAD,align:al||"right",wrap:true,border:true}});
-  const kv=(k,v,fmt,plain)=>[{v:k,t:"s",s:{bold:true,align:"left",border:true}},
-    fmt?{v,t:"n",s:{fmt,align:"right",border:true,
-          color:(!plain&&typeof v==="number"&&v<0)?RED:undefined}}
-       :{v:String(v),t:"s",s:{align:"left",border:true}}];
-
-  const sum=[[hc(L("項目","Item"),null,"left"),hc(L("數值","Value"))],
-    kv(L("期別","Invoice"),invs.join(", ")||"—"),
-    kv(L("帳單日","Invoice date"),invDate?keyToSerial(invDate):"",invDate?DATE:null),
-    kv(L("貨件數","Shipments"),res.length,INT),
-    kv(L("向客戶收","Charge customer"),totRep,MONEY),
-    kv("FedEx",totBil,MONEY),
-    kv(L("毛利","Profit"),profit,MONEY),
-    kv(L("毛利率","Margin"),totBil?profit/Math.abs(totBil):0,PCT),
-    kv(L("帳戶層費用","Account charges"),acctTotal,MONEY,true)];
-
-  /* 第一列是「這是什麼」,第二列是「誰說的」 —— 同一件事的兩個說法配成一組,
-     不要拆成四個各自獨立的欄名要人在腦裡對。 */
-  const BILCOL=L("FedEx 實收","FedEx"), REPCOL=L("重算","Repriced");
-  const cb=[
-    [hc(L("費用類別","Charge"),HEAD,"left"),
-     hc(L("金額","Amount"),HEAD),hc("",HEAD),
-     hc(L("佔比","Share"),HEAD),hc("",HEAD),
-     hc(L("差額","Difference"),HEAD)],
-    [hc("",HEAD,"left"),hc(BILCOL,BIL),hc(REPCOL,REP),
-     hc(BILCOL,BIL),hc(REPCOL,REP),hc("",HEAD)]];
-  const merges=[{s:{r:0,c:0},e:{r:1,c:0}},{s:{r:0,c:1},e:{r:0,c:2}},
-                {s:{r:0,c:3},e:{r:0,c:4}},{s:{r:0,c:5},e:{r:1,c:5}}];
-  const R={align:"right",border:true};
-  for(const k of keys){
-    const uv=r2(toFloat(billed[k],0)), rv=r2(toFloat(rep[k],0));
-    if(uv===0&&rv===0) continue;
-    const dv=r2(uv-rv);
-    cb.push([{v:prLabel(k),t:"s",s:{align:"left",border:true}},
-      {v:uv,t:"n",s:Object.assign({fmt:MONEY,fill:BILB},R)},
-      {v:rv,t:"n",s:Object.assign({fmt:MONEY,fill:REPB},R)},
-      {v:totBil?uv/totBil:0,t:"n",s:Object.assign({fmt:PCT,fill:BILB},R)},
-      {v:totRep?rv/totRep:0,t:"n",s:Object.assign({fmt:PCT,fill:REPB},R)},
-      {v:dv,t:"n",s:Object.assign({fmt:MONEY,color:dv<0?RED:undefined},R)}]);
+  /* ① 逐筆明細 */
+  const trks=stmtByTracking(res);
+  const d1=[["Invoice Number","Invoice Date","Tracking","Billed amount","FedEx","Profit","Margin"]
+    .map(c=>({v:c,t:"s",s:HEAD}))];
+  for(const g of trks){
+    const profit=r2(g.rep-g.bil);
+    d1.push([{v:g.inv,t:"s"},dateCell(g.invKey),{v:g.trk,t:"s"},
+      m(g.rep),m(g.bil),m(profit),pctCell(profit,g.rep)]);
   }
-  const F={bold:true,fill:FOOT,align:"right",border:true};
-  cb.push([{v:L("合計","Total"),t:"s",s:{bold:true,fill:FOOT,align:"left",border:true}},
-    {v:totBil,t:"n",s:Object.assign({fmt:MONEY},F)},
-    {v:totRep,t:"n",s:Object.assign({fmt:MONEY},F)},
-    /* 合計那一格的百分比一定是 100%,寫出來沒有告訴任何人任何事 */
-    {v:"",t:"s",s:Object.assign({},F)},{v:"",t:"s",s:Object.assign({},F)},
-    {v:profit,t:"n",s:Object.assign({fmt:MONEY,color:profit<0?RED:undefined},F)}]);
 
-  const tag=(invs.length===1?invs[0]:(invs.length?invs.length+"invoices":""));
-  const name=["Profit_Report",tag].filter(Boolean).join("_")
-    .replace(/[^A-Za-z0-9_-]+/g,"")+".xlsx";
+  /* ② Overview */
+  const invs=stmtByInvoice(res);
+  const d2=[["Invoice Number","Invoice Date","FedEx","Charge Customer","Profit","Margin"]
+    .map(c=>({v:c,t:"s",s:HEAD}))];
+  for(const g of invs){
+    const profit=r2(g.rep-g.bil);
+    d2.push([{v:g.inv,t:"s"},dateCell(g.invKey),
+      m(g.bil),m(g.rep),m(profit),pctCell(profit,g.rep)]);
+  }
+  if(invs.length>1){
+    const tRep=r2(invs.reduce((a,g)=>a+g.rep,0));
+    const tBil=r2(invs.reduce((a,g)=>a+g.bil,0));
+    const tPro=r2(tRep-tBil);
+    const B={bold:true}, BM={bold:true,fmt:MONEY};
+    d2.push([{v:"TOTAL",t:"s",s:B},"",
+      {v:tBil,t:"n",s:BM},{v:tRep,t:"n",s:BM},{v:tPro,t:"n",s:BM},
+      Math.abs(tRep)>1e-9?{v:tPro/tRep,t:"n",s:{bold:true,fmt:PCT}}:""]);
+  }
+
+  /* ③ 帳戶層級費用。FedEx 的帳單沒有 UPS 那種 Reason / Code / note 欄,
+     與其擺三個空欄,列它真的有的東西:哪一期、哪一天、什麼費用、多少錢。 */
+  const acc=LAST.accountRows||[];
+  const d3=[["Invoice Number","Invoice Date","Charge description","Amount"]
+    .map(c=>({v:c,t:"s",s:HEAD}))];
+  let accTotal=0, wDesc=20;
+  for(const ar of acc){
+    const pairs=ar.pairs&&ar.pairs.length?ar.pairs:[["(no itemized charges)",ar.net]];
+    for(const[desc,amt] of pairs){
+      if(String(desc).length>wDesc) wDesc=String(desc).length;
+      accTotal=r2(accTotal+toFloat(amt,0));
+      d3.push([{v:String(ar["Invoice Number"]??""),t:"s"},dateCell(ar._invKey),
+        {v:String(desc),t:"s"},m(amt)]);
+    }
+  }
+  if(acc.length)
+    d3.push(["","",{v:"TOTAL",t:"s",s:{bold:true}},
+      {v:accTotal,t:"n",s:{bold:true,fmt:MONEY}}]);
+
+  const one=invs.length===1?invs[0]:null;
+  const name=["Invoice",one?one.inv:invs.length+"invoices",
+    stmtSheetName(one?one.invKey:(invs[0]&&invs[0].invKey)),
+    "Repriced_Statement"].join("_").replace(/[^A-Za-z0-9_-]+/g,"")+".xlsx";
   await xlWrite([
-    {name:L("本期摘要","Summary"),rows:sum,cols:[{w:22},{w:24}],freeze:{r:1,c:0}},
-    {name:L("費用組成","Cost breakdown"),rows:cb,
-     cols:[{w:30},{w:16},{w:16},{w:12},{w:12},{w:15}],
-     merges,freeze:{r:2,c:1}},
+    {name:stmtSheetName(one?one.invKey:(invs[0]&&invs[0].invKey)),rows:d1,
+     cols:[{w:20},{w:13},{w:24},{w:15},{w:14},{w:13},{w:11}],
+     freeze:{r:1},filter:"A1:G"+d1.length},
+    {name:"Overview",rows:d2,
+     cols:[{w:20},{w:13},{w:14},{w:17},{w:13},{w:11}],freeze:{r:1}},
+    {name:"Account Charges",rows:d3,
+     cols:[{w:20},{w:13},{w:Math.min(wDesc+2,48)},{w:14}],freeze:{r:1}},
   ],name);
   toast(L(name+" 已下載",name+" downloaded"));
 }
@@ -3694,6 +3777,7 @@ function switchPage(name){
     b.setAttribute("aria-selected",b.dataset.p===name?"true":"false"));
   document.querySelectorAll("main .page").forEach(p=>
     p.classList.toggle("on",p.id==="p-"+name));
+  if(name==="dash") renderResults();
 }
 function switchDem(name){
   document.querySelectorAll("#demTabs button").forEach(b=>
@@ -3928,6 +4012,60 @@ function bulkChanClear(){
     "Overrides cleared on "+t.length+" channel"+(t.length===1?"":"s")+", saved"));
   bkNote("");
 }
+/* 預設門檻:填了數字就是這條門檻在用、用這個數字;留白就是不用這條。
+   既然數字本來就要填,再擺一個 On/Off 下拉是把同一件事問兩次 —— 而且兩邊
+   還會打架(填了 96 卻選 Off,那 96 是什麼意思?)。 */
+function dtFields(boxId,defs){
+  const box=$(boxId); if(!box) return;
+  const head='<span class="bkh">'+L("規則","Rule")+"</span>"
+    +'<span class="bkh">'+L("門檻值","Threshold")+"</span>";
+  box.innerHTML=head+defs.map(([f,sw,lab])=>{
+    /* 0 就是「不使用」(sizeVal 的語意),所以顯示成留白 —— 顯示 0 的話,
+       再存一次會被當成「用這條、門檻 0」,規則就被悄悄打開了。 */
+    const on=(!sw||!!RULES[sw])&&toFloat(RULES[f],0)>0;
+    return "<span>"+esc(lab[LANG])+"</span>"
+      +'<input class="cell num" id="dtv_'+f+'" value="'+esc(on?String(RULES[f]):"")+'"'
+      +' placeholder="'+esc(L("不使用","not used"))+'"'
+      +' title="'+esc(L("留白 = 這條門檻不使用","Blank = this rule is not used"))+'">';
+  }).join("");
+}
+function renderDefThr(){ dtFields("dtOs",BK_OS); dtFields("dtAhs",BK_AHS); }
+function openDefThr(){
+  renderDefThr();
+  const n=$("dtNote"); if(n) n.textContent="";
+  $("dtBg").style.display="flex";
+}
+function closeDefThr(){ $("dtBg").style.display="none"; }
+function saveDefThr(){
+  let bad="";
+  for(const[f] of bkAllDefs()){
+    const el=$("dtv_"+f); if(!el) continue;
+    const raw=String(el.value).trim();
+    if(raw==="") continue;
+    const v=Number(raw);
+    if(!isFinite(v)||v<0) bad=bad||raw;
+  }
+  if(bad){
+    const n=$("dtNote");
+    if(n) n.textContent=L("門檻值要是 0 或正數,「"+bad+"」不是。",
+      "Thresholds must be zero or a positive number — \u201c"+bad+"\u201d is not.");
+    return;
+  }
+  for(const[f,sw] of bkAllDefs()){
+    const el=$("dtv_"+f); if(!el) continue;
+    const raw=String(el.value).trim();
+    if(raw===""){
+      /* 留白 = 不用這條。有開關的就關掉,沒有開關的(最低計費重)歸零。 */
+      if(sw) RULES[sw]=false; else RULES[f]=0;
+    } else {
+      RULES[f]=Number(raw);
+      if(sw) RULES[sw]=true;
+    }
+  }
+  renderRules(); renderDefThr(); markDirty(); saveSettings();
+  toast(L("預設門檻已儲存,沒有自訂值的渠道跟著改",
+    "Default thresholds saved; every channel without its own value follows them"));
+}
 function openBulkChan(){
   renderBulkChan();
   const pick=$("sizeFilter")?$("sizeFilter").value:"*";
@@ -3957,17 +4095,11 @@ function wireRules(){
     SIZE_RULES[svc][key]=n;
     markDirty(); renderRules();
   });
-  $("bDefThr").addEventListener("click",async()=>{
-    const pick=$("sizeFilter").value;
-    const who=pick==="*"?L("全部渠道","every channel"):pick;
-    const ok=await showModal(L("還原預設門檻","Default thresholds"),
-      L("把 "+who+" 的門檻改回預設值?","Reset thresholds for "+who+" to the defaults?"),
-      {cancel:true,okText:L("還原","Reset")});
-    if(!ok) return;
-    if(pick==="*") SIZE_RULES={}; else delete SIZE_RULES[pick];
-    renderRules(); markDirty();
-    toast(L("門檻已還原預設","Thresholds reset to defaults"));
-  });
+  $("bDefThr").addEventListener("click",openDefThr);
+  $("dtX").addEventListener("click",closeDefThr);
+  $("dtClose").addEventListener("click",closeDefThr);
+  $("dtBg").addEventListener("click",e=>{ if(e.target===$("dtBg")) closeDefThr(); });
+  $("dtSave").addEventListener("click",saveDefThr);
   $("bBulkChan").addEventListener("click",openBulkChan);
   $("bkX").addEventListener("click",closeBulkChan);
   $("bkClose").addEventListener("click",closeBulkChan);
@@ -5336,34 +5468,113 @@ function wireFiles(){
 /* =====================================================================
    執行與結果呈現
    ===================================================================== */
-const PREV_COLS=["Service","Zone","Actual","DIM","Billable","Base","AHS","DAS",
-  "Oversize","Residential","Signature","Demand","Fuel","Total"];
-const PREV_LIMIT=800;
-function money(v){ return Number(v).toFixed(2); }
-function renderResults(){
-  if(!LAST) return;
-  const {results,warnings}=LAST;
+function money(v){ return "$"+r2(v).toLocaleString(undefined,
+  {minimumFractionDigits:2,maximumFractionDigits:2}); }
+/* 圓餅的配色。同一頁上最多七個顏色分得開,再多就開始猜 —— 所以超過七塊
+   的併成「其他」,確切佔比在右邊的圖例上。 */
+const PIE_COLS=["#4D148C","#FF6200","#A94E8B","#1F5D86","#0B7059","#B85400","#7B2FBE"];
+const PIE_OTHER="#A89E91", PIE_MISS="#C62828";
+/* 一份給圓餅用的分類:排序、取前七名、其餘併成一塊 */
+function pieItems(obj,topN){
+  const ent=Object.entries(obj).filter(([,v])=>Math.abs(toFloat(v,0))>0.005)
+    .sort((a,b)=>Math.abs(toFloat(b[1],0))-Math.abs(toFloat(a[1],0)));
+  const TOP=topN||7;
+  const head=ent.slice(0,TOP).map(([k,v],i)=>[k,toFloat(v,0),PIE_COLS[i%PIE_COLS.length]]);
+  const rest=ent.slice(TOP);
+  if(rest.length){
+    const sum=rest.reduce((a,[,v])=>a+toFloat(v,0),0);
+    head.push([L("其他 "+rest.length+" 項","Other ("+rest.length+")"),sum,PIE_OTHER]);
+  }
+  return head;
+}
+/* 每一塊之間留一點縫:兩個相近顏色的交界會看不出來,縫本身就是一種分界。
+   佔比很小的那幾塊照比例畫只有零點幾個像素,螢幕上根本不存在 —— 所以給
+   每一塊一個看得見的下限,多出來的長度按比例從大塊扣回去,圓周總長不變。 */
+function pieDonut(items,total){
+  const R=56,C=2*Math.PI*R,GAP=2,MIN=4; let off=0;
+  const raw=items.map(([,v])=>total?C*Math.abs(v)/total:0);
+  const tiny=raw.map(v=>v>0&&v<MIN);
+  const need=raw.reduce((a,v,i)=>a+(tiny[i]?MIN-v:0),0);
+  const big=raw.reduce((a,v,i)=>a+(tiny[i]?0:v),0);
+  const k=(need>0&&big>need)?(big-need)/big:1;
+  return items.map(([n,v,col],i)=>{
+    const seg=tiny[i]?MIN:raw[i]*k;
+    const g=Math.min(tiny[i]?1:GAP,seg/2);
+    const draw=Math.max(0,seg-g);
+    const el='<circle cx="75" cy="75" r="'+R+'" fill="none" stroke="'+col+'" stroke-width="26"'
+      +' stroke-dasharray="'+draw.toFixed(2)+" "+(C-draw).toFixed(2)+'"'
+      +' stroke-dashoffset="'+(-off).toFixed(2)+'" transform="rotate(-90 75 75)">'
+      +"<title>"+esc(n)+" "+money(v)+"</title></circle>";
+    off+=seg; return el;
+  }).join("");
+}
+/* 有錢但四捨五入成 0.0% 的寫「<0.1%」—— 寫 0.0% 看起來像沒有東西,
+   而那一列的存在本身就是在說「有,只是很小」。 */
+function piePct(v,total){
+  if(!total) return "0.0%";
+  const p=Math.abs(v)/total*100;
+  return (p>0&&p<0.05)?"<0.1%":p.toFixed(1)+"%";
+}
+/* noAmt:只講佔比,不列金額。渠道那一張要的是「生意怎麼分布」,
+   金額在上面的費用組成已經講過一次了。 */
+function pieBlock(items,total,centerBig,centerSmall,noAmt){
+  const rows=items.map(([n,v,col])=>"<tr>"
+    +'<td class="pnm"><span class="pdot" style="background:'+col+'"></span>'+esc(n)+"</td>"
+    +(noAmt?"":'<td class="pamt">'+money(v)+"</td>")
+    +'<td class="ppct">'+piePct(v,total)+"</td></tr>").join("");
+  return '<div class="pie"><svg viewBox="0 0 150 150" width="150" height="150" role="img"'
+    +' aria-label="'+esc(centerSmall)+'">'+pieDonut(items,total)
+    +'<text class="phole" x="75" y="71" text-anchor="middle" font-size="17" font-weight="700">'
+    +esc(centerBig)+"</text>"
+    +'<text class="phole" x="75" y="88" text-anchor="middle" font-size="10" opacity=".7">'
+    +esc(centerSmall)+"</text>"
+    +'</svg><div class="plegend"><table>'+rows+"</table></div></div>";
+}
+/* 一欄:標題 + 總額 + 圓餅 + 圓心說明 */
+function pieColumn(obj,cap,sum){
+  const it=pieItems(obj);
+  const t=it.reduce((a,[,v])=>a+Math.abs(v),0);
+  const freight=toFloat(obj["Base Rate"],0)+toFloat(obj["Fuel Fee"],0);
+  return '<div><div class="pcap">'+esc(cap)+"<b>"+money(sum)+"</b></div>"
+    +pieBlock(it,t,(t?Math.round(Math.abs(freight)/t*100):0)+"%",L("運費 + 燃油","freight + fuel"))
+    +'<div class="pnote">'+L("圓心:基本運費與燃油合計佔本欄總額之比例;其餘為附加費。",
+      "Centre: base freight and fuel as a share of this column's total. The remainder is surcharges.")
+    +"</div></div>";
+}
+/* 儀表板讀的那一份加總。兩側都從引擎給的逐類合計來,逐渠道與逐 Zone 從
+   結果列來(每一列都記了 FedEx 這一列收多少),所以兩邊蓋同一批貨件。 */
+function dashAgg(){
+  if(!LAST||!LAST.results||!LAST.results.length) return null;
+  const res=LAST.results;
+  const repriced=r2(res.reduce((a,r)=>a+toFloat(r["Repriced Total"],0),0));
+  const billed=r2(res.reduce((a,r)=>a+toFloat(r._billed,0),0));
+  const account=r2((LAST.accountRows||[]).reduce((a,r)=>a+toFloat(r.net,0),0));
+  const chanAgg={}, zoneAgg={};
+  for(const r of res){
+    const c=String(r["Service"]||"").trim()||L("(未寫服務名稱)","(no service name)");
+    chanAgg[c]=r2((chanAgg[c]||0)+toFloat(r._billed,0));
+    const z=String(r["Zone"]??"").trim();
+    if(z){ zoneAgg[z]=r2((zoneAgg[z]||0)+toFloat(r._billed,0)); }
+  }
+  return {n:res.length,repriced,billed,account,chanAgg,zoneAgg,
+    buckets:LAST.repricedBuckets||{}, billedBuckets:LAST.billedBuckets||{}};
+}
+/* 本期異常:依嚴重度排序。高 = 金額算錯(整個渠道沒有費率);
+   中 = 單項算 0(附加費沒登記、追蹤號整批沒有 Zone)。 */
+function dashIssues(){
+  const out=[];
   const infos=LAST.infos||[];
-  /* 統計卡 */
-  const total=results.reduce((a,r)=>a+r["Repriced Total"],0);
-  const fuel=results.reduce((a,r)=>a+r["Fuel Fee"],0);
-  const tiles=[
-    [L("處理筆數","Shipments"),String(results.length),""],
-    [L("略過(未設定 Zone)","Skipped (zone n/a)"),String(warnings.length),warnings.length?"neg":""],
-    [L("Repriced 總計","Repriced total"),"$"+total.toFixed(2),""],
-    [L("其中燃油","Fuel portion"),"$"+fuel.toFixed(2),""],
-  ];
-  $("tiles").innerHTML=tiles.map(([k,v,cls])=>
-    '<div class="tile sketch-soft"><div class="k">'+k+'</div><div class="v '+cls+'">'+esc(v)+"</div></div>").join("");
-  $("sumBox").hidden=false;
-  /* 警告 + 轉嫁說明 */
-  const infoLines=infos.map(x=>x.label==="Account Level"
-    ?L("Account Level 帳戶層級費用:"+x.rows+" 列、$"+x.total.toFixed(2)+" —— 不列入計價結果,按 Statement 下載對帳單。",
-       "Account-level charges: "+x.rows+" row(s), $"+x.total.toFixed(2)+" — kept out of repricing; click Statement to download.")
-    :L("服務「"+x.label+"」未設費率:"+x.rows+" 筆、$"+x.total.toFixed(2)+" 原價轉嫁。",
-       "Service '"+x.label+"' has no rate table: "+x.rows+" row(s), $"+x.total.toFixed(2)+" passed through."));
-  paintStatementBtn();
-  /* 本期新出現:目錄與自訂清單都沒有的費目、對照表與渠道清單都沒有的服務 */
+  const newSvcs=infos.filter(x=>x.label!=="Account Level"
+    &&!SERVICE_CANON.has(x.label)&&!SERVICES.includes(x.label));
+  const unrated=infos.filter(x=>x.label!=="Account Level"
+    &&(SERVICE_CANON.has(x.label)||SERVICES.includes(x.label)));
+  const push=(sev,zh,en,n,amt,what)=>{ if(n) out.push({sev,zh,en,n,amt:r2(amt),what}); };
+  push(3,"費率表未涵蓋此渠道","Channel not covered by the rate table",
+    newSvcs.reduce((a,x)=>a+x.rows,0), newSvcs.reduce((a,x)=>a+x.total,0),
+    newSvcs.map(x=>x.label).slice(0,4).join("、"));
+  push(3,"服務名稱未設費率,原價轉嫁","Service has no rate table; passed through at cost",
+    unrated.reduce((a,x)=>a+x.rows,0), unrated.reduce((a,x)=>a+x.total,0),
+    unrated.map(x=>x.label).slice(0,4).join("、"));
   const knownFee=n=>{
     if(KNOWN_PASS_FEES.includes(n)) return true;
     const nn=normChargeDesc(n);
@@ -5374,44 +5585,102 @@ function renderResults(){
     });
   };
   const newFees=(LAST.seenFees||[]).filter(f=>!knownFee(f.name));
-  const newSvcs=infos.filter(x=>x.label!=="Account Level"
-    &&!SERVICE_CANON.has(x.label)&&!SERVICES.includes(x.label));
-  const secs=[];
-  if(newSvcs.length)
-    secs.push("<p class=\"note warn\"><b>"+L("新渠道(未見過的服務名稱)","New channels (unseen service names)")+"</b><br>"
-      +newSvcs.map(x=>esc(x.label)+" · "+x.rows+L(" 筆"," rows")+" · $"+x.total.toFixed(2)).join("<br>")
-      +"<br>"+L("→ 到「計價規則」頁的渠道卡新增後即可設費率。","→ Add it on the Rating Rules page to start rating it.")+"</p>");
-  if(newFees.length)
-    secs.push("<p class=\"note warn\"><b>"+L("新費目(未登記的 Charge Description)","New surcharges (unregistered charge descriptions)")+"</b><br>"
-      +newFees.map(f=>esc(f.name)+" · "+f.rows+L(" 筆"," rows")+" · $"+f.total.toFixed(2)).join("<br>")
-      +"<br>"+L("→ 到「附加費」頁的自訂附加費登記,之後可設費率;未登記前金額照原帳單轉嫁。",
-                "→ Register it under Custom Surcharges on the Surcharges page; until then the original amount passes through.")+"</p>");
-  $("newList").innerHTML=secs.join("");
-  $("newBox").hidden=!secs.length;
-  $("warnBox").innerHTML=(warnings.length
-    ?'<p class="note warn">'+warnings.slice(0,8).map(esc).join("<br>")
-      +(warnings.length>8?"<br>… +"+(warnings.length-8):"")+"</p>":"")
-    +(infoLines.length?'<p class="note">'+infoLines.map(esc).join("<br>")+"</p>":"");
-  /* 預覽表 */
-  const t=$("tPrev");
-  t.querySelector("thead").innerHTML="<tr>"+PREV_COLS.map((c,i)=>
-    "<th"+(i>=2?' class="num"':"")+">"+c+"</th>").join("")+"</tr>";
-  const body=results.slice(0,PREV_LIMIT).map(r=>{
-    const demand=r["General Demand Fee"]+r["AHS Demand Fee"]+r["Oversize Demand Fee"];
-    const cells=[r["Service"],r["Zone"],r["Actual Weight"],r["DIM Weight"],
-      r["Billable Weight"],money(r["Base Rate"]),money(r["Additional Handling Surcharge"]),
-      money(r["DAS Fee"]),money(r["Oversize Fee"]),money(r["Residential Fee"]),
-      money(r["Signature Fee"]),money(demand),money(r["Fuel Fee"]),
-      money(r["Repriced Total"])];
-    return "<tr>"+cells.map((v,i)=>"<td"+(i>=2?' class="num"':"")+">"+esc(v)+"</td>").join("")+"</tr>";
-  }).join("");
-  t.querySelector("tbody").innerHTML=body
-    ||'<tr><td class="empty" colspan="14">'+L("(沒有結果)","(no results)")+"</td></tr>";
-  $("prevNote").textContent=(results.length>PREV_LIMIT
-    ?L("僅顯示前 "+PREV_LIMIT+" 筆;","Showing first "+PREV_LIMIT+" rows; "):"")
-    +L("完整欄位(日期、追蹤號、各費項明細)在匯出的 Excel 裡。",
-       "the full column set (dates, tracking, every fee) is in the exported workbook.");
-  $("prevBox").hidden=false;
+  push(2,"此附加費未登記,金額照原帳單轉嫁",
+    "Surcharge not registered; the original amount passes through",
+    newFees.reduce((a,f)=>a+f.rows,0), newFees.reduce((a,f)=>a+f.total,0),
+    newFees.map(f=>f.name).slice(0,4).join("、"));
+  const noZone=(LAST.results||[]).filter(r=>String(r["Zone"]??"").trim()==="");
+  push(2,"整個追蹤號都沒有 Zone,以 0 計價",
+    "No zone anywhere on the tracking number; priced at 0",
+    noZone.length, noZone.reduce((a,r)=>a+toFloat(r._billed,0),0));
+  push(2,"其他無法計價的列","Other rows that could not be priced",
+    (LAST.warnings||[]).length, 0,
+    (LAST.warnings||[]).slice(0,2).join(" / "));
+  return out.sort((a,b)=>b.sev-a.sev||Math.abs(b.amt)-Math.abs(a.amt));
+}
+const SEV_TAG={3:["高","HIGH"],2:["中","MED"],1:["低","LOW"]};
+function dashIssueCard(){
+  const iss=dashIssues();
+  if(!iss.length) return "";
+  const chips=iss.map(g=>'<div class="stat sketch-soft s'+g.sev+'">'
+    +'<i><span class="tag">'+L(SEV_TAG[g.sev][0],SEV_TAG[g.sev][1])+"</span>"
+    +esc(L(g.zh,g.en))+"</i>"
+    +"<b>"+money(g.amt)+' <span class="bu">'+L("FedEx 收費","FedEx billed")+"</span></b>"
+    +"<s>"+L(g.n+" 項",g.n+(g.n>1?" charges":" charge"))
+    +(g.what?" · "+esc(g.what):"")+"</s></div>").join("");
+  const nBad=iss.filter(g=>g.sev>=2).reduce((a,g)=>a+g.n,0);
+  const bad=iss.filter(g=>g.sev>=2).reduce((a,g)=>a+g.amt,0);
+  return '<div class="dcard warn issbox" style="margin-top:12px">'
+    +'<div class="ch"><h3>'+L("本期異常項目","Exceptions")+"</h3>"
+    +'<span class="cnote">'+L("依嚴重度排序","sorted by severity")+"</span></div>"
+    +'<p class="isssub">'+L("本期異常 <b>"+iss.length+"</b> 組。其中 <b>"+nBad
+      +"</b> 項影響計價金額,該部分 FedEx 實收 <b>"+money(bad)+"</b>",
+      "<b>"+iss.length+"</b> exception group(s) this period. <b>"+nBad
+      +"</b> of them affect the repriced amount; FedEx billed <b>"+money(bad)+"</b> on those")
+    +"</p>"
+    +'<div class="strow">'+chips+"</div>"
+    +'<div class="issleg">'+[...new Set(iss.map(g=>g.sev))].sort((a,b)=>b-a)
+      .map(v=>"<span><b class=\"s"+v+"\">"+L(SEV_TAG[v][0],SEV_TAG[v][1])+"</b> "
+        +esc(v>=3?L("金額算錯","the amount is wrong")
+                 :L("單項算 0 或照原帳單轉嫁","that item prices to 0 or passes through"))
+        +"</span>").join("")+"</div>"
+    +"</div>";
+}
+function renderResults(){
+  const body=$("dashBody"); if(!body) return;
+  const d=dashAgg();
+  if(!d){
+    body.innerHTML='<div class="dhead"><div><div class="dtitle">'+L("儀表板","Dashboard")
+      +'</div><div class="dsub">'+L("本期報表摘要","Current run summary")+"</div></div></div>"
+      +'<div class="dempty">'+L("還沒有報表資料。到「Import Files」選一份帳單,按 Reprice。",
+        "No report yet. Pick an invoice under Import Files and press Reprice.")+"</div>";
+    return;
+  }
+  const profit=r2(d.repriced-d.billed);
+  const chIt=pieItems(d.chanAgg);
+  const chTot=chIt.reduce((a,[,v])=>a+Math.abs(v),0);
+  const zEnt=Object.entries(d.zoneAgg).sort((a,b)=>(+a[0])-(+b[0]));
+  const zIt=zEnt.map(([z,v],i)=>["Zone "+z,toFloat(v,0),PIE_COLS[i%PIE_COLS.length]]);
+  const zTot=zIt.reduce((a,[,v])=>a+Math.abs(v),0);
+  const zTop=zIt.slice().sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];
+  const zoneHTML=zIt.length
+    ? pieBlock(zIt,zTot,(zTot&&zTop?Math.round(Math.abs(zTop[1])/zTot*100):0)+"%",
+        zTop?zTop[0]:"Zone")
+    : '<div class="dsub">'+L("無 Zone 資料","No zone data")+"</div>";
+  body.innerHTML=
+     '<div class="dhead"><div><div class="dtitle">'+L("儀表板","Dashboard")+"</div>"
+    +'<div class="dsub">'+d.n.toLocaleString()+" "+L("筆貨件","shipments")+"</div></div>"
+    +'<button class="act ghost" id="bDashRe">'+L("重新整理","Refresh")+"</button></div>"
+    +'<div class="dflow">'
+    +'<div class="dcell"><div class="dk">'+L("向客戶收","Charge customer")+"</div>"
+      +'<div class="dv">'+money(d.repriced)+"</div></div>"
+    +'<div class="dcell dop" data-op="−"><div class="dk">FedEx</div>'
+      +'<div class="dv">'+money(d.billed)+"</div></div>"
+    +'<div class="dcell dop" data-op="="><div class="dk">'+L("毛利","Profit")+"</div>"
+      +'<div class="dv'+(profit<0?" neg":"")+'">'+money(profit)+"</div></div>"
+    +'<div class="dcell dapart"><div class="dk">'+L("帳戶層費用","Account charges")+"</div>"
+      +'<div class="dv">'+money(d.account)+"</div></div>"
+    +"</div>"
+    +'<div class="dcard"><div class="ch"><h3>'+L("費用組成","Cost breakdown")+"</h3>"
+      +'<button class="act ghost sm" id="bPerXls">'+L("利潤報表…","Profit report…")+"</button></div>"
+      +'<div class="pie2">'
+      +pieColumn(d.buckets,L("重算","REPRICED"),d.repriced)
+      +pieColumn(d.billedBuckets,L("FedEx 帳單","FEDEX BILLED"),d.billed)
+      +"</div></div>"
+    +'<div class="dcard"><div class="ch"><h3>'+L("渠道","Channel")+"</h3></div>"
+      +pieBlock(chIt,chTot,String(chIt.length),L("渠道","channels"),true)+"</div>"
+    +'<div class="dcard"><div class="ch"><h3>'+L("Zone 分布","Zone distribution")+"</h3></div>"
+      +"<div>"+zoneHTML+"</div></div>"
+    +dashIssueCard()
+    +'<div class="dfoot">'+L(
+      "本頁數字與匯出報表一致。逐筆明細不放在這裡 —— 完整欄位(日期、追蹤號、各費項)在匯出的 Excel 裡。",
+      "Figures match the exported report. Per-shipment detail is not shown here — the full column set (dates, tracking, every fee) is in the exported workbook.")
+    +"</div>";
+  const re=$("bDashRe");
+  if(re) re.onclick=()=>{ if(BILLING) runRepricing(); };
+  const px=$("bPerXls");
+  if(px) px.onclick=exportProfitReport;
+  paintStatementBtn();
 }
 async function runRepricing(){
   if(!BILLING){
