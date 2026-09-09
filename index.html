@@ -1683,9 +1683,24 @@ function normNum(val,def=0.0){
   if(s===""||!isFinite(n)) throw new Error("not numeric: "+val);
   return n;
 }
+/* 渠道對照表:帳單 Service Type 原文 → 引擎渠道名。
+   由上往下比對(長的先),認不得的原文原樣保留,計價時走「原價轉嫁」;
+   空字串代表沒有服務資訊(可能是 account-level 費用列)。 */
+const SERVICE_MAP=[
+  ["home","Home Delivery"],
+  ["international ground","International Ground"],
+  ["international economy","International Economy"],
+  ["international priority","International Priority"],
+  ["ground economy","Ground Economy"],
+  ["smartpost","Ground Economy"],
+  ["ground","Ground"],
+];
+const SERVICE_CANON=new Set(SERVICE_MAP.map(([,c])=>c));
 function normalizeService(s){
-  const v=String(s).trim().toLowerCase();
-  return v.includes("home")?"Home Delivery":"Ground";
+  const v=String(s??"").trim().toLowerCase().split(/\s+/).join(" ");
+  if(!v) return "";
+  for(const[pat,canon] of SERVICE_MAP) if(v.includes(pat)) return canon;
+  return String(s).trim();
 }
 function flagVal(x){
   if(x==null||(typeof x==="number"&&!isFinite(x))) return false;
@@ -1949,8 +1964,13 @@ function normalizeBillingInput(columns,rowsIn){
 
   rows.forEach((row,idx)=>{
     try{
-      const serviceValue=coalesce(row,["Service Type","Ground Service","Service"],"");
-      const service=normalizeService(serviceValue);
+      let service=normalizeService(coalesce(row,["Service Type","Service"],""));
+      if(!service){
+        /* Ground Economy(舊 SmartPost)這種渠道會出現在 Ground Service 欄;
+           但該欄大多是 Prepaid / Signature 之類的付款屬性,認得出渠道才用。 */
+        const gs=normalizeService(coalesce(row,["Ground Service"],""));
+        if(SERVICE_CANON.has(gs)) service=gs;
+      }
       const zone=Math.trunc(toFloat(coalesce(row,["Zone Code","Zone"],0),0));
       const length=toFloat(coalesce(row,["Dim Length","Length"],0),0);
       const width=toFloat(coalesce(row,["Dim Width","Width"],0),0);
@@ -2159,7 +2179,7 @@ const FINAL_COLS=[
   "DIM Weight","Billable Weight",
   "Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
   "Residential Fee","Signature Fee","General Demand Fee","AHS Demand Fee",
-  "Oversize Demand Fee","Fuel Fee","Repriced Total",
+  "Oversize Demand Fee","Fuel Fee","Repriced Total","Note",
 ];
 function repriceCore(columns,rowsIn){
   const norm=normalizeBillingInput(columns,rowsIn);
@@ -2174,6 +2194,8 @@ function repriceCore(columns,rowsIn){
   const sigLookup=buildSigLookup();
 
   const results=[], warnings=[];
+  const chargeStats=new Map();   /* 全帳單費目盤點(含轉嫁與略過列) */
+  const infoMap=new Map();       /* account-level / 未設費率渠道統計 */
 
   billing.forEach((row,index)=>{
     const excelRow=index+2;
@@ -2183,6 +2205,48 @@ function repriceCore(columns,rowsIn){
     const w=toFloat(row["_Normalized Width"],0);
     const h=toFloat(row["_Normalized Height"],0);
     const actualWeight=Math.ceil(toFloat(row["_Normalized Actual Weight"],0));
+
+    for(const[desc,amount] of iterChargePairs(row)){
+      const st=chargeStats.get(desc)||{count:0,total:0};
+      st.count+=1; st.total+=amount; chargeStats.set(desc,st);
+    }
+
+    /* Account-level:沒有服務、沒有 Zone、沒有材積重量 —— 不是包裹
+       (例如 Regularly Scheduled Pickup 月費列),整列原價轉嫁。
+       服務認不得(國際渠道、或還沒建費率表的渠道)也原價轉嫁並統計。 */
+    const isAccountLevel=!service&&zone===0&&actualWeight<=0&&l<=0&&w<=0&&h<=0;
+    if(isAccountLevel||!SERVICES.includes(service)){
+      const net=toFloat(coalesce(row,["Net Charge Amount"],null),NaN);
+      const passTotal=isFinite(net)?net
+        :iterChargePairs(row).reduce((a,[,amt])=>a+amt,0)
+          +toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
+      const label=isAccountLevel?"Account Level":(service||"Unknown Service");
+      const st=infoMap.get(label)||{label,rows:0,total:0};
+      st.rows+=1; st.total+=passTotal; infoMap.set(label,st);
+      const transactionDate=coalesce(row,["Shipment Date","Transaction Date","Tendered Date"],"");
+      const invoiceDate=coalesce(row,["Invoice Date"],"");
+      results.push({
+        "Transaction Date":transactionDate,
+        "Invoice Date":invoiceDate,
+        "Invoice Number":coalesce(row,["Invoice Number","Invoice No","Invoice #"],""),
+        "Tracking Number":row["_Tracking Number"]??"",
+        "Service":label,
+        "Zone":ZONES.includes(zone)?zone:"",
+        "Length":l,"Width":w,"Height":h,
+        "Actual Weight":actualWeight,"DIM Weight":0,"Billable Weight":0,
+        "Base Rate":0,"Additional Handling Surcharge":0,"DAS Fee":0,"Oversize Fee":0,
+        "Residential Fee":0,"Signature Fee":0,"General Demand Fee":0,"AHS Demand Fee":0,
+        "Oversize Demand Fee":0,"Fuel Fee":0,
+        "Repriced Total":r2(passTotal),
+        "Note":isAccountLevel
+          ?"Account-level charge (not a shipment) — original amount kept"
+          :"No rate table for this service — original amount kept",
+        "_txKey":parseDateKey(transactionDate),
+        "_invKey":parseDateKey(invoiceDate),
+        "_ahsType":"",
+      });
+      return;
+    }
 
     if(!ZONES.includes(zone)){
       warnings.push("Billing row "+excelRow+": Zone "+zone+" not configured");
@@ -2267,13 +2331,16 @@ function repriceCore(columns,rowsIn){
       "Oversize Demand Fee":r2(oversizeDemandFee),
       "Fuel Fee":r2(fuelFee),
       "Repriced Total":r2(total),
+      "Note":"",
       "_txKey":parseDateKey(transactionDate),
       "_invKey":parseDateKey(invoiceDate),
       "_ahsType":ahsType,
     });
   });
 
-  return {results,warnings};
+  return {results,warnings,
+    infos:[...infoMap.values()].sort((a,b)=>b.total-a.total),
+    chargeStats};
 }
 </script>
 <script>
@@ -2634,7 +2701,20 @@ const CURRENCY_COLS=new Set([
   "Oversize Demand Fee","Fuel Fee","Repriced Total"]);
 const DATE_COLS=new Set(["Transaction Date","Invoice Date"]);
 const NUMERIC_COLS=new Set(["Length","Width","Height","Actual Weight","DIM Weight","Billable Weight"]);
-async function exportResultWorkbook(results){
+/* 費目的引擎處理方式(給 Charge Summary 盤點表看的) */
+function classifyChargeDesc(desc,total){
+  const d=normChargeDesc(desc);
+  if(["earned discount","performance pricing"].some(k=>d.includes(k))||d==="discount")
+    return "Discount (dropped — engine reprices from tables)";
+  const recalc=["fuel","delivery area surcharge","das ","das resi","das comm",
+    "residential","add'l handling","additional handling","ahs","oversize",
+    "signature","demand surcharge","transportation charge",
+    "hawaii -","alaska -"];
+  if(recalc.some(k=>d.includes(k))) return "Recalculated by engine";
+  if(Math.abs(total)<=0) return "Informational ($0)";
+  return "Passed through as-is";
+}
+async function exportResultWorkbook(results,chargeStats){
   const HEAD={bold:true,fill:"D9EAF7"};
   const rows=[FINAL_COLS.map(c=>({v:c,t:"s",s:HEAD}))];
   const widths=FINAL_COLS.map(c=>c.length);
@@ -2652,8 +2732,8 @@ async function exportResultWorkbook(results){
         const v=toFloat(res[c],0);
         cell={v,t:"n",s:{fmt:"0.00"}}; disp=v.toFixed(2);
       }else if(c==="Zone"){
-        const v=Math.trunc(toFloat(res[c],0));
-        cell={v,t:"n"}; disp=String(v);
+        if(res[c]===""||res[c]==null){ cell=""; disp=""; }
+        else{ const v=Math.trunc(toFloat(res[c],0)); cell={v,t:"n"}; disp=String(v); }
       }else{
         const v=res[c];
         if(typeof v==="number"&&isFinite(v)){ cell={v,t:"n"}; disp=String(v); }
@@ -2664,12 +2744,32 @@ async function exportResultWorkbook(results){
     });
     rows.push(row);
   }
-  await xlWrite([{
+  const sheets=[{
     name:"Repriced",rows,
     cols:widths.map(w=>({w:Math.min(Math.max(w+2,10),35)})),
     freeze:{r:1},
     filter:"A1:"+xlCol(FINAL_COLS.length-1)+rows.length,
-  }],"repriced_result.xlsx");
+  }];
+  /* 第二張 sheet:整份帳單的費目盤點 —— 新帳單有沒有引擎不認得的費目,一眼看完 */
+  if(chargeStats&&chargeStats.size){
+    const H2={bold:true,fill:"D9EAF7"};
+    const srows=[["Charge Description","Rows","Total Amount","Engine Treatment"]
+      .map(c=>({v:c,t:"s",s:H2}))];
+    const entries=[...chargeStats.entries()]
+      .sort((a,b)=>Math.abs(b[1].total)-Math.abs(a[1].total));
+    let wDesc=20, wTreat=24;
+    for(const[desc,st] of entries){
+      const treat=classifyChargeDesc(desc,st.total);
+      if(desc.length>wDesc) wDesc=desc.length;
+      if(treat.length>wTreat) wTreat=treat.length;
+      srows.push([{v:desc,t:"s"},{v:st.count,t:"n"},
+        {v:r2(st.total),t:"n",s:{fmt:"$#,##0.00"}},{v:treat,t:"s"}]);
+    }
+    sheets.push({name:"Charge Summary",rows:srows,
+      cols:[{w:Math.min(wDesc+2,42)},{w:9},{w:15},{w:Math.min(wTreat+2,48)}],
+      freeze:{r:1},filter:"A1:D"+srows.length});
+  }
+  await xlWrite(sheets,"repriced_result.xlsx");
 }
 
 /* ---- 範本匯出(標頭同樣上色,桌面版讀進去只看值,樣式不影響) ---- */
@@ -3370,6 +3470,7 @@ function money(v){ return Number(v).toFixed(2); }
 function renderResults(){
   if(!LAST) return;
   const {results,warnings}=LAST;
+  const infos=LAST.infos||[];
   /* 統計卡 */
   const total=results.reduce((a,r)=>a+r["Repriced Total"],0);
   const fuel=results.reduce((a,r)=>a+r["Fuel Fee"],0);
@@ -3382,10 +3483,16 @@ function renderResults(){
   $("tiles").innerHTML=tiles.map(([k,v,cls])=>
     '<div class="tile sketch-soft"><div class="k">'+k+'</div><div class="v '+cls+'">'+esc(v)+"</div></div>").join("");
   $("sumBox").hidden=false;
-  /* 警告 */
-  $("warnBox").innerHTML=warnings.length
+  /* 警告 + 轉嫁說明 */
+  const infoLines=infos.map(x=>x.label==="Account Level"
+    ?L("Account Level 帳戶層級費用:"+x.rows+" 列、$"+x.total.toFixed(2)+" —— 非包裹,原價轉嫁。",
+       "Account-level charges: "+x.rows+" row(s), $"+x.total.toFixed(2)+" — not shipments, passed through.")
+    :L("服務「"+x.label+"」未設費率:"+x.rows+" 筆、$"+x.total.toFixed(2)+" 原價轉嫁。",
+       "Service '"+x.label+"' has no rate table: "+x.rows+" row(s), $"+x.total.toFixed(2)+" passed through."));
+  $("warnBox").innerHTML=(warnings.length
     ?'<p class="note warn">'+warnings.slice(0,8).map(esc).join("<br>")
-      +(warnings.length>8?"<br>… +"+(warnings.length-8):"")+"</p>":"";
+      +(warnings.length>8?"<br>… +"+(warnings.length-8):"")+"</p>":"")
+    +(infoLines.length?'<p class="note">'+infoLines.map(esc).join("<br>")+"</p>":"");
   /* 預覽表 */
   const t=$("tPrev");
   t.querySelector("thead").innerHTML="<tr>"+PREV_COLS.map((c,i)=>
@@ -3416,10 +3523,10 @@ async function runRepricing(){
   $("bRunTop").disabled=true;
   try{
     await new Promise(r=>setTimeout(r,30)); /* 讓狀態字先畫出來 */
-    const {results,warnings}=repriceCore(BILLING.columns,BILLING.rows);
-    LAST={results,warnings};
+    const {results,warnings,infos,chargeStats}=repriceCore(BILLING.columns,BILLING.rows);
+    LAST={results,warnings,infos,chargeStats};
     renderResults();
-    await exportResultWorkbook(results);
+    await exportResultWorkbook(results,chargeStats);
     const done=L("完成:已處理 "+results.length+" 筆,repriced_result.xlsx 已下載。",
       "Done — "+results.length+" shipment(s) processed; repriced_result.xlsx downloaded.");
     setStatus(done);
@@ -3831,6 +3938,7 @@ document.addEventListener("DOMContentLoaded",init);
 /* 自動化測試掛鉤(不影響一般使用) */
 window.__FEDEX_TEST={
   repriceCore,parseDateKey,toFloat,normNum,dedupHeaders,parseCSV,
+  normalizeService,classifyChargeDesc,
   buildConfig,applyConfig,loadDefaultTables,renderAll,
   get TBL(){return TBL;},get RULES(){return RULES;},
   set RULES(v){RULES=v;},
