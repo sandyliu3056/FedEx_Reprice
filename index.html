@@ -699,42 +699,36 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 }
 
 /* Soft, rounded delivery-town animation. */
-.scene{overflow:hidden;border-radius:20px;background:linear-gradient(180deg,#c3e3f9 0%,#e4f2fd 52%,#fff7eb 100%)}
-.scene .bld{fill:#eadcf5;stroke:#b7a3c8;rx:9px}
-.scene .bld2{fill:#f7e1cb}.scene .bld3{fill:#deebe3}
-.scene .a1{fill:#bba0d6}.scene .a2{fill:#f0b47f}
-.scene .road{fill:#aaa0b8}.scene .sidewalk{fill:#eee2d8}
-.scene .cloud{fill:#fff;opacity:.85}.scene .glass{fill:#a6c8dc}
+.scene{overflow:hidden;border-radius:20px;background:linear-gradient(180deg,#b7d1e4 0%,#dbe8f1 52%,#f2ecdf 100%)}
+.scene .bld{fill:#d5cbdf;stroke:#9d90ad;rx:9px}
+.scene .bld2{fill:#dcc4a9}.scene .bld3{fill:#c2cfbc}
+.scene .a1{fill:#9682b4}.scene .a2{fill:#c9975f}
+.scene .road{fill:#7d7887}.scene .sidewalk{fill:#d9d0c2}
+.scene .cloud{fill:#fff;opacity:.72}.scene .glass{fill:#8fb1c6}
 .scene .truckride{transform:translateX(480px)}
 .scene .walkR{transform:translateX(240px)}.scene .walkL{transform:translateX(900px)}
-.scene .cornice{fill:#cfbce0}.scene .cornice2{fill:#e6c6a2}.scene .cornice3{fill:#c2d8ca}
-.scene .sill{fill:#cbb9da}
-.scene .roofbit{fill:#e6dbf2;stroke:#b7a3c8;stroke-width:1}
-.scene .fanblade{stroke:#b7a3c8;stroke-width:1.2;stroke-linecap:round}
-.scene .can1{fill:#93bd8b}.scene .can2{fill:#abd0a1}.scene .can3{fill:#c6e0b8}
-.scene .trunkR{fill:#a3795a}
-.scene .pet-run-r{transform:translateX(300px)}
-.scene .pet-run-l{transform:translateX(880px)}
-.scene .pet-tail{transform-box:fill-box;transform-origin:70% 90%}
-.scene .pet-eyes{transform-box:fill-box;transform-origin:center}
+.scene .sill{fill:#b3a8c2}
+.scene .roofbit{fill:#cfc5da;stroke:#9d90ad;stroke-width:1}
+.scene .fanblade{stroke:#9d90ad;stroke-width:1.2;stroke-linecap:round}
+.scene .can1{fill:#7fa276}.scene .can2{fill:#93b487}.scene .can3{fill:#a9c599}
+.scene .trunkR{fill:#84664c}
+.scene .faceShade{fill:rgb(48 40 60/.20)}
+.scene .faceLight{fill:rgb(255 255 255/.32)}
+.scene .awnShade{fill:rgb(48 40 60/.10)}
+.scene .lit{fill:#e3c47c}.scene .win{fill:#aa9fba}
+.scene .shopwin{fill:#ccd9e3}
+.scene .door{fill:#8f8299}
+.scene .neon{fill:#d8792f}
+.scene .sun{fill:#e2c26d}
+.scene .hyd{fill:#b45f57;stroke:#8c4a44}
+.scene .lane{stroke:rgb(255 255 255/.55)}
+.scene .lamphead{fill:#e3c47c}
 @media(prefers-reduced-motion:no-preference){
   .scene .truckride{animation:sc-cute-drive 24s linear infinite;animation-delay:-10s}
   .scene .bob{animation-duration:.85s}
   .scene .neon{animation:sc-soft-glow 4s ease-in-out infinite}
-  .scene .pet-run-r{animation:sc-run-r 22s linear infinite}
-  .scene .pet-run-l{animation:sc-run-l 29s linear infinite;animation-delay:-9s}
-  .scene .pet-bounce{animation:sc-pet-bounce .42s ease-in-out infinite}
-  .scene .pet-cat{animation-duration:.52s}
-  .scene .pet-tail{animation:sc-pet-tail 1.4s ease-in-out infinite alternate}
-  .scene .pet-eyes{animation:sc-blink 5.6s infinite}
-  .scene .pet-cat .pet-eyes{animation-delay:-2s}
   @keyframes sc-cute-drive{0%{transform:translateX(-210px)}42%,55%{transform:translateX(500px)}100%{transform:translateX(1230px)}}
   @keyframes sc-soft-glow{0%,100%{opacity:1}50%{opacity:.7}}
-  @keyframes sc-pet-bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-  @keyframes sc-run-r{from{transform:translateX(-70px)}to{transform:translateX(1270px)}}
-  @keyframes sc-run-l{from{transform:translateX(1270px)}to{transform:translateX(-70px)}}
-  @keyframes sc-pet-tail{from{transform:rotate(-9deg)}to{transform:rotate(12deg)}}
-  @keyframes sc-blink{0%,43%,47%,100%{transform:scaleY(1)}45%{transform:scaleY(.08)}}
 }
 @media(max-width:640px){.scene svg{width:760px;max-width:none;position:relative;left:50%;transform:translateX(-50%)}}
 @media(prefers-reduced-motion:reduce){.scene *{animation:none!important}}
@@ -819,6 +813,11 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <div class="tiles" id="tiles"></div>
   </div>
 
+<div class="lf sketch" id="newBox" hidden>
+    <h3 class="display"><span class="em">🆕</span><span data-i18n="hd.new">本期新出現</span></h3>
+    <div id="newList"></div>
+  </div>
+
 <div class="lf sketch" id="prevBox" hidden>
     <h3 class="display"><span class="em">🔍</span><span data-i18n="hd.prev">逐筆預覽</span></h3>
     <p class="hint" id="prevNote" data-i18n="hint.prev">完整欄位(日期、追蹤號、各費項明細)在匯出的 Excel 裡。</p>
@@ -844,22 +843,27 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <rect class="bld bld3" x="728" y="56" width="150" height="84" rx="4"/>
     <rect class="bld"      x="888" y="40" width="126" height="100" rx="4"/>
     <rect class="bld bld2" x="1024" y="62" width="168" height="78" rx="4"/>
-    <rect class="shade" x="128" y="38" width="8" height="102" rx="3"/>
-    <rect class="shade" x="418" y="30" width="8" height="110" rx="3"/>
-    <rect class="shade" x="710" y="22" width="8" height="118" rx="3"/>
-    <rect class="shade" x="1006" y="40" width="8" height="100" rx="3"/>
-    <rect class="cornice2" x="5"    y="35" width="134" height="6" rx="3"/>
-    <rect class="cornice"  x="143"  y="55" width="156" height="6" rx="3"/>
-    <rect class="cornice3" x="303"  y="27" width="126" height="6" rx="3"/>
-    <rect class="cornice"  x="433"  y="51" width="166" height="6" rx="3"/>
-    <rect class="cornice2" x="603"  y="19" width="118" height="6" rx="3"/>
-    <rect class="cornice3" x="725"  y="53" width="156" height="6" rx="3"/>
-    <rect class="cornice"  x="885"  y="37" width="132" height="6" rx="3"/>
-    <rect class="cornice2" x="1021" y="59" width="174" height="6" rx="3"/>
+    <!-- 立體感:每棟右側面(暗)+ 屋頂面(亮),2.5D 擠出 -->
+    <path class="bld2" d="M136 38 L145 33 L145 135 L136 140 Z"/><path class="faceShade" d="M136 38 L145 33 L145 135 L136 140 Z"/>
+    <path class="bld2" d="M8 38 L17 33 L145 33 L136 38 Z"/><path class="faceLight" d="M8 38 L17 33 L145 33 L136 38 Z"/>
+    <path class="bld" d="M296 58 L305 53 L305 135 L296 140 Z"/><path class="faceShade" d="M296 58 L305 53 L305 135 L296 140 Z"/>
+    <path class="bld" d="M146 58 L155 53 L305 53 L296 58 Z"/><path class="faceLight" d="M146 58 L155 53 L305 53 L296 58 Z"/>
+    <path class="bld3" d="M426 30 L435 25 L435 135 L426 140 Z"/><path class="faceShade" d="M426 30 L435 25 L435 135 L426 140 Z"/>
+    <path class="bld3" d="M306 30 L315 25 L435 25 L426 30 Z"/><path class="faceLight" d="M306 30 L315 25 L435 25 L426 30 Z"/>
+    <path class="bld" d="M596 54 L605 49 L605 135 L596 140 Z"/><path class="faceShade" d="M596 54 L605 49 L605 135 L596 140 Z"/>
+    <path class="bld" d="M436 54 L445 49 L605 49 L596 54 Z"/><path class="faceLight" d="M436 54 L445 49 L605 49 L596 54 Z"/>
+    <path class="bld2" d="M718 22 L727 17 L727 135 L718 140 Z"/><path class="faceShade" d="M718 22 L727 17 L727 135 L718 140 Z"/>
+    <path class="bld2" d="M606 22 L615 17 L727 17 L718 22 Z"/><path class="faceLight" d="M606 22 L615 17 L727 17 L718 22 Z"/>
+    <path class="bld3" d="M878 56 L887 51 L887 135 L878 140 Z"/><path class="faceShade" d="M878 56 L887 51 L887 135 L878 140 Z"/>
+    <path class="bld3" d="M728 56 L737 51 L887 51 L878 56 Z"/><path class="faceLight" d="M728 56 L737 51 L887 51 L878 56 Z"/>
+    <path class="bld" d="M1014 40 L1023 35 L1023 135 L1014 140 Z"/><path class="faceShade" d="M1014 40 L1023 35 L1023 135 L1014 140 Z"/>
+    <path class="bld" d="M888 40 L897 35 L1023 35 L1014 40 Z"/><path class="faceLight" d="M888 40 L897 35 L1023 35 L1014 40 Z"/>
+    <path class="bld2" d="M1192 62 L1201 57 L1201 135 L1192 140 Z"/><path class="faceShade" d="M1192 62 L1201 57 L1201 135 L1192 140 Z"/>
+    <path class="bld2" d="M1024 62 L1033 57 L1201 57 L1192 62 Z"/><path class="faceLight" d="M1024 62 L1033 57 L1201 57 L1192 62 Z"/>
     <g><rect class="roofbit" x="30" y="26" width="20" height="10" rx="2"/><circle class="roofbit" cx="40" cy="31" r="3.2"/><line class="fanblade" x1="37" y1="31" x2="43" y2="31"/></g>
     <g><line class="lamp" x1="368" y1="27" x2="368" y2="12"/><circle class="lamphead" cx="368" cy="10" r="2.4"/></g>
     <g><rect class="roofbit" x="638" y="8" width="26" height="12" rx="3"/><line class="fanblade" x1="642" y1="20" x2="642" y2="24"/><line class="fanblade" x1="660" y1="20" x2="660" y2="24"/></g>
-    <g><rect class="roofbit" x="972" y="26" width="12" height="12" rx="1.5"/><rect class="cornice" x="970" y="24" width="16" height="3" rx="1.5"/></g>
+    <g><rect class="roofbit" x="972" y="26" width="12" height="12" rx="1.5"/><rect class="roofbit" x="970" y="24" width="16" height="3" rx="1.5"/></g>
     <g>
     <rect class="lit" x="20" y="50" width="16" height="12" rx="2"/><rect class="sill" x="18" y="62" width="20" height="2" rx="1"/><rect class="win" x="48" y="50" width="16" height="12" rx="2"/><rect class="sill" x="46" y="62" width="20" height="2" rx="1"/><rect class="lit" x="76" y="50" width="16" height="12" rx="2"/><rect class="sill" x="74" y="62" width="20" height="2" rx="1"/><rect class="win" x="104" y="50" width="16" height="12" rx="2"/><rect class="sill" x="102" y="62" width="20" height="2" rx="1"/><rect class="win" x="20" y="72" width="16" height="12" rx="2"/><rect class="sill" x="18" y="84" width="20" height="2" rx="1"/><rect class="lit" x="48" y="72" width="16" height="12" rx="2"/><rect class="sill" x="46" y="84" width="20" height="2" rx="1"/><rect class="win" x="76" y="72" width="16" height="12" rx="2"/><rect class="sill" x="74" y="84" width="20" height="2" rx="1"/><rect class="lit" x="104" y="72" width="16" height="12" rx="2"/><rect class="sill" x="102" y="84" width="20" height="2" rx="1"/><rect class="lit" x="20" y="94" width="16" height="12" rx="2"/><rect class="sill" x="18" y="106" width="20" height="2" rx="1"/><rect class="win" x="48" y="94" width="16" height="12" rx="2"/><rect class="sill" x="46" y="106" width="20" height="2" rx="1"/><rect class="lit" x="76" y="94" width="16" height="12" rx="2"/><rect class="sill" x="74" y="106" width="20" height="2" rx="1"/><rect class="win" x="104" y="94" width="16" height="12" rx="2"/><rect class="sill" x="102" y="106" width="20" height="2" rx="1"/>
     <rect class="win" x="158" y="64" width="16" height="12" rx="2"/><rect class="sill" x="156" y="76" width="20" height="2" rx="1"/><rect class="lit" x="190" y="64" width="16" height="12" rx="2"/><rect class="sill" x="188" y="76" width="20" height="2" rx="1"/><rect class="win" x="222" y="64" width="16" height="12" rx="2"/><rect class="sill" x="220" y="76" width="20" height="2" rx="1"/><rect class="lit" x="254" y="64" width="16" height="12" rx="2"/><rect class="sill" x="252" y="76" width="20" height="2" rx="1"/>
@@ -877,6 +881,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <!-- 店面:CAFE / MART / OPEN / BAKERY / FLORA(波浪遮陽棚+櫥窗) -->
     <text class="sgn" x="196" y="76">CAFE</text>
     <path class="awn a1" d="M150 80 h142 v12 q-8.9 8 -17.8 0 q-8.9 8 -17.7 0 q-8.9 8 -17.8 0 q-8.9 8 -17.7 0 q-8.9 8 -17.8 0 q-8.9 8 -17.7 0 q-8.9 8 -17.8 0 q-8.9 8 -17.7 0 z"/>
+    <rect class="awnShade" x="152" y="92" width="138" height="7" rx="3"/>
     <rect class="shopwin" x="158" y="102" width="38" height="30" rx="2"/>
     <line class="shelf" x1="160" y1="118" x2="194" y2="118"/>
     <circle class="prod3" cx="168" cy="114" r="3.4"/><circle class="prod1" cx="180" cy="114" r="3.4"/><circle class="prod3" cx="176" cy="128" r="3.4"/>
@@ -886,6 +891,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 
     <text class="sgn" x="484" y="72">MART</text>
     <path class="awn a2" d="M440 76 h152 v12 q-9.5 8 -19 0 q-9.5 8 -19 0 q-9.5 8 -19 0 q-9.5 8 -19 0 q-9.5 8 -19 0 q-9.5 8 -19 0 q-9.5 8 -19 0 q-9.5 8 -19 0 z"/>
+    <rect class="awnShade" x="442" y="88" width="148" height="7" rx="3"/>
     <rect class="shopwin" x="448" y="100" width="44" height="32" rx="2"/>
     <line class="shelf" x1="450" y1="112" x2="490" y2="112"/><line class="shelf" x1="450" y1="122" x2="490" y2="122"/>
     <circle class="prod2" cx="457" cy="108" r="3.2"/><circle class="prod1" cx="467" cy="108" r="3.2"/><circle class="prod3" cx="477" cy="108" r="3.2"/>
@@ -905,6 +911,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 
     <text class="sgn" x="768" y="74">BAKERY</text>
     <path class="awn a1" d="M732 78 h142 v12 q-8.9 8 -17.8 0 q-8.9 8 -17.7 0 q-8.9 8 -17.8 0 q-8.9 8 -17.7 0 q-8.9 8 -17.8 0 q-8.9 8 -17.7 0 q-8.9 8 -17.8 0 q-8.9 8 -17.7 0 z"/>
+    <rect class="awnShade" x="734" y="90" width="138" height="7" rx="3"/>
     <rect class="shopwin" x="740" y="100" width="40" height="32" rx="2"/>
     <line class="shelf" x1="742" y1="114" x2="778" y2="114"/><line class="shelf" x1="742" y1="124" x2="778" y2="124"/>
     <circle class="prod3" cx="750" cy="110" r="3.2"/><circle class="prod3" cx="762" cy="110" r="3.2"/><circle class="prod1" cx="756" cy="120" r="3.2"/>
@@ -914,6 +921,7 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <text class="sgn" x="1044" y="58" style="font-size:9px">24H</text>
     <text class="sgn" x="1078" y="80">FLORA</text>
     <path class="awn a2" d="M1028 84 h158 v12 q-9.9 8 -19.7 0 q-9.9 8 -19.8 0 q-9.9 8 -19.7 0 q-9.9 8 -19.8 0 q-9.9 8 -19.7 0 q-9.9 8 -19.8 0 q-9.9 8 -19.7 0 q-9.9 8 -19.8 0 z"/>
+    <rect class="awnShade" x="1030" y="96" width="154" height="7" rx="3"/>
     <rect class="shopwin" x="1036" y="106" width="44" height="26" rx="2"/>
     <circle class="prod1" cx="1046" cy="118" r="3.6"/><circle class="prod2" cx="1058" cy="118" r="3.6"/><circle class="prod3" cx="1070" cy="118" r="3.6"/>
     <rect class="door" x="1092" y="106" width="24" height="26" rx="2"/>
@@ -933,37 +941,6 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <g><line class="lamp" x1="940" y1="136" x2="940" y2="94"/><circle class="lamphead" cx="940" cy="91" r="4"/></g>
     <rect class="sidewalk" x="0" y="136" width="1200" height="10"/>
     <line class="curb" x1="0" y1="146" x2="1200" y2="146"/>
-    <!-- Rounded corgi and ragdoll companions; animation stays inside the decorative SVG. -->
-    <g class="pet-run-r"><g transform="translate(0 138) scale(.42)"><g class="pet-bounce">
-      <ellipse fill="#76548a" opacity=".12" cx="0" cy="1" rx="24" ry="3"/>
-      <g class="pet-tail"><path d="M-16 -14 Q-32 -30 -28 -14 Q-26 -7 -17 -8" fill="#eeb570"/></g>
-      <ellipse fill="#eeb570" cx="-3" cy="-13" rx="20" ry="13"/>
-      <rect fill="#fff5df" x="-17" y="-8" width="8" height="9" rx="4"/><rect fill="#fff5df" x="6" y="-8" width="8" height="9" rx="4"/>
-      <path fill="#eeb570" d="M-7 -24 L-8 -43 Q-7 -47 -3 -43 L6 -33 L16 -44 Q20 -47 21 -41 L23 -24Z"/>
-      <path fill="#efacb8" d="M-4 -39 L-3 -30 L3 -32Z M17 -39 L12 -32 L19 -30Z"/>
-      <ellipse fill="#eeb570" cx="8" cy="-23" rx="18" ry="15"/>
-      <path fill="#fff7e8" d="M7 -37 Q1 -27 2 -23 Q-9 -22 -5 -14 Q8 -4 21 -14 Q25 -22 13 -23Z"/>
-      <g class="pet-eyes" fill="#503657"><ellipse cx="0" cy="-24" rx="2" ry="2.8"/><ellipse cx="17" cy="-24" rx="2" ry="2.8"/></g>
-      <ellipse fill="#503657" cx="8.5" cy="-18" rx="2.7" ry="2"/>
-      <path d="M5 -13 Q8.5 -9 12 -13" fill="none" stroke="#503657" stroke-width="1.5" stroke-linecap="round"/>
-      <ellipse fill="#efb4b8" cx="-5" cy="-19" rx="3.5" ry="2"/><ellipse fill="#efb4b8" cx="23" cy="-19" rx="3.5" ry="2"/>
-      <path fill="#9674bd" d="M-4 -9 L18 -9 L8 -2Z"/>
-    </g></g></g>
-    <g class="pet-run-l"><g transform="translate(0 138) scale(-.42,.42)"><g class="pet-bounce pet-cat">
-      <ellipse fill="#76548a" opacity=".12" cx="0" cy="1" rx="23" ry="3"/>
-      <g class="pet-tail"><path d="M14 -10 Q34 -12 28 -28 Q24 -35 20 -27 Q30 -16 10 -18" fill="#ac9bbb"/></g>
-      <ellipse fill="#fff8ee" cx="0" cy="-15" rx="17" ry="16"/>
-      <path fill="#ac9bbb" d="M-17 -23 L-17 -43 Q-16 -46 -12 -42 L-4 -35 L7 -35 L16 -43 Q19 -45 19 -40 L18 -21Z"/>
-      <path fill="#e9b7c2" d="M-14 -39 L-13 -30 L-6 -33Z M15 -39 L8 -33 L16 -30Z"/>
-      <ellipse fill="#fff8ee" cx="1" cy="-25" rx="19" ry="15"/>
-      <path fill="#ac9bbb" d="M-17 -30 Q-8 -42 0 -34 L-4 -20 Q-13 -16 -17 -24Z M19 -30 Q11 -42 2 -34 L6 -20 Q15 -16 19 -24Z"/>
-      <g class="pet-eyes" fill="#568aa8"><ellipse cx="-8" cy="-26" rx="2.5" ry="3"/><ellipse cx="10" cy="-26" rx="2.5" ry="3"/></g>
-      <path fill="#d696a5" d="M-2 -21 L4 -21 L1 -18Z"/>
-      <path d="M-4 -16 Q-1 -13 1 -17 Q4 -13 7 -16" fill="none" stroke="#66506c" stroke-width="1.2" stroke-linecap="round"/>
-      <ellipse fill="#f0c3c7" cx="-12" cy="-20" rx="3" ry="1.7"/><ellipse fill="#f0c3c7" cx="14" cy="-20" rx="3" ry="1.7"/>
-      <rect fill="#e4dce9" x="-11" y="-6" width="9" height="7" rx="3.5"/><rect fill="#e4dce9" x="3" y="-6" width="9" height="7" rx="3.5"/>
-      <path fill="#eeb570" d="M-8 -10 L8 -10 L1 -3Z"/>
-    </g></g></g>
 
     <!-- 馬路 + 斑馬線 -->
     <rect class="road" x="0" y="146" width="1200" height="36"/>
@@ -1013,6 +990,14 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <input class="cell num" id="inDim" list="dimList" style="width:86px">
     <datalist id="dimList"><option value="139"><option value="166"></datalist>
     <p class="note" data-i18n="hint.core">DIM 重 = 長×寬×高 ÷ DIM 除數(無條件進位)。燃油費率請到「燃油附加費」頁設定。</p>
+  </div>
+
+  <div class="lf sketch coreBar">
+    <h3 class="display"><span class="em">🚚</span><span data-i18n="hd.channels">渠道</span></h3>
+    <span class="row" id="chList" style="gap:6px"></span>
+    <input class="cell left" id="chName" style="width:210px" placeholder="e.g. International Ground">
+    <button class="act sm" id="bChAdd" data-i18n="btn.chadd">新增渠道</button>
+    <p class="note" data-i18n="hint.channels" style="margin:0;flex:1;min-width:280px">新增後各費率表會自動長出 0 費率列,到「基本費率/附加費」頁填數字;帳單服務名稱包含渠道名即歸入。</p>
   </div>
 
   <div class="lf sketch">
@@ -1079,6 +1064,17 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <a class="act alt sm" id="bFuelLookup" href="https://www.fedex.com/en-us/shipping/fuel-surcharge.html"
          target="_blank" rel="noopener" data-i18n="btn.fuellookup">查 FedEx 官方燃油費率</a>
     </div>
+  </div>
+
+  <div class="lf sketch">
+    <h3 class="display"><span class="em">➕</span><span data-i18n="hd.csur">自訂附加費</span></h3>
+    <div class="tablewrap" style="max-height:230px">
+      <table id="tCsur"><thead></thead><tbody></tbody></table>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="act sm" id="bCsurAdd" data-i18n="btn.csuradd">新增費目</button>
+    </div>
+    <p class="note" data-i18n="hint.csur">費目名稱與帳單 Charge Description 比對(不分大小寫、包含即符合)。費率 0 = 先登記、金額照原帳單轉嫁;填費率後改收自訂費率,並在結果 Excel 獨立一欄。</p>
   </div>
   <div class="lf sketch">
     <h3 class="display"><span class="em">🎠</span><span data-i18n="hd.zonestudio">Zone 費率工作室</span></h3>
@@ -1339,7 +1335,14 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
    常數 — 與桌面版 FedEx_RepricingTool.py 一字不差
    ===================================================================== */
 const ZONES=[2,3,4,5,6,7,8,9,17];
-const SERVICES=["Ground","Home Delivery"];
+const BASE_SERVICES=["Ground","Home Delivery"];
+let CUSTOM_SERVICES=[];              /* 使用者新增的渠道 */
+const SERVICES=[...BASE_SERVICES];   /* 引擎與 UI 共用;syncServices() 重建 */
+function syncServices(){
+  SERVICES.length=0;
+  for(const x of BASE_SERVICES) SERVICES.push(x);
+  for(const x of CUSTOM_SERVICES) if(x&&!SERVICES.includes(x)) SERVICES.push(x);
+}
 const AHS_TYPES=["Weight","Package","Dimension"];
 const DAS_TYPES=[
   "DAS Comm","DAS Extended Comm","DAS Resi","DAS Extended Resi",
@@ -1374,6 +1377,15 @@ const I18N={
  "btn.browse":["選擇檔案","Browse"],
  "btn.run":["Reprice","Reprice"],
  "btn.statement":["Statement","Statement"],
+ "hd.channels":["渠道","Channels"],
+ "btn.chadd":["新增渠道","Add channel"],
+ "hint.channels":["新增後各費率表會自動長出 0 費率列,到「基本費率/附加費」頁填數字;帳單服務名稱包含渠道名即歸入。",
+   "Adding a channel seeds zero-rate rows in every rate table — fill them on the Base Rates / Surcharges pages. Invoice service names containing the channel name map to it."],
+ "hd.csur":["自訂附加費","Custom Surcharges"],
+ "btn.csuradd":["新增費目","Add surcharge"],
+ "hint.csur":["費目名稱與帳單 Charge Description 比對(不分大小寫、包含即符合)。費率 0 = 先登記、金額照原帳單轉嫁;填費率後改收自訂費率,並在結果 Excel 獨立一欄。",
+   "Names match invoice Charge Descriptions (case-insensitive contains). Rate 0 = registered only, original amount passes through; set a rate to charge it instead, with its own column in the workbook."],
+ "hd.new":["本期新出現","New This Period"],
  "hd.cfg":["費率設定檔","Rate Configuration"],
  "hint.cfg":["與桌面版 billing_tool_config.json 完全互通;網頁上的改動會自動存在這個瀏覽器。",
    "Fully interchangeable with the desktop billing_tool_config.json; edits auto-save in this browser."],
@@ -1597,6 +1609,7 @@ const TBL={
   ademand:    {cols:["Service","Start Date","End Date","Fee"], rows:[]},
   odemand:    {cols:["Service","Start Date","End Date","Fee"], rows:[]},
   fuelp:      {cols:["Start Date","End Date","Fuel %"], rows:[]},
+  csur:       {cols:["Charge Name","Fee"], rows:[]},
 };
 let CARRIER_DRAFTS={};
 let BILLING=null;   /* {name, columns:[...], rows:[{col:val}]} */
@@ -1622,7 +1635,24 @@ function loadDefaultTables(){
   TBL.residential.rows=[["Ground","2.58"],["Home Delivery","1.94"]];
   TBL.signature.rows=[["Adult Signature","10.00"],["Direct Signature","5.70"],["Indirect Signature","5.70"]];
   TBL.gdemand.rows=[]; TBL.ademand.rows=[]; TBL.odemand.rows=[]; TBL.fuelp.rows=[];
+  TBL.csur.rows=[];
   CARRIER_DRAFTS={};
+  CUSTOM_SERVICES=[]; syncServices();
+}
+
+/* 新渠道:各費率表補 0 費率列(已有的不動),之後到費率頁填數字 */
+function seedServiceRows(svc){
+  if(!TBL.base.rows.some(r=>String(r[0])===svc))
+    for(let w=BASE_RATE_MIN_WEIGHT;w<=BASE_RATE_MAX_WEIGHT;w++)
+      TBL.base.rows.push([svc,String(w)].concat(ZONES.map(()=> "0")));
+  if(!TBL.ahs.rows.some(r=>String(r[0])===svc))
+    for(const t of AHS_TYPES) for(const z of ZONES) TBL.ahs.rows.push([svc,t,String(z),"0"]);
+  if(!TBL.das.rows.some(r=>String(r[0])===svc))
+    for(const t of DAS_TYPES) for(const z of ZONES) TBL.das.rows.push([svc,t,String(z),"0"]);
+  if(!TBL.oversize.rows.some(r=>String(r[0])===svc))
+    for(const z of ZONES) TBL.oversize.rows.push([svc,String(z),"0"]);
+  if(!TBL.residential.rows.some(r=>String(r[0])===svc))
+    TBL.residential.rows.push([svc,"0"]);
 }
 
 /* ---- 設定檔:與桌面版 billing_tool_config.json 同一格式 ---- */
@@ -1631,13 +1661,14 @@ const CFG_TABLE_KEYS={
   oversize_rate_rows:"oversize", residential_rate_rows:"residential",
   signature_rate_rows:"signature", general_demand_rows:"gdemand",
   ahs_demand_rows:"ademand", oversize_demand_rows:"odemand",
-  fuel_period_rows:"fuelp",
+  fuel_period_rows:"fuelp", custom_surcharge_rows:"csur",
 };
 const strRows=rows=>(rows||[]).map(r=>(r||[]).map(x=>x==null?"":String(x)));
 function buildConfig(){
   const cfg={global_rules:{...RULES}};
   for(const[k,t] of Object.entries(CFG_TABLE_KEYS)) cfg[k]=strRows(TBL[t].rows);
   cfg.carrier_draft_rates={...CARRIER_DRAFTS};
+  cfg.custom_services=[...CUSTOM_SERVICES];
   return cfg;
 }
 function applyConfig(cfg){
@@ -1656,6 +1687,10 @@ function applyConfig(cfg){
   for(const[k,t] of Object.entries(CFG_TABLE_KEYS)) TBL[t].rows=strRows(cfg[k]);
   CARRIER_DRAFTS=(cfg.carrier_draft_rates && typeof cfg.carrier_draft_rates==="object")
     ? {...cfg.carrier_draft_rates} : {};
+  CUSTOM_SERVICES=Array.isArray(cfg.custom_services)
+    ? cfg.custom_services.map(x=>String(x).trim()).filter(Boolean) : [];
+  syncServices();
+  for(const svc of CUSTOM_SERVICES) seedServiceRows(svc);
 }
 
 /* ---- 自動存檔(瀏覽器 localStorage,同桌面版關閉時自動存檔的意思) ---- */
@@ -1734,6 +1769,10 @@ function normalizeService(s){
   const v=String(s??"").trim().toLowerCase().split(/\s+/).join(" ");
   if(!v) return "";
   for(const[pat,canon] of SERVICE_MAP) if(v.includes(pat)) return canon;
+  for(const c of CUSTOM_SERVICES){
+    const cv=String(c).trim().toLowerCase().split(/\s+/).join(" ");
+    if(cv&&v.includes(cv)) return c;
+  }
   return String(s).trim();
 }
 function flagVal(x){
@@ -2161,8 +2200,12 @@ function collectPassThrough(row){
     /* Multiweight 合計是整組資訊欄,不是逐件費用 */
     "multiweight",
   ];
+  const activeCustom=TBL.csur.rows
+    .filter(r=>toFloat(r&&r[1],0)>0)
+    .map(r=>normChargeDesc(r[0])).filter(Boolean);
   const isExcludedName=name=>{
     const d=normChargeDesc(name);
+    if(activeCustom.some(k=>d.includes(k))) return true;
     return excludedKeywords.some(k=>d.includes(k));
   };
   const passThrough={};
@@ -2244,7 +2287,7 @@ function repriceCore(columns,rowsIn){
   const results=[], warnings=[];
   const accountRows=[];          /* account-level 費用列 → Statement 對帳單,不進計價結果 */
   const infoMap=new Map();       /* account-level / 未設費率渠道統計 */
-  const passTotals=new Map();    /* 轉嫁費目 → 全帳單合計(決定動態欄位與順序) */
+  const passTotals=new Map();    /* 轉嫁費目 → {筆數,合計}(給「本期新出現」看) */
 
   billing.forEach((row,index)=>{
     const excelRow=index+2;
@@ -2350,12 +2393,23 @@ function repriceCore(columns,rowsIn){
 
     const otherPass=collectPassThrough(row);
     const otherPassTotal=Object.values(otherPass).reduce((a,b)=>a+b,0);
-    for(const[k,v] of Object.entries(otherPass))
-      passTotals.set(k,(passTotals.get(k)||0)+v);
+    for(const[k,v] of Object.entries(otherPass)){
+      const st=passTotals.get(k)||{count:0,total:0};
+      st.count+=1; st.total+=v; passTotals.set(k,st);
+    }
+
+    /* 自訂附加費:費率 >0 且帳單出現該費目 → 收自訂費率(原費目已從轉嫁排除);
+       費率 0 = 只登記,原金額照舊轉嫁 */
+    const custom={}; let customTotal=0;
+    for(const r of TBL.csur.rows){
+      const name=String((r&&r[0])||"").trim(); if(!name) continue;
+      const fee=toFloat(r[1],0);
+      if(fee>0&&hasChargeDesc(row,[name],false)){ custom[name]=fee; customTotal+=fee; }
+    }
 
     const totalDemandFee=generalDemandFee+ahsDemandFee+oversizeDemandFee;
     const fuelBase=baseRate+ahsFee+dasFee+oversizeFee+residentialFee
-      +signatureFee+totalDemandFee+otherPassTotal;
+      +signatureFee+totalDemandFee+otherPassTotal+customTotal;
     const fuelFee=fuelBase*fuelRateForDate(effKey)/100.0;
     const total=fuelBase+fuelFee;
 
@@ -2385,7 +2439,7 @@ function repriceCore(columns,rowsIn){
       "Oversize Demand Fee":r2(oversizeDemandFee),
       "Fuel Fee":r2(fuelFee),
       "Repriced Total":r2(total),
-      "_pass":otherPass,
+      "_custom":custom,
       "_txKey":parseDateKey(transactionDate),
       "_invKey":parseDateKey(invoiceDate),
       "_ahsType":ahsType,
@@ -2395,10 +2449,10 @@ function repriceCore(columns,rowsIn){
   return {results,warnings,
     infos:[...infoMap.values()].sort((a,b)=>b.total-a.total),
     accountRows,
-    passCols:KNOWN_PASS_FEES.concat(
-      [...passTotals.entries()]
-        .filter(([k])=>!KNOWN_PASS_FEES.includes(k))
-        .sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).map(([k])=>k))};
+    seenFees:[...passTotals.entries()]
+      .map(([name,st])=>({name,rows:st.count,total:r2(st.total)}))
+      .sort((a,b)=>Math.abs(b.total)-Math.abs(a.total)),
+    customCols:TBL.csur.rows.map(r=>String((r&&r[0])||"").trim()).filter(Boolean)};
 }
 </script>
 <script>
@@ -2785,19 +2839,19 @@ async function exportAccountStatement(accountRows){
     cols:[{w:13},{w:Math.min(wInv+2,20)},{w:Math.min(wDesc+2,42)},{w:14}],
     freeze:{r:1},filter:"A1:D"+(rows.length-1)}],"account_statement.xlsx");
 }
-async function exportResultWorkbook(results,passCols){
-  passCols=passCols||[];
+async function exportResultWorkbook(results,customCols){
+  customCols=customCols||[];
   const cut=FINAL_COLS.indexOf("Fuel Fee");
-  const cols=FINAL_COLS.slice(0,cut).concat(passCols,FINAL_COLS.slice(cut));
-  const passSet=new Set(passCols);
+  const cols=FINAL_COLS.slice(0,cut).concat(customCols,FINAL_COLS.slice(cut));
+  const extraSet=new Set(customCols);
   const HEAD={bold:true,fill:"D9EAF7"};
   const rows=[cols.map(c=>({v:c,t:"s",s:HEAD}))];
   const widths=cols.map(c=>c.length);
   for(const res of results){
     const row=cols.map((c,i)=>{
       let cell,disp;
-      if(passSet.has(c)){
-        const v=res._pass?res._pass[c]:null;
+      if(extraSet.has(c)){
+        const v=res._custom?res._custom[c]:null;
         if(v==null||v===0){ cell=""; disp=""; }
         else{ cell={v:r2(v),t:"n",s:{fmt:"$#,##0.00"}}; disp="$"+r2(v).toFixed(2); }
       }else if(DATE_COLS.has(c)){
@@ -3447,6 +3501,76 @@ function wireDemand(){
   }
 }
 
+/* ===== 渠道 chips ===== */
+function renderChannels(){
+  const el=$("chList"); if(!el) return;
+  el.innerHTML=BASE_SERVICES.map(sv=>'<span class="act ghost sm" style="pointer-events:none;opacity:.75">'+esc(sv)+"</span>").join("")
+    +CUSTOM_SERVICES.map((sv,i)=>'<span class="act ghost sm" style="pointer-events:none">'+esc(sv)
+      +'</span><button class="act danger sm ch-del" data-i="'+i+'" style="padding:0 8px">✕</button>').join("");
+}
+function refreshServiceSelects(){
+  for(const id of ["baseSvc","ahsSvc","dasSvc","osSvc"]){
+    const el=$(id); if(!el) continue;
+    const cur=el.value;
+    fillSelect(id,SERVICES.map(x=>[x,x]),SERVICES.includes(cur)?cur:SERVICES[0]);
+  }
+}
+function wireChannels(){
+  $("bChAdd").addEventListener("click",()=>{
+    const name=$("chName").value.trim();
+    if(!name) return;
+    if(SERVICES.some(x=>x.toLowerCase()===name.toLowerCase())){
+      showError(L("渠道已存在","Channel exists"),L("「"+name+"」已在渠道清單裡。","'"+name+"' is already a channel."));
+      return;
+    }
+    CUSTOM_SERVICES.push(name); syncServices(); seedServiceRows(name);
+    $("chName").value="";
+    renderChannels(); renderAll(); markDirty();
+    toast(L("已新增渠道:"+name,"Channel added: "+name));
+  });
+  $("chList").addEventListener("click",e=>{
+    const b=e.target.closest("button.ch-del"); if(!b) return;
+    const name=CUSTOM_SERVICES[+b.dataset.i];
+    CUSTOM_SERVICES.splice(+b.dataset.i,1); syncServices();
+    renderChannels(); renderAll(); markDirty();
+    toast(L("已移除渠道:"+name+"(費率表列保留)","Channel removed: "+name+" (rate rows kept)"));
+  });
+}
+
+/* ===== 自訂附加費 ===== */
+function renderCsur(){
+  const t=$("tCsur"); if(!t) return;
+  t.querySelector("thead").innerHTML="<tr><th>"+L("費目名稱(比對帳單)","Charge name (matches invoice)")
+    +'</th><th class="num">'+L("費率","Rate")+"</th><th></th></tr>";
+  const rows=TBL.csur.rows;
+  t.querySelector("tbody").innerHTML=rows.length?rows.map((r,i)=>
+    "<tr>"
+    +'<td><input class="cell left cs-name" data-i="'+i+'" value="'+esc(r[0]??"")+'" style="width:280px"></td>'
+    +'<td class="num"><input class="cell cs-fee" data-i="'+i+'" value="'+esc(r[1]??"")+'" style="width:90px"></td>'
+    +'<td><button class="act danger sm cs-del" data-i="'+i+'">'+L("刪除","Delete")+"</button></td>"
+    +"</tr>").join("")
+    :'<tr><td class="empty" colspan="3">'+L("(尚無自訂費目)","(no custom surcharges yet)")+"</td></tr>";
+}
+function wireCsur(){
+  $("bCsurAdd").addEventListener("click",()=>{
+    TBL.csur.rows.push(["","0"]);
+    renderCsur(); markDirty();
+  });
+  $("tCsur").addEventListener("change",e=>{
+    const el=e.target, i=+el.dataset.i, row=TBL.csur.rows[i];
+    if(!row) return;
+    if(el.classList.contains("cs-name")) row[0]=el.value.trim();
+    else if(el.classList.contains("cs-fee")) row[1]=el.value.trim();
+    else return;
+    markDirty();
+  });
+  $("tCsur").addEventListener("click",e=>{
+    const b=e.target.closest("button.cs-del"); if(!b) return;
+    TBL.csur.rows.splice(+b.dataset.i,1);
+    renderCsur(); markDirty();
+  });
+}
+
 /* =====================================================================
    匯入頁:帳單檔、設定檔、就緒狀態
    ===================================================================== */
@@ -3549,6 +3673,24 @@ function renderResults(){
     :L("服務「"+x.label+"」未設費率:"+x.rows+" 筆、$"+x.total.toFixed(2)+" 原價轉嫁。",
        "Service '"+x.label+"' has no rate table: "+x.rows+" row(s), $"+x.total.toFixed(2)+" passed through."));
   $("bStatement").disabled=!(LAST.accountRows&&LAST.accountRows.length);
+  /* 本期新出現:目錄與自訂清單都沒有的費目、對照表與渠道清單都沒有的服務 */
+  const knownFee=n=>KNOWN_PASS_FEES.includes(n)
+    ||TBL.csur.rows.some(r=>String((r&&r[0])||"").trim().toLowerCase()===n.toLowerCase());
+  const newFees=(LAST.seenFees||[]).filter(f=>!knownFee(f.name));
+  const newSvcs=infos.filter(x=>x.label!=="Account Level"
+    &&!SERVICE_CANON.has(x.label)&&!SERVICES.includes(x.label));
+  const secs=[];
+  if(newSvcs.length)
+    secs.push("<p class=\"note warn\"><b>"+L("新渠道(未見過的服務名稱)","New channels (unseen service names)")+"</b><br>"
+      +newSvcs.map(x=>esc(x.label)+" · "+x.rows+L(" 筆"," rows")+" · $"+x.total.toFixed(2)).join("<br>")
+      +"<br>"+L("→ 到「計價規則」頁的渠道卡新增後即可設費率。","→ Add it on the Rating Rules page to start rating it.")+"</p>");
+  if(newFees.length)
+    secs.push("<p class=\"note warn\"><b>"+L("新費目(未登記的 Charge Description)","New surcharges (unregistered charge descriptions)")+"</b><br>"
+      +newFees.map(f=>esc(f.name)+" · "+f.rows+L(" 筆"," rows")+" · $"+f.total.toFixed(2)).join("<br>")
+      +"<br>"+L("→ 到「附加費」頁的自訂附加費登記,之後可設費率;未登記前金額照原帳單轉嫁。",
+                "→ Register it under Custom Surcharges on the Surcharges page; until then the original amount passes through.")+"</p>");
+  $("newList").innerHTML=secs.join("");
+  $("newBox").hidden=!secs.length;
   $("warnBox").innerHTML=(warnings.length
     ?'<p class="note warn">'+warnings.slice(0,8).map(esc).join("<br>")
       +(warnings.length>8?"<br>… +"+(warnings.length-8):"")+"</p>":"")
@@ -3584,10 +3726,10 @@ async function runRepricing(){
   $("bStatement").disabled=true;
   try{
     await new Promise(r=>setTimeout(r,30)); /* 讓狀態字先畫出來 */
-    const {results,warnings,infos,accountRows,passCols}=repriceCore(BILLING.columns,BILLING.rows);
-    LAST={results,warnings,infos,accountRows,passCols};
+    const {results,warnings,infos,accountRows,seenFees,customCols}=repriceCore(BILLING.columns,BILLING.rows);
+    LAST={results,warnings,infos,accountRows,seenFees,customCols};
     renderResults();
-    await exportResultWorkbook(results,passCols);
+    await exportResultWorkbook(results,customCols);
     const done=L("完成:已處理 "+results.length+" 筆,repriced_result.xlsx 已下載。",
       "Done — "+results.length+" shipment(s) processed; repriced_result.xlsx downloaded.");
     setStatus(done);
@@ -3938,6 +4080,9 @@ function wireFuel(){
 function renderAll(){
   renderRules();
   renderFuel();
+  renderChannels();
+  renderCsur();
+  refreshServiceSelects();
   renderBaseTable();
   for(const k of Object.keys(ZONE_EDITORS)){ refreshZoneEditor(k); renderDetail(k); }
   renderResiSig();
@@ -3966,7 +4111,7 @@ function init(){
   const restored=loadLocalConfig();
   /* UI */
   wireRules(); wireFuel(); wireBaseTable(); wireZoneEditors(); wireResiSig();
-  wireDemand(); wireFiles();
+  wireDemand(); wireFiles(); wireChannels(); wireCsur();
   $("bRunTop").addEventListener("click",runRepricing);
   $("bStatement").addEventListener("click",async()=>{
     if(LAST&&LAST.accountRows&&LAST.accountRows.length){
@@ -4006,6 +4151,9 @@ document.addEventListener("DOMContentLoaded",init);
 window.__FEDEX_TEST={
   repriceCore,parseDateKey,toFloat,normNum,dedupHeaders,parseCSV,
   normalizeService,
+  addChannel(n){CUSTOM_SERVICES.push(n);syncServices();seedServiceRows(n);},
+  resetChannels(){CUSTOM_SERVICES.length=0;syncServices();},
+  get SERVICES(){return SERVICES;},
   buildConfig,applyConfig,loadDefaultTables,renderAll,
   get TBL(){return TBL;},get RULES(){return RULES;},
   set RULES(v){RULES=v;},
