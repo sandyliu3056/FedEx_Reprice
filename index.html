@@ -3396,8 +3396,7 @@ function wireDemand(){
 /* ===== 渠道 chips ===== */
 function renderChannels(){
   const el=$("chList"); if(!el) return;
-  el.innerHTML=BASE_SERVICES.map(sv=>'<span class="act ghost sm" style="pointer-events:none;opacity:.75">'+esc(sv)+"</span>").join("")
-    +CUSTOM_SERVICES.map((sv,i)=>'<span class="act ghost sm" style="pointer-events:none">'+esc(sv)
+  el.innerHTML=CUSTOM_SERVICES.map((sv,i)=>'<span class="act ghost sm" style="pointer-events:none">'+esc(sv)
       +'</span><button class="act danger sm ch-del" data-i="'+i+'" style="padding:0 8px">✕</button>').join("");
 }
 function refreshServiceSelects(){
