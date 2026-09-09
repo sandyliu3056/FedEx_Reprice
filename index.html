@@ -51,14 +51,14 @@
   /* 幾何 */
   --rad:14px; --rad-sm:8px; --rad-lg:16px;
   --titleh:56px; --statush:32px;
-  /* UPS Reprice 同款:英文走 Comic Sans / Segoe Print(拉丁字先比對),
-     中文再輪到芫荽(Iansui 網路字型)手寫兜底 */
+  /* UPS Reprice 同款字體鏈:拉丁字落在 Segoe Print(Windows 手寫體),
+     mac 退 Chalkboard/Comic;中文由芫荽(Iansui 網路字型)手寫兜底 */
   --hand:"Reprice Sketch","王漢宗標楷體空心","Sketch Block",
-         "Comic Sans MS","Segoe Print","Ink Free",
+         "Segoe Print","Ink Free","Chalkboard SE","Comic Sans MS",
          "芫荽","Iansui","LXGW WenKai TC","霞鶩文楷 TC",
          "Microsoft JhengHei UI","PingFang TC",sans-serif;
-  --round:"Comic Sans MS","Segoe Print","芫荽","Iansui","LXGW WenKai TC",
-          "Microsoft JhengHei UI","PingFang TC",sans-serif;
+  --round:"Segoe Print","Chalkboard SE","Comic Sans MS","芫荽","Iansui",
+          "LXGW WenKai TC","Microsoft JhengHei UI","PingFang TC",sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;max-width:100%;overflow-x:hidden}
@@ -3741,11 +3741,11 @@ function drawClocks(force){
     g.beginPath(); g.roundRect(1,1,W-2,H-2,10); g.fill(); g.stroke();
     g.fillStyle=themeVar("accent")||accent;
     g.beginPath(); g.roundRect(1,1,W-2,19,[10,10,0,0]); g.fill();
-    g.fillStyle="#fff"; g.font='700 11px "Comic Sans MS","Segoe Print",Iansui,sans-serif'; g.textAlign="center";
+    g.fillStyle="#fff"; g.font='700 11px "Segoe Print","Comic Sans MS",Iansui,sans-serif'; g.textAlign="center";
     g.fillText(MONTHS_EN[now.getMonth()]+" "+now.getFullYear(),W/2,14);
     g.fillStyle=orange; g.font="700 26px JetBrains Mono,Consolas,monospace";
     g.fillText(String(now.getDate()),W/2,49);
-    g.fillStyle=muted; g.font='600 10px "Comic Sans MS","Segoe Print",Iansui,sans-serif';
+    g.fillStyle=muted; g.font='600 10px "Segoe Print","Comic Sans MS",Iansui,sans-serif';
     g.fillText(LANG?WEEKDAYS_EN[now.getDay()]
       :"週"+"日一二三四五六"[now.getDay()],W/2,63);
   }
