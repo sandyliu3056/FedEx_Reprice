@@ -3153,7 +3153,7 @@ function repriceCore(columns,rowsIn){
         inv:String(coalesce(row,["Invoice Number","Invoice No","Invoice #"],"")??""),
         invDate:String(invoiceDate??""), date:String(transactionDate??""),
         line:excelRow, code:"",
-        billdesc:zeroOnly?"Transportation Charge":"",
+        billdesc:zeroOnly?"Transportation Charge":"(all charges on this shipment)",
         item:zeroOnly?"Freight":"Shipment total",
         note:"no zone anywhere on this tracking",
         amt:r2(zeroBilled), repriced:0,
@@ -6506,8 +6506,7 @@ async function exportIssues(){
 
   /* ---- ① 逐列 ---- */
   const d1=[head(["Invoice","Invoice date","Transaction date","Invoice row","Tracking",
-    "Severity","Problem","Billed as","Item","Detail","Amount","Repriced",
-    "Service on invoice","Channel (system)"])];
+    "Severity","Problem","Billed as","Item","Detail","Amount","Repriced"])];
   for(const x of rows){
     const K=ISSUE_KIND[x.kind]||ISSUE_KIND.cell;
     d1.push([{v:x.inv,t:"s"},{v:x.invDate,t:"s"},{v:x.date,t:"s"},
@@ -6515,8 +6514,7 @@ async function exportIssues(){
       {v:SEV_TAG[K.sev][1],t:"s"},{v:K.en,t:"s"},
       {v:x.billdesc||"",t:"s"},{v:x.item||"",t:"s"},
       {v:x.note||"",t:"s"},
-      {v:r2(x.amt),t:"n",s:MONEY},{v:r2(x.repriced),t:"n",s:MONEY},
-      {v:x.svcRaw||"",t:"s"},{v:x.chan||"",t:"s"}]);
+      {v:r2(x.amt),t:"n",s:MONEY},{v:r2(x.repriced),t:"n",s:MONEY}]);
   }
 
   /* ---- ② 一個追蹤號一列,每一種費用兩欄 ---- */
@@ -6527,7 +6525,7 @@ async function exportIssues(){
     if(!t||!trks.includes(t)) continue;
     let g=byTrk.get(t);
     if(!g){ g={trk:t,inv:"",invDate:"",date:"",chan:"",svcRaw:"",zone:"",
-               ent:0,dim:0,bw:0,billed:0,repriced:0,bil:{},rep:{},probs:new Set()};
+               ent:0,dim:0,bw:0,billed:0,repriced:0,bil:{},rep:{}};
       byTrk.set(t,g); }
     if(!g.inv) g.inv=String(r["Invoice Number"]||"");
     if(!g.invDate) g.invDate=String(r["Invoice Date"]||"");
@@ -6552,7 +6550,6 @@ async function exportIssues(){
   for(const x of rows){
     const g=byTrk.get(x.trk);
     if(g){
-      g.probs.add(ISSUE_KIND[x.kind]?ISSUE_KIND[x.kind].en:x.kind);
       if(!g.svcRaw) g.svcRaw=String(x.svcRaw||"");
       if(!g.zone) g.zone=String(x.zone??"");
       if(!g.chan) g.chan=String(x.chan||"");
@@ -6564,8 +6561,7 @@ async function exportIssues(){
       byTrk.set(x.trk,{trk:x.trk,inv:x.inv,invDate:x.invDate,date:x.date,chan:x.chan,
         svcRaw:x.svcRaw,zone:x.zone,ent:0,dim:0,bw:toFloat(x.wt,0),
         billed:r2(x.amt),repriced:r2(x.repriced),
-        bil:toFloat(x.amt,0)?{[bk]:r2(x.amt)}:{}, rep:{},
-        probs:new Set([ISSUE_KIND[x.kind]?ISSUE_KIND[x.kind].en:x.kind])});
+        bil:toFloat(x.amt,0)?{[bk]:r2(x.amt)}:{}, rep:{}});
     }
   }
   const list=[...byTrk.values()];
@@ -6590,7 +6586,7 @@ async function exportIssues(){
     merges.push({s:{r:0,c},e:{r:0,c:c+1}});
     c+=2;
   }
-  for(const t of ["FedEx total","Repriced total","Difference","Problems"]){
+  for(const t of ["FedEx total","Repriced total","Difference"]){
     h1.push({v:t,t:"s",s:HEAD}); h2.push({v:"",t:"s",s:HEAD});
     merges.push({s:{r:0,c},e:{r:1,c}}); c++;
   }
@@ -6604,45 +6600,20 @@ async function exportIssues(){
       r.push({v:r2(g.rep[k]||0),t:"n",s:MONEY});
     }
     r.push({v:r2(g.billed),t:"n",s:MONEY},{v:r2(g.repriced),t:"n",s:MONEY},
-      {v:r2(g.repriced-g.billed),t:"n",s:MONEY},
-      {v:[...g.probs].join("; "),t:"s"});
+      {v:r2(g.repriced-g.billed),t:"n",s:MONEY});
     d2.push(r);
-  }
-
-  /* ---- ③ 附加費對照:每一項都列,包含算出來是 0 的和本期完全沒出現的。
-     「這一項是 0」和「這一項不存在」不是同一件事;只印有金額的,少收的那幾項
-     永遠不會被發現,而那正是要拿這份檔案來找的東西。 ---- */
-  const bAll=bAll0, rAll=rAll0, allKeys=seen;
-  const d3=[head(["Charge","FedEx Billed","Repriced","Difference","Note"])];
-  for(const k of allKeys){
-    const uv=r2(toFloat(bAll[k],0)), rv=r2(toFloat(rAll[k],0));
-    const note=(uv!==0&&rv===0)?"billed but repriced to 0"
-             :(uv===0&&rv!==0)?"repriced but not on the invoice"
-             :(uv===0&&rv===0)?"did not appear this period":"";
-    d3.push([{v:prLabelEn(k),t:"s"},
-      {v:uv,t:"n",s:MONEY},{v:rv,t:"n",s:MONEY},
-      {v:r2(rv-uv),t:"n",s:MONEY},{v:note,t:"s"}]);
-  }
-  {
-    const tu=r2(allKeys.reduce((a,k)=>a+toFloat(bAll[k],0),0));
-    const tr=r2(allKeys.reduce((a,k)=>a+toFloat(rAll[k],0),0));
-    const B={bold:true}, BM={bold:true,fmt:"$#,##0.00"};
-    d3.push([{v:"TOTAL",t:"s",s:B},{v:tu,t:"n",s:BM},{v:tr,t:"n",s:BM},
-      {v:r2(tr-tu),t:"n",s:BM},{v:"",t:"s"}]);
   }
 
   await xlWrite([
     {name:"Exceptions",rows:d1,
      cols:[{w:18},{w:13},{w:13},{w:11},{w:22},{w:10},{w:40},{w:26},{w:22},
-           {w:34},{w:14},{w:14},{w:24},{w:20}],
-     freeze:{r:1},filter:"A1:N"+d1.length},
+           {w:34},{w:14},{w:14}],
+     freeze:{r:1},filter:"A1:L"+d1.length},
     {name:"By Tracking",rows:d2,
      cols:[{w:22},{w:18},{w:13},{w:13},{w:20},{w:24},{w:8},{w:11},{w:10},{w:12}]
        .concat(seen.flatMap(()=>[{w:13},{w:13}]))
-       .concat([{w:15},{w:15},{w:14},{w:40}]),
+       .concat([{w:15},{w:15},{w:14}]),
      merges,freeze:{r:2,c:1}},
-    {name:"Surcharges",rows:d3,
-     cols:[{w:30},{w:15},{w:15},{w:15},{w:34}],freeze:{r:1}},
   ],"exceptions.xlsx");
   toast(L("exceptions.xlsx 已下載","exceptions.xlsx downloaded"));
 }
