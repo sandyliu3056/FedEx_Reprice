@@ -184,6 +184,7 @@ main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
 
 /* ---- 按鈕 ---- */
 [hidden]{display:none!important}
+body.waiting,body.waiting *{cursor:progress!important}
 button.act,a.act{
   text-decoration:none;height:34px;padding:0 16px;cursor:pointer;
   border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
@@ -3131,22 +3132,30 @@ function repriceCore(columns,rowsIn){
       const transactionDate=coalesce(row,["Shipment Date","Transaction Date","Tendered Date"],"");
       const invoiceDate=coalesce(row,["Invoice Date"],"");
       let zeroBilled=toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
+      const zeroFreight=zeroBilled;
+      const zeroBy={};
       if(zeroBilled){
         const k=billedBucketOf("Transportation Charge");
         billedBuckets.set(k,(billedBuckets.get(k)||0)+zeroBilled);
+        zeroBy[k]=(zeroBy[k]||0)+zeroBilled;
       }
       for(const[bd,bamt] of iterChargePairs(row)){
         if(!bamt) continue;
         const k=billedBucketOf(bd);
         billedBuckets.set(k,(billedBuckets.get(k)||0)+bamt);
+        zeroBy[k]=(zeroBy[k]||0)+bamt;
         zeroBilled+=bamt;
       }
+      /* 這一列只有運費,還是運費加一堆稅費、報關費? */
+      const zeroOnly=r2(zeroFreight)===r2(zeroBilled)&&zeroFreight!==0;
       issues.push({
         kind:"zone", trk:String(row["_Tracking Number"]??""),
         inv:String(coalesce(row,["Invoice Number","Invoice No","Invoice #"],"")??""),
         invDate:String(invoiceDate??""), date:String(transactionDate??""),
-        line:excelRow, code:"", billdesc:"Transportation Charge",
-        item:"Freight", note:"no zone anywhere on this tracking",
+        line:excelRow, code:"",
+        billdesc:zeroOnly?"Transportation Charge":"",
+        item:zeroOnly?"Freight":"Shipment total",
+        note:"no zone anywhere on this tracking",
         amt:r2(zeroBilled), repriced:0,
         svcRaw:String(coalesce(row,["Service Type","Ground Service","Service"],"")??""),
         chan:service, zone:"", wt:actualWeight});
@@ -3165,6 +3174,7 @@ function repriceCore(columns,rowsIn){
         "Oversize Demand Fee":0,"Fuel Fee":0,
         "Repriced Total":0,
         "_billed":r2(zeroBilled),
+        "_billedBy":zeroBy,
         "_svcRaw":String(coalesce(row,["Service Type","Ground Service","Service"],"")??""),
         "_custom":{},
         "_txKey":parseDateKey(transactionDate),
@@ -3360,6 +3370,9 @@ function repriceCore(columns,rowsIn){
       "Fuel Fee":r2(fuelFee),
       "Repriced Total":r2(total),
       "_billed":r2(rowBilled),
+      /* 這一列每一類 FedEx 收多少。異常明細的「FedEx」欄靠它,少了就只能
+         從異常本身反推,而異常只指到出問題的那一類。 */
+      "_billedBy":lineBilled,
       "_svcRaw":String(coalesce(row,["Service Type","Ground Service","Service"],"")??""),
       "_custom":custom,
       "_txKey":parseDateKey(transactionDate),
@@ -4166,6 +4179,30 @@ function toast(msg,bad){
   document.body.appendChild(t);
   toastTimer=setTimeout(()=>t.remove(),4200);
 }
+/* 幾千列的活頁簿是在主執行緒上寫出來的,要跑個一兩秒。按鈕不變樣、畫面不
+   重畫,那一兩秒看起來就是當掉了 —— 於是有人再按一下,第二份又排進來,
+   真的變成當機。所以:按下去先變成「產生中…」,讓瀏覽器畫一次,做完才放
+   開;沒做完之前再按不會排第二份。 */
+let BUSY_JOB=null;
+const nextPaint=()=>new Promise(res=>
+  requestAnimationFrame(()=>requestAnimationFrame(()=>res())));
+async function withBusy(btn,fn){
+  if(BUSY_JOB) return BUSY_JOB;
+  const b=(btn&&btn.nodeType===1)?btn:null;
+  const was=b?b.textContent:"";
+  if(b){ b.disabled=true; b.textContent=L("產生中…","Working…"); }
+  document.body.classList.add("waiting");
+  BUSY_JOB=(async()=>{
+    try{ await nextPaint(); return await fn(); }
+    finally{
+      BUSY_JOB=null;
+      document.body.classList.remove("waiting");
+      if(b){ b.disabled=false; b.textContent=was; }
+    }
+  })();
+  return BUSY_JOB;
+}
+
 let modalResolve=null;
 function showModal(title,body,opts){
   opts=opts||{};
@@ -6469,14 +6506,14 @@ async function exportIssues(){
 
   /* ---- ① 逐列 ---- */
   const d1=[head(["Invoice","Invoice date","Transaction date","Invoice row","Tracking",
-    "Severity","Problem","Code","Billed as","Item","Detail","Amount","Repriced",
+    "Severity","Problem","Billed as","Item","Detail","Amount","Repriced",
     "Service on invoice","Channel (system)"])];
   for(const x of rows){
     const K=ISSUE_KIND[x.kind]||ISSUE_KIND.cell;
     d1.push([{v:x.inv,t:"s"},{v:x.invDate,t:"s"},{v:x.date,t:"s"},
       {v:toFloat(x.line,0),t:"n"},{v:x.trk,t:"s"},
       {v:SEV_TAG[K.sev][1],t:"s"},{v:K.en,t:"s"},
-      {v:x.code||"",t:"s"},{v:x.billdesc||"",t:"s"},{v:x.item||"",t:"s"},
+      {v:x.billdesc||"",t:"s"},{v:x.item||"",t:"s"},
       {v:x.note||"",t:"s"},
       {v:r2(x.amt),t:"n",s:MONEY},{v:r2(x.repriced),t:"n",s:MONEY},
       {v:x.svcRaw||"",t:"s"},{v:x.chan||"",t:"s"}]);
@@ -6490,7 +6527,8 @@ async function exportIssues(){
     if(!t||!trks.includes(t)) continue;
     let g=byTrk.get(t);
     if(!g){ g={trk:t,inv:"",invDate:"",date:"",chan:"",svcRaw:"",zone:"",
-               ent:0,dim:0,bw:0,billed:0,repriced:0,rep:{},probs:new Set()}; byTrk.set(t,g); }
+               ent:0,dim:0,bw:0,billed:0,repriced:0,bil:{},rep:{},probs:new Set()};
+      byTrk.set(t,g); }
     if(!g.inv) g.inv=String(r["Invoice Number"]||"");
     if(!g.invDate) g.invDate=String(r["Invoice Date"]||"");
     if(!g.date) g.date=String(r["Transaction Date"]||"");
@@ -6508,6 +6546,8 @@ async function exportIssues(){
     }
     for(const[ck,cv] of Object.entries(r._custom||{}))
       if(toFloat(cv,0)) g.rep[ck]=r2((g.rep[ck]||0)+toFloat(cv,0));
+    for(const[bk,bv] of Object.entries(r._billedBy||{}))
+      if(toFloat(bv,0)) g.bil[bk]=r2((g.bil[bk]||0)+toFloat(bv,0));
   }
   for(const x of rows){
     const g=byTrk.get(x.trk);
@@ -6518,19 +6558,23 @@ async function exportIssues(){
       if(!g.chan) g.chan=String(x.chan||"");
     }
     if(!g&&x.trk){
-      /* 只出現在異常清單、結果列裡沒有的追蹤號(整列被當成帳戶層級或轉嫁) */
+      /* 只出現在異常清單、結果列裡沒有的追蹤號(整列被當成帳戶層級或轉嫁)。
+         帳單側只有異常自己那一筆,就照它歸類。 */
+      const bk=billedBucketOf(x.billdesc||x.item);
       byTrk.set(x.trk,{trk:x.trk,inv:x.inv,invDate:x.invDate,date:x.date,chan:x.chan,
         svcRaw:x.svcRaw,zone:x.zone,ent:0,dim:0,bw:toFloat(x.wt,0),
-        billed:r2(x.amt),repriced:r2(x.repriced),rep:{},
+        billed:r2(x.amt),repriced:r2(x.repriced),
+        bil:toFloat(x.amt,0)?{[bk]:r2(x.amt)}:{}, rep:{},
         probs:new Set([ISSUE_KIND[x.kind]?ISSUE_KIND[x.kind].en:x.kind])});
     }
   }
   const list=[...byTrk.values()];
-  /* 這一期真的出現過的費用類別才給欄位 —— 十幾個永遠空著的欄位只會讓人捲。 */
-  const seen=[];
-  const billedAll=(LAST.billedBuckets)||{};
-  for(const k of PR_ORDER.concat((LAST.customCols)||[]))
-    if(list.some(g=>g.rep[k])||toFloat(billedAll[k],0)) seen.push(k);
+  /* 每一種費用都給欄位,包含本期完全沒出現的那幾種 —— 只印有金額的,
+     「這一項根本沒收到」就從表上消失,而那正是要拿這份檔案來找的東西。
+     順序:先重算的類別、再自訂附加費、最後帳單上出現過而我們沒登記的。 */
+  const bAll0=(LAST.billedBuckets)||{}, rAll0=(LAST.repricedBuckets)||{};
+  const seen=[...new Set(PR_ORDER.concat((LAST.customCols)||[])
+    .concat(Object.keys(bAll0)).concat(Object.keys(rAll0)))];
 
   const fixed=["Tracking","Invoice","Invoice date","Transaction date","Channel (system)",
     "Service on invoice","Zone","Entered wt","DIM wt","Billable wt"];
@@ -6556,12 +6600,7 @@ async function exportIssues(){
       {v:g.chan,t:"s"},{v:g.svcRaw,t:"s"},{v:g.zone,t:"s"},
       {v:r2(g.ent),t:"n"},{v:r2(g.dim),t:"n"},{v:r2(g.bw),t:"n"}];
     for(const k of seen){
-      /* 帳單側逐列拆不到「這顆箱子的這一類收多少」—— 引擎只逐列記總額和
-         逐類總計。所以帳單那一欄只在異常本身指到這一類時才有數字,其餘留 0
-         而不是編一個出來。 */
-      const bilHere=rows.filter(x=>x.trk===g.trk&&billedBucketOf(x.billdesc||x.item)===k)
-        .reduce((a,x)=>a+toFloat(x.amt,0),0);
-      r.push({v:r2(bilHere),t:"n",s:MONEY});
+      r.push({v:r2(g.bil[k]||0),t:"n",s:MONEY});
       r.push({v:r2(g.rep[k]||0),t:"n",s:MONEY});
     }
     r.push({v:r2(g.billed),t:"n",s:MONEY},{v:r2(g.repriced),t:"n",s:MONEY},
@@ -6573,9 +6612,7 @@ async function exportIssues(){
   /* ---- ③ 附加費對照:每一項都列,包含算出來是 0 的和本期完全沒出現的。
      「這一項是 0」和「這一項不存在」不是同一件事;只印有金額的,少收的那幾項
      永遠不會被發現,而那正是要拿這份檔案來找的東西。 ---- */
-  const bAll=(LAST.billedBuckets)||{}, rAll=(LAST.repricedBuckets)||{};
-  const allKeys=[...new Set(PR_ORDER.concat((LAST.customCols)||[])
-    .concat(Object.keys(bAll)).concat(Object.keys(rAll)))];
+  const bAll=bAll0, rAll=rAll0, allKeys=seen;
   const d3=[head(["Charge","FedEx Billed","Repriced","Difference","Note"])];
   for(const k of allKeys){
     const uv=r2(toFloat(bAll[k],0)), rv=r2(toFloat(rAll[k],0));
@@ -6596,9 +6633,9 @@ async function exportIssues(){
 
   await xlWrite([
     {name:"Exceptions",rows:d1,
-     cols:[{w:18},{w:13},{w:13},{w:11},{w:22},{w:10},{w:40},{w:9},{w:26},{w:22},
+     cols:[{w:18},{w:13},{w:13},{w:11},{w:22},{w:10},{w:40},{w:26},{w:22},
            {w:34},{w:14},{w:14},{w:24},{w:20}],
-     freeze:{r:1},filter:"A1:O"+d1.length},
+     freeze:{r:1},filter:"A1:N"+d1.length},
     {name:"By Tracking",rows:d2,
      cols:[{w:22},{w:18},{w:13},{w:13},{w:20},{w:24},{w:8},{w:11},{w:10},{w:12}]
        .concat(seen.flatMap(()=>[{w:13},{w:13}]))
@@ -6662,9 +6699,9 @@ function renderResults(){
   const re=$("bDashRe");
   if(re) re.onclick=()=>{ if(BILLING) runRepricing(); };
   const px=$("bPerXls");
-  if(px) px.onclick=exportProfitReport;
+  if(px) px.onclick=()=>withBusy(px,exportProfitReport);
   const ix=$("bIssXls");
-  if(ix) ix.onclick=exportIssues;
+  if(ix) ix.onclick=()=>withBusy(ix,exportIssues);
   paintStatementBtn();
 }
 async function runRepricing(){
