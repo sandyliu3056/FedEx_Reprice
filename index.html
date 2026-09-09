@@ -2213,7 +2213,7 @@ const FINAL_COLS=[
   "DIM Weight","Billable Weight",
   "Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
   "Residential Fee","Signature Fee","General Demand Fee","AHS Demand Fee",
-  "Oversize Demand Fee","Fuel Fee","Repriced Total","Note",
+  "Oversize Demand Fee","Fuel Fee","Repriced Total",
 ];
 function repriceCore(columns,rowsIn){
   const norm=normalizeBillingInput(columns,rowsIn);
@@ -2229,7 +2229,6 @@ function repriceCore(columns,rowsIn){
 
   const results=[], warnings=[];
   const accountRows=[];          /* account-level 費用列 → Statement 對帳單,不進計價結果 */
-  const chargeStats=new Map();   /* 全帳單費目盤點(含轉嫁與略過列) */
   const infoMap=new Map();       /* account-level / 未設費率渠道統計 */
 
   billing.forEach((row,index)=>{
@@ -2240,11 +2239,6 @@ function repriceCore(columns,rowsIn){
     const w=toFloat(row["_Normalized Width"],0);
     const h=toFloat(row["_Normalized Height"],0);
     const actualWeight=Math.ceil(toFloat(row["_Normalized Actual Weight"],0));
-
-    for(const[desc,amount] of iterChargePairs(row)){
-      const st=chargeStats.get(desc)||{count:0,total:0};
-      st.count+=1; st.total+=amount; chargeStats.set(desc,st);
-    }
 
     /* Account-level:沒有服務、沒有 Zone、沒有材積重量 —— 不是包裹
        (例如 Regularly Scheduled Pickup 月費列),整列原價轉嫁。
@@ -2284,9 +2278,6 @@ function repriceCore(columns,rowsIn){
         "Residential Fee":0,"Signature Fee":0,"General Demand Fee":0,"AHS Demand Fee":0,
         "Oversize Demand Fee":0,"Fuel Fee":0,
         "Repriced Total":r2(passTotal),
-        "Note":isAccountLevel
-          ?"Account-level charge (not a shipment) — original amount kept"
-          :"No rate table for this service — original amount kept",
         "_txKey":parseDateKey(transactionDate),
         "_invKey":parseDateKey(invoiceDate),
         "_ahsType":"",
@@ -2377,7 +2368,6 @@ function repriceCore(columns,rowsIn){
       "Oversize Demand Fee":r2(oversizeDemandFee),
       "Fuel Fee":r2(fuelFee),
       "Repriced Total":r2(total),
-      "Note":"",
       "_txKey":parseDateKey(transactionDate),
       "_invKey":parseDateKey(invoiceDate),
       "_ahsType":ahsType,
@@ -2386,7 +2376,7 @@ function repriceCore(columns,rowsIn){
 
   return {results,warnings,
     infos:[...infoMap.values()].sort((a,b)=>b.total-a.total),
-    chargeStats,accountRows};
+    accountRows};
 }
 </script>
 <script>
@@ -2747,19 +2737,6 @@ const CURRENCY_COLS=new Set([
   "Oversize Demand Fee","Fuel Fee","Repriced Total"]);
 const DATE_COLS=new Set(["Transaction Date","Invoice Date"]);
 const NUMERIC_COLS=new Set(["Length","Width","Height","Actual Weight","DIM Weight","Billable Weight"]);
-/* 費目的引擎處理方式(給 Charge Summary 盤點表看的) */
-function classifyChargeDesc(desc,total){
-  const d=normChargeDesc(desc);
-  if(["earned discount","performance pricing"].some(k=>d.includes(k))||d==="discount")
-    return "Discount (dropped — engine reprices from tables)";
-  const recalc=["fuel","delivery area surcharge","das ","das resi","das comm",
-    "residential","add'l handling","additional handling","ahs","oversize",
-    "signature","demand surcharge","transportation charge",
-    "hawaii -","alaska -"];
-  if(recalc.some(k=>d.includes(k))) return "Recalculated by engine";
-  if(Math.abs(total)<=0) return "Informational ($0)";
-  return "Passed through as-is";
-}
 /* Account Level 對帳單:每列逐費項攤開 + 總計 */
 async function exportAccountStatement(accountRows){
   const HEAD={bold:true,fill:"D9EAF7"};
@@ -2786,7 +2763,7 @@ async function exportAccountStatement(accountRows){
     cols:[{w:13},{w:Math.min(wInv+2,20)},{w:Math.min(wDesc+2,42)},{w:14}],
     freeze:{r:1},filter:"A1:D"+(rows.length-1)}],"account_statement.xlsx");
 }
-async function exportResultWorkbook(results,chargeStats){
+async function exportResultWorkbook(results){
   const HEAD={bold:true,fill:"D9EAF7"};
   const rows=[FINAL_COLS.map(c=>({v:c,t:"s",s:HEAD}))];
   const widths=FINAL_COLS.map(c=>c.length);
@@ -2816,32 +2793,12 @@ async function exportResultWorkbook(results,chargeStats){
     });
     rows.push(row);
   }
-  const sheets=[{
+  await xlWrite([{
     name:"Repriced",rows,
     cols:widths.map(w=>({w:Math.min(Math.max(w+2,10),35)})),
     freeze:{r:1},
     filter:"A1:"+xlCol(FINAL_COLS.length-1)+rows.length,
-  }];
-  /* 第二張 sheet:整份帳單的費目盤點 —— 新帳單有沒有引擎不認得的費目,一眼看完 */
-  if(chargeStats&&chargeStats.size){
-    const H2={bold:true,fill:"D9EAF7"};
-    const srows=[["Charge Description","Rows","Total Amount","Engine Treatment"]
-      .map(c=>({v:c,t:"s",s:H2}))];
-    const entries=[...chargeStats.entries()]
-      .sort((a,b)=>Math.abs(b[1].total)-Math.abs(a[1].total));
-    let wDesc=20, wTreat=24;
-    for(const[desc,st] of entries){
-      const treat=classifyChargeDesc(desc,st.total);
-      if(desc.length>wDesc) wDesc=desc.length;
-      if(treat.length>wTreat) wTreat=treat.length;
-      srows.push([{v:desc,t:"s"},{v:st.count,t:"n"},
-        {v:r2(st.total),t:"n",s:{fmt:"$#,##0.00"}},{v:treat,t:"s"}]);
-    }
-    sheets.push({name:"Charge Summary",rows:srows,
-      cols:[{w:Math.min(wDesc+2,42)},{w:9},{w:15},{w:Math.min(wTreat+2,48)}],
-      freeze:{r:1},filter:"A1:D"+srows.length});
-  }
-  await xlWrite(sheets,"repriced_result.xlsx");
+  }],"repriced_result.xlsx");
 }
 
 /* ---- 範本匯出(標頭同樣上色,桌面版讀進去只看值,樣式不影響) ---- */
@@ -3597,10 +3554,10 @@ async function runRepricing(){
   $("bStatement").disabled=true;
   try{
     await new Promise(r=>setTimeout(r,30)); /* 讓狀態字先畫出來 */
-    const {results,warnings,infos,chargeStats,accountRows}=repriceCore(BILLING.columns,BILLING.rows);
-    LAST={results,warnings,infos,chargeStats,accountRows};
+    const {results,warnings,infos,accountRows}=repriceCore(BILLING.columns,BILLING.rows);
+    LAST={results,warnings,infos,accountRows};
     renderResults();
-    await exportResultWorkbook(results,chargeStats);
+    await exportResultWorkbook(results);
     const done=L("完成:已處理 "+results.length+" 筆,repriced_result.xlsx 已下載。",
       "Done — "+results.length+" shipment(s) processed; repriced_result.xlsx downloaded.");
     setStatus(done);
@@ -4018,7 +3975,7 @@ document.addEventListener("DOMContentLoaded",init);
 /* 自動化測試掛鉤(不影響一般使用) */
 window.__FEDEX_TEST={
   repriceCore,parseDateKey,toFloat,normNum,dedupHeaders,parseCSV,
-  normalizeService,classifyChargeDesc,
+  normalizeService,
   buildConfig,applyConfig,loadDefaultTables,renderAll,
   get TBL(){return TBL;},get RULES(){return RULES;},
   set RULES(v){RULES=v;},
