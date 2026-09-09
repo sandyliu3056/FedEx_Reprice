@@ -3,6 +3,24 @@
 網頁版 FedEx 重新計價工具。**計價引擎直接使用桌面版的 `FedEx_RepricingTool.py`(一行未改)**,
 所以網頁版和桌面版算出來的結果保證一致;桌面版更新時,覆蓋這個檔案重新部署即可。
 
+---
+
+## 方案 0:純網頁版 `index.html`(免伺服器,推薦先試這個)
+
+介面照 UPS Reprice Platform 的版式(標題列+大時鐘、分頁條、手繪面板、
+三套主題、中英文切換),配色換成 FedEx 紫橘;計價引擎已逐行移植成
+JavaScript,整份工具就是一個檔案,全部在瀏覽器裡計算,帳單不會上傳到任何地方。
+
+- **直接用**:把 `index.html`、`xlsx-0.18.5.full.min.js`、`favicon.svg`
+  三個檔案放在同一個資料夾,雙擊 `index.html` 就能用(離線也可以)。
+- **掛上網**:repo 開 GitHub Pages(Settings → Pages → main / root),
+  或丟到任何靜態空間。
+- **設定互通**:載入/下載的設定 JSON 就是桌面版的
+  `billing_tool_config.json`,雙向通用;網頁上的改動也會自動存在瀏覽器裡。
+- **範本互通**:基本費率、AHS / DAS / Oversize、Residential / Signature、
+  Demand 範本與桌面版同欄位,匯出的 `repriced_result.xlsx`
+  同樣有凍結首列、自動篩選、標頭上色與貨幣/日期格式。
+
 ## 包裡有什麼
 
 | 檔案 | 用途 |
