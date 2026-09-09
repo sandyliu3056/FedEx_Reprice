@@ -7,7 +7,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Iansui&family=Patrick+Hand&family=JetBrains+Mono:wght@500;600;700&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
 /* =====================================================================
@@ -51,6 +51,12 @@
   /* 幾何 */
   --rad:14px; --rad-sm:8px; --rad-lg:16px;
   --titleh:56px; --statush:32px;
+  /* 手寫可愛風:中文芫荽、英文 Patrick Hand;沒網路退回系統手寫體/圓體 */
+  --hand:"Iansui","芫荽","jf open 手寫體","華康少女文字W5","Patrick Hand",
+         "Segoe Print","Ink Free","Chalkboard SE","Zen Maru Gothic",
+         "Microsoft JhengHei UI","PingFang TC",sans-serif;
+  --round:"Zen Maru Gothic","Varela Round","Quicksand","Noto Sans TC",
+          "Microsoft JhengHei UI","PingFang TC",sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;max-width:100%;overflow-x:hidden}
@@ -61,9 +67,8 @@ body{
   display:flex;flex-direction:column;
   height:100%;overflow:hidden;
   background:var(--bg);color:var(--text);
-  font-family:Inter,"Noto Sans TC","Segoe UI","Microsoft JhengHei UI",
-              "Microsoft JhengHei","PingFang TC",sans-serif;
-  font-size:13.5px;line-height:1.55;
+  font-family:var(--hand);
+  font-size:14.5px;line-height:1.55;
   -webkit-font-smoothing:antialiased;
 }
 /* 斜零等寬數字:計價工具永遠不能把 0 看成 O */
@@ -71,7 +76,7 @@ body{
   font-family:"JetBrains Mono","Cascadia Mono",Consolas,"SF Mono",Menlo,monospace;
   font-variant-numeric:tabular-nums;font-feature-settings:"zero"}
 input.cell.left,input[type=date].cell{
-  font-family:Inter,"Noto Sans TC","Segoe UI","Microsoft JhengHei UI",sans-serif}
+  font-family:var(--hand)}
 svg.defs{position:absolute;width:0;height:0}
 .display{letter-spacing:.02em}
 .hidden{display:none !important}
@@ -95,7 +100,7 @@ table,table *,input,select,.tablewrap{filter:none !important}
 /* FedEx 負空間箭頭章(純 CSS,不動 DOM) */
 .titlebar #appTitle{
   position:relative;display:inline-flex;align-items:center;gap:10px;
-  font:800 13px Inter,"Noto Sans TC",sans-serif;text-transform:uppercase;
+  font:800 13px var(--hand);text-transform:uppercase;
   letter-spacing:.14em;color:var(--chrome-ink);white-space:nowrap}
 .titlebar #appTitle::before{content:"";flex:none;width:26px;height:26px;
   border-radius:8px;background:var(--grad-run)}
@@ -126,7 +131,7 @@ table,table *,input,select,.tablewrap{filter:none !important}
 .tabstrip{flex:none;background:var(--tab);border-bottom:2.5px solid var(--accent);
   display:flex;flex-wrap:wrap;gap:4px 2px;padding:6px 10px 0;
   min-height:42px;align-items:flex-end}
-.tabstrip button{font:600 13.5px Inter,"Noto Sans TC","Microsoft JhengHei UI",sans-serif;
+.tabstrip button{font:600 13.5px var(--hand);
   cursor:pointer;background:color-mix(in srgb,var(--panel) 55%,transparent);
   color:var(--tabink);border:1.5px solid var(--accent);border-bottom:none;
   border-radius:9px 9px 0 0;padding:7px 15px 6px;white-space:nowrap;
@@ -147,8 +152,8 @@ main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
   border-radius:12px;box-shadow:var(--elev-1);
   padding:20px 22px;margin-bottom:20px}
 .lf>h3{display:flex;align-items:center;gap:10px;margin:0 0 8px;
-  font:700 15px Inter,"Noto Sans TC",sans-serif;color:var(--head)}
-.lf>h3 .em{display:grid;place-items:center;width:30px;height:30px;
+  font:700 15px var(--hand);color:var(--head)}
+.lf>h3 .em,details.cfgfold summary .em{display:grid;place-items:center;width:30px;height:30px;
   font-size:15px;border-radius:9px;
   background:color-mix(in srgb,var(--accent) 8%,var(--panel));
   border:1px solid color-mix(in srgb,var(--accent) 14%,transparent)}
@@ -156,7 +161,7 @@ main{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
 .subhd{font-weight:600;color:var(--head);font-size:13px;margin:14px 0 8px;
   border-bottom:1.5px solid var(--line);padding-bottom:4px}
 .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.inlab{font:600 11px Inter,"Noto Sans TC",sans-serif;text-transform:uppercase;
+.inlab{font:600 11px var(--hand);text-transform:uppercase;
   letter-spacing:.07em;color:var(--head);margin-left:12px}
 .note{margin:10px 0 0;font-size:12.5px;line-height:1.6;color:var(--muted);
   border-left:3px solid color-mix(in srgb,var(--accent) 30%,transparent);
@@ -169,7 +174,7 @@ button.act,a.act{
   text-decoration:none;height:34px;padding:0 16px;cursor:pointer;
   border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
   border-radius:10px;background:var(--btn);color:var(--head);
-  font:600 13px Inter,"Noto Sans TC","Microsoft JhengHei UI",sans-serif;
+  font:600 13px var(--hand);
   letter-spacing:.01em;display:inline-flex;align-items:center;gap:6px;
   transition:transform .08s,box-shadow .12s,background .12s,border-color .12s,color .12s}
 button.act:hover:not(:disabled),a.act:hover{box-shadow:var(--elev-1);
@@ -186,13 +191,13 @@ button.act.alt,a.act.alt{background:linear-gradient(180deg,color-mix(in srgb,var
   border:none;color:#fff}
 button.act.alt:hover:not(:disabled),a.act.alt:hover{filter:brightness(1.05);color:#fff;
   background:linear-gradient(180deg,color-mix(in srgb,var(--run2) 92%,#fff),var(--run2))}
-button.act.ghost{background:transparent;border:1px solid var(--line);color:var(--head)}
-button.act.ghost:hover:not(:disabled){border-color:var(--accent);
+button.act.ghost,a.act.ghost{background:transparent;border:1px solid var(--line);color:var(--head)}
+button.act.ghost:hover:not(:disabled),a.act.ghost:hover{border-color:var(--accent);
   background:color-mix(in srgb,var(--accent) 6%,var(--panel))}
 button.act.danger{background:transparent;color:var(--neg);
   border-color:color-mix(in srgb,var(--neg) 45%,transparent)}
 button.act.danger:hover:not(:disabled){background:var(--neg);color:#fff}
-button.act.sm{height:28px;padding:0 11px;font-size:12px;border-radius:8px}
+button.act.sm,a.act.sm{height:28px;padding:0 11px;font-size:12px;border-radius:8px}
 button.act:disabled{opacity:.45;transform:none;box-shadow:none;cursor:not-allowed}
 @media(prefers-reduced-motion:no-preference){
   button.act:hover:not(:disabled){transform:translateY(-1px)}
@@ -210,7 +215,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
 .rdy{display:flex;align-items:center;gap:8px;font-size:12.5px;min-width:0;
   padding:6px 12px;border-radius:10px;background:var(--stripe);
   border:1px solid var(--line)}
-.rdy .k{font:600 11px Inter,"Noto Sans TC",sans-serif;text-transform:uppercase;
+.rdy .k{font:600 11px var(--hand);text-transform:uppercase;
   letter-spacing:.07em;color:var(--head);white-space:nowrap}
 .pill{border:none;border-radius:999px;padding:3px 10px 3px 8px;
   font-size:11.5px;font-weight:600;white-space:nowrap;
@@ -222,7 +227,7 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
 .savenote.bad{color:var(--neg)}
 
 .grid3{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center}
-.grid3 label{color:var(--head);font:600 11px Inter,"Noto Sans TC",sans-serif;
+.grid3 label{color:var(--head);font:600 11px var(--hand);
   text-transform:uppercase;letter-spacing:.07em;white-space:nowrap}
 .grid3 input[readonly]{font:500 12.5px "JetBrains Mono",Consolas,monospace;
   height:40px;padding:0 12px;min-width:0;color:var(--muted);
@@ -245,7 +250,7 @@ input[type=date].cell{width:150px;text-align:left}
 /* ---- 下拉(保留雙三角箭頭技法,主題自動跟色) ---- */
 select:not(.titlebar select){
   appearance:none;-webkit-appearance:none;-moz-appearance:none;
-  font:600 13px Inter,"Noto Sans TC","Microsoft JhengHei UI",sans-serif;
+  font:600 13px var(--hand);
   color:var(--text);background-color:var(--panel);
   background-image:linear-gradient(45deg,transparent 50%,var(--head) 50%),
                    linear-gradient(135deg,var(--head) 50%,transparent 50%);
@@ -284,7 +289,7 @@ label.chk input[type="checkbox"]:focus-visible{outline:none;box-shadow:var(--rin
   border-radius:12px;padding:16px 18px 14px;box-shadow:var(--elev-1);overflow:hidden}
 .tile::after{content:"";position:absolute;inset:0 auto auto 0;width:100%;height:3px;
   background:var(--grad-hair)}
-.tile .k{font:600 11px Inter,"Noto Sans TC",sans-serif;letter-spacing:.07em;
+.tile .k{font:600 11px var(--hand);letter-spacing:.07em;
   text-transform:uppercase;color:var(--muted);margin-bottom:6px}
 .tile .v{font-size:26px;font-weight:700;color:var(--head)}
 @supports(-webkit-background-clip:text){
@@ -306,7 +311,7 @@ label.chk input[type="checkbox"]:focus-visible{outline:none;box-shadow:var(--rin
   background:color-mix(in srgb,var(--accent) 40%,var(--line))}
 table{border-collapse:collapse;width:100%;font-size:13px;background:var(--panel)}
 th{background:var(--thead);color:var(--thfg);text-align:left;padding:9px 10px;
-  font:700 11px Inter,"Noto Sans TC",sans-serif;text-transform:uppercase;
+  font:700 11px var(--hand);text-transform:uppercase;
   letter-spacing:.07em;white-space:nowrap;position:sticky;top:0;z-index:1;
   box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--accent) 25%,transparent)}
 td{padding:7px 10px;white-space:nowrap;
@@ -323,7 +328,7 @@ td.neg{color:var(--neg)}
 .zonecol{position:relative;background:var(--panel);border:1px solid var(--line);
   border-radius:9px;padding:7px 8px 8px;text-align:center;
   transition:border-color .12s,box-shadow .12s}
-.zonecol .zt{font:700 10px Inter,sans-serif;letter-spacing:.05em;text-indent:.05em;
+.zonecol .zt{font:700 10px var(--hand);letter-spacing:.05em;text-indent:.05em;
   text-transform:uppercase;color:var(--muted);margin-bottom:3px}
 .zonecol input.cell{width:100%;height:auto;border:none;
   border-bottom:1.5px solid color-mix(in srgb,var(--accent) 28%,var(--line));border-radius:0;background:transparent;
@@ -340,7 +345,7 @@ td.neg{color:var(--neg)}
 /* ---- 子分頁:分段控制(#surTabs 與 #demTabs 共用) ---- */
 .subtabs{display:flex;gap:3px;margin:2px 0 0;padding:0 4px;
   border-bottom:2px solid var(--accent);flex-wrap:wrap}
-.subtabs button{font:600 13px Inter,"Noto Sans TC",sans-serif;cursor:pointer;
+.subtabs button{font:600 13px var(--hand);cursor:pointer;
   padding:7px 16px 6px;border:2px solid var(--accent);border-bottom:none;
   border-radius:9px 9px 0 0;background:transparent;color:var(--head);
   margin-bottom:-2px;opacity:.62;filter:url(#wobble-soft);
@@ -358,7 +363,7 @@ td.neg{color:var(--neg)}
 /* ---- 明細折疊 ---- */
 details.dettbl{margin-top:14px}
 details.dettbl summary{list-style:none;display:flex;gap:8px;align-items:center;
-  font:600 12.5px Inter,"Noto Sans TC",sans-serif;color:var(--muted);
+  font:600 12.5px var(--hand);color:var(--muted);
   cursor:pointer;padding:8px 0}
 details.dettbl summary::-webkit-details-marker{display:none}
 details.dettbl summary::before{content:"";width:14px;height:14px;flex:none;
@@ -368,6 +373,17 @@ details.dettbl summary::before{content:"";width:14px;height:14px;flex:none;
   transition:transform .15s}
 details.dettbl[open] summary::before{transform:rotate(90deg)}
 details.dettbl summary:hover{color:var(--head)}
+/* 設定檔收合列:平常只露一行,點開才看到按鈕 */
+details.cfgfold{padding:12px 22px}
+details.cfgfold[open]{padding-bottom:18px}
+details.cfgfold summary{list-style:none;display:flex;align-items:center;gap:10px;
+  cursor:pointer;font:700 15px var(--hand);color:var(--head)}
+details.cfgfold summary::-webkit-details-marker{display:none}
+details.cfgfold summary::after{content:"";width:14px;height:14px;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E") center/contain no-repeat;
+  transition:transform .15s;opacity:.6}
+details.cfgfold[open] summary::after{transform:rotate(90deg)}
 details.dettbl .tablewrap{margin-top:8px;max-height:36vh;border:1px solid var(--line)}
 details.dettbl tr.hl td{background:color-mix(in srgb,var(--tab) 9%,var(--panel))}
 details.dettbl tr.hl td:first-child{box-shadow:inset 2px 0 0 var(--tab)}
@@ -378,12 +394,11 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
    第 1 頁 匯入與設定:帳單英雄卡橫跨全寬,設定檔與新手上路並排
    ===================================================================== */
 #p-files{position:relative}
-#p-files.on{display:grid;grid-template-columns:1.35fr 1fr;gap:20px}
+#p-files.on{display:grid;grid-template-columns:1fr;gap:20px}
 #p-files.on>.lf{margin-bottom:0}
 .filesCard{grid-column:1/-1;padding-right:250px;
   background-image:radial-gradient(color-mix(in srgb,var(--accent) 7%,transparent) 1px,transparent 1px);
   background-size:18px 18px}
-@media(max-width:1100px){#p-files.on{grid-template-columns:1fr}}
 @media(max-width:900px){.filesCard{padding-right:22px}}
 .clockcard{position:absolute;top:0;right:6px;padding:0;z-index:5;
   background:transparent;border:none;pointer-events:none}
@@ -396,10 +411,9 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
    第 2 頁 計價規則:三張卡自動排版,門檻做成晶片,關掉的門檻自動變虛
    ===================================================================== */
 #p-rules.on{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));
-  gap:20px;align-items:start}
+  gap:20px;align-items:stretch}
 #p-rules .lf{margin-bottom:0}
 #p-rules .row:has(>.row){display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
-@media(min-width:1520px){#p-rules.on{grid-template-columns:.62fr 1.05fr 1.33fr}}
 #p-rules .row>.row{justify-content:space-between;background:var(--stripe);border:1px solid var(--line);
   border-radius:10px;padding:8px 12px;gap:10px;margin:0}
 #p-rules .row>.row:has(input[type=checkbox]:not(:checked)){opacity:.7;border-style:dashed}
@@ -412,7 +426,7 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
 /* =====================================================================
    燃油附加費頁:大字費率儀表 + 預設值 + 官方查詢 + 快速試算
    ===================================================================== */
-#p-fuel.on{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;align-items:start}
+#p-fuel.on{display:grid;grid-template-columns:1fr;gap:20px;align-items:start}
 #p-fuel .lf{margin-bottom:0}
 @media(max-width:1100px){#p-fuel.on{grid-template-columns:1fr}}
 .fuelbig{display:flex;align-items:baseline;gap:6px;margin:6px 0 4px}
@@ -434,7 +448,7 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
 .fpresets button.on{background:var(--grad-brand);color:#fff;font-weight:700}
 .fcout{display:inline-flex;align-items:baseline;gap:8px;padding:8px 14px;
   border-radius:10px;background:var(--stripe);border:1px solid var(--line)}
-.fcout span{font:600 11px Inter,"Noto Sans TC",sans-serif;text-transform:uppercase;
+.fcout span{font:600 11px var(--hand);text-transform:uppercase;
   letter-spacing:.07em;color:var(--muted)}
 .fcout b{font:700 16px "JetBrains Mono",Consolas,monospace;color:var(--head)}
 
@@ -521,7 +535,7 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
   padding:12px 20px;border:1px solid var(--chrome-line);
   border-left:3px solid var(--tab);border-radius:12px;
   background:var(--chrome);color:var(--chrome-ink);
-  font:600 13.5px Inter,"Noto Sans TC",sans-serif;box-shadow:var(--elev-3);
+  font:600 13.5px var(--hand);box-shadow:var(--elev-3);
   display:flex;align-items:center;gap:10px;cursor:pointer}
 .toast{background:color-mix(in srgb,var(--chrome) 94%,transparent);
   backdrop-filter:blur(12px)}
@@ -543,7 +557,7 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
   border-radius:var(--rad-lg);overflow:hidden;box-shadow:var(--elev-3)}
 .modalhd{background:transparent;color:var(--head);padding:16px 18px 10px;
   display:flex;align-items:center;justify-content:space-between;
-  font:700 15px Inter,"Noto Sans TC",sans-serif;
+  font:700 15px var(--hand);
   border-bottom:1px solid var(--line)}
 .modalhd .mx{font:inherit;background:transparent;border:none;color:var(--muted);
   cursor:pointer;font-size:15px;padding:0 4px}
@@ -618,32 +632,24 @@ input.cell,.fpresets button,.fcout b,#runStatus,#baseCount,.grid3 input[readonly
       <input type="file" id="fInv" accept=".csv,.xlsx,.xls">
     </div>
     <p class="hint" id="invNote" style="margin-top:8px" data-i18n="hint.inv">支援簡化欄位(Service, Zone, Length, Width, Height, Actual Weight)或 FedEx 原始帳單欄位(Zone Code, Dim Length…)。檔案只在瀏覽器裡計算,不會上傳到任何伺服器。</p>
-    <div class="readyrow" id="filesReady"></div>
     <div class="row" style="margin-top:14px">
       <button class="act run" id="bRunTop" data-i18n="btn.run" disabled>執行重新計價並匯出報表</button>
       <span id="runNoteTop" class="savenote"></span>
     </div>
   </div>
 
-  <div class="lf sketch">
-    <h3 class="display"><span class="em">💾</span><span data-i18n="hd.cfg">費率設定檔</span></h3>
-    <p class="hint" data-i18n="hint.cfg">與桌面版 billing_tool_config.json 完全互通;網頁上的改動會自動存在這個瀏覽器。</p>
+  <details class="cfgfold lf sketch">
+    <summary><span class="em">💾</span><span data-i18n="hd.cfg">費率設定檔</span></summary>
+    <p class="hint" style="margin-top:10px" data-i18n="hint.cfg">與桌面版 billing_tool_config.json 完全互通;網頁上的改動會自動存在這個瀏覽器。</p>
     <div class="row">
       <button class="act ghost sm" id="bCfgLoad" data-i18n="btn.cfgload">載入設定 JSON</button>
       <input type="file" id="fCfg" accept=".json">
       <button class="act ghost sm" id="bCfgSave" data-i18n="btn.cfgsave">下載設定 JSON</button>
       <button class="act danger sm" id="bCfgReset" data-i18n="btn.cfgreset">還原預設值</button>
+      <button class="act ghost sm" id="bSample" data-i18n="btn.sample">下載帳單範例</button>
       <span id="cfgNote" class="savenote"></span>
     </div>
-  </div>
-
-  <div class="lf sketch">
-    <h3 class="display"><span class="em">🐣</span><span data-i18n="hd.start">新手上路</span></h3>
-    <p class="hint" data-i18n="hint.start">第一次用?先下載帳單範例,確認欄位格式,再匯入正式帳單。</p>
-    <div class="row">
-      <button class="act ghost" id="bSample" data-i18n="btn.sample">下載帳單範例</button>
-    </div>
-  </div>
+  </details>
 </section>
 
 <!-- ==================== 計價規則 ==================== -->
@@ -701,20 +707,18 @@ input.cell,.fpresets button,.fcout b,#runStatus,#baseCount,.grid3 input[readonly
       <input class="cell num" id="inFuel" list="fuelList" style="width:96px">
       <datalist id="fuelList"><option value="15.00"><option value="18.75"><option value="20.00"><option value="22.00"></datalist>
     </div>
+    <div class="row" style="margin-top:12px">
+      <a class="act ghost sm" id="bFuelLookup" href="https://www.fedex.com/en-us/shipping/fuel-surcharge.html"
+         target="_blank" rel="noopener" data-i18n="btn.fuellookup">開啟 FedEx 燃油附加費頁面</a>
+      <span class="hint" style="margin:0" data-i18n="hint.fuellookup2">FedEx 每週更新;查到最新百分比填進上面即可。</span>
+    </div>
   </div>
   <div class="lf sketch">
-    <h3 class="display"><span class="em">🔎</span><span data-i18n="hd.fuellookup">查 FedEx 官方燃油費率</span></h3>
-    <p class="hint" data-i18n="hint.fuellookup">FedEx 每週依 EIA 燃料價格指數更新 Ground 燃油附加費。開官方頁面查最新百分比,回來填進左邊即可。</p>
-    <a class="act alt" id="bFuelLookup" href="https://www.fedex.com/en-us/shipping/fuel-surcharge.html"
-       target="_blank" rel="noopener" data-i18n="btn.fuellookup">開啟 FedEx 燃油附加費頁面</a>
-  </div>
-  <div class="lf sketch">
-    <h3 class="display"><span class="em">🧮</span><span data-i18n="hd.fuelcalc">快速試算</span></h3>
-    <p class="hint" data-i18n="hint.fuelcalc">輸入費用小計(基本費率+附加費),看目前費率會加多少燃油。</p>
-    <div class="row">
-      <span class="row" style="gap:8px"><label class="inlab" style="margin-left:0" data-i18n="lb.fcbase">費用小計</label><input class="cell num" id="fcBase" value="100.00" style="width:110px"></span>
-      <span class="fcout"><span data-i18n="lb.fcfee">燃油</span><b id="fcFee">$18.75</b></span>
-      <span class="fcout"><span data-i18n="lb.fctotal">合計</span><b id="fcTotal">$118.75</b></span>
+    <h3 class="display"><span class="em">📅</span><span data-i18n="hd.fuelperiods">按日期區間的費率(選填)</span></h3>
+    <p class="hint" data-i18n="hint.fuelperiods">出貨日落在區間內,就用該區間的費率;沒設定或沒命中時,用上面的預設費率。區間重疊時取開始日最新的一筆。</p>
+    <div class="tablewrap" style="max-height:42vh"><table id="tFuelP"><thead></thead><tbody></tbody></table></div>
+    <div class="row" style="margin-top:9px">
+      <button class="act ghost sm" id="bFuelPAdd" data-i18n="btn.fuelpadd">＋ 新增區間</button>
     </div>
   </div>
 </section>
@@ -1028,6 +1032,11 @@ const I18N={
  "hint.fuellookup":["FedEx 每週依 EIA 燃料價格指數更新 Ground 燃油附加費。開官方頁面查最新百分比,回來填進左邊即可。",
    "FedEx updates the Ground fuel surcharge weekly from the EIA fuel price index. Open the official page, read the latest percentage, and enter it on the left."],
  "btn.fuellookup":["開啟 FedEx 燃油附加費頁面","Open the FedEx fuel surcharge page"],
+ "hint.fuellookup2":["FedEx 每週更新;查到最新百分比填進上面即可。","FedEx updates weekly; enter the latest percentage above."],
+ "hd.fuelperiods":["按日期區間的費率(選填)","Rates by Date Range (optional)"],
+ "hint.fuelperiods":["出貨日落在區間內,就用該區間的費率;沒設定或沒命中時,用上面的預設費率。區間重疊時取開始日最新的一筆。",
+   "When the ship date falls inside a range, that range's rate applies; otherwise the default rate above is used. Overlapping ranges take the one with the latest start date."],
+ "btn.fuelpadd":["＋ 新增區間","+ Add range"],
  "hd.fuelcalc":["快速試算","Quick Check"],
  "hint.fuelcalc":["輸入費用小計(基本費率+附加費),看目前費率會加多少燃油。",
    "Enter a charge subtotal (base + surcharges) to see the fuel added at the current rate."],
@@ -1204,6 +1213,7 @@ const TBL={
   gdemand:    {cols:["Service","Start Date","End Date","Fee"], rows:[]},
   ademand:    {cols:["Service","Start Date","End Date","Fee"], rows:[]},
   odemand:    {cols:["Service","Start Date","End Date","Fee"], rows:[]},
+  fuelp:      {cols:["Start Date","End Date","Fuel %"], rows:[]},
 };
 let CARRIER_DRAFTS={};
 let BILLING=null;   /* {name, columns:[...], rows:[{col:val}]} */
@@ -1228,7 +1238,7 @@ function loadDefaultTables(){
   TBL.oversize.rows=os;
   TBL.residential.rows=[["Ground","2.58"],["Home Delivery","1.94"]];
   TBL.signature.rows=[["Adult Signature","10.00"],["Direct Signature","5.70"],["Indirect Signature","5.70"]];
-  TBL.gdemand.rows=[]; TBL.ademand.rows=[]; TBL.odemand.rows=[];
+  TBL.gdemand.rows=[]; TBL.ademand.rows=[]; TBL.odemand.rows=[]; TBL.fuelp.rows=[];
   CARRIER_DRAFTS={};
 }
 
@@ -1238,6 +1248,7 @@ const CFG_TABLE_KEYS={
   oversize_rate_rows:"oversize", residential_rate_rows:"residential",
   signature_rate_rows:"signature", general_demand_rows:"gdemand",
   ahs_demand_rows:"ademand", oversize_demand_rows:"odemand",
+  fuel_period_rows:"fuelp",
 };
 const strRows=rows=>(rows||[]).map(r=>(r||[]).map(x=>x==null?"":String(x)));
 function buildConfig(){
@@ -1699,6 +1710,23 @@ function getOversizeFeeOrRaise(osLookup,service,zone){
       +"\n\nPlease check Oversize template.");
   return osLookup.get(key);
 }
+/* 燃油費率:出貨日命中「日期區間費率」就用該筆(重疊取開始日最新),
+   否則用全域預設 fuel_percent —— 照 UPS Reprice 的日期區間做法。 */
+function fuelRateForDate(effKey){
+  let best=null;
+  if(effKey){
+    for(const r of TBL.fuelp.rows){
+      if(!r||r.length<3) continue;
+      const s=parseDateKey(r[0]), e=parseDateKey(r[1]);
+      if(!s||!e) continue;
+      if(s<=effKey&&effKey<=e){
+        if(!best||s>best.s) best={s,rate:toFloat(r[2],RULES.fuel_percent)};
+      }
+    }
+  }
+  return best?best.rate:RULES.fuel_percent;
+}
+
 function matchDemandFee(rows,service,effKey){
   if(!effKey) return 0.0;
   const fees=[];
@@ -1861,7 +1889,7 @@ function repriceCore(columns,rowsIn){
     const totalDemandFee=generalDemandFee+ahsDemandFee+oversizeDemandFee;
     const fuelBase=baseRate+ahsFee+dasFee+oversizeFee+residentialFee
       +signatureFee+totalDemandFee+otherPassTotal;
-    const fuelFee=fuelBase*RULES.fuel_percent/100.0;
+    const fuelFee=fuelBase*fuelRateForDate(effKey)/100.0;
     const total=fuelBase+fuelFee;
 
     const transactionDate=coalesce(row,["Shipment Date","Transaction Date","Tendered Date"],"");
@@ -2754,7 +2782,7 @@ function renderDetail(k){
   const labelCols=cfg.hasType?2:1;
   t.querySelector("thead").innerHTML="<tr><th>Service</th>"
     +(cfg.hasType?"<th>"+esc(TBL[cfg.tbl].cols[1])+"</th>":"")
-    +ZONES.map(z=>'<th class="num">Z'+z+"</th>").join("")+"</tr>";
+    +ZONES.map(z=>'<th class="num">Zone '+z+"</th>").join("")+"</tr>";
   t.querySelector("tbody").innerHTML=order.map(([svc,ty])=>{
     const hl=cfg.hasType?(svc===service&&ty===typ):(svc===service);
     const fees=feeMap.get(svc+"|"+ty);
@@ -2955,17 +2983,6 @@ function wireDemand(){
    匯入頁:帳單檔、設定檔、就緒狀態
    ===================================================================== */
 function refreshReady(){
-  const pills=[];
-  const pill=(k,ok,text)=>'<span class="rdy"><span class="k">'+k+"</span>"
-    +'<span class="pill '+(ok?"ok":"no")+'">'+esc(text)+"</span></span>";
-  pills.push(pill(L("帳單","Billing"),!!BILLING,
-    BILLING?BILLING.name+" · "+BILLING.rows.length+L(" 列"," rows"):L("未選擇","not selected")));
-  const nz=baseNonzeroCount();
-  pills.push(pill(L("基本費率","Base rates"),nz>0,
-    nz>0?nz+L(" 格非零"," non-zero cells"):L("全部是 0","all zeros")));
-  const dem=TBL.gdemand.rows.length+TBL.ademand.rows.length+TBL.odemand.rows.length;
-  pills.push(pill("Demand",true,dem+L(" 個期間"," periods")));
-  $("filesReady").innerHTML=pills.join("");
   $("stCount").textContent=BILLING
     ?BILLING.name+" · "+BILLING.rows.length+L(" 列"," rows"):"";
   const can=!!BILLING;
@@ -3152,11 +3169,11 @@ function drawClocks(force){
     g.beginPath(); g.roundRect(1,1,W-2,H-2,10); g.fill(); g.stroke();
     g.fillStyle=themeVar("accent")||accent;
     g.beginPath(); g.roundRect(1,1,W-2,22,[10,10,0,0]); g.fill();
-    g.fillStyle="#fff"; g.font="700 11px Inter,Segoe UI,sans-serif"; g.textAlign="center";
+    g.fillStyle="#fff"; g.font="700 11px Iansui,Segoe Print,Segoe UI,sans-serif"; g.textAlign="center";
     g.fillText(MONTHS_EN[now.getMonth()]+" "+now.getFullYear(),W/2,16);
     g.fillStyle=orange; g.font="700 34px JetBrains Mono,Consolas,monospace";
     g.fillText(String(now.getDate()),W/2,60);
-    g.fillStyle=muted; g.font="600 10px Inter,Segoe UI,sans-serif";
+    g.fillStyle=muted; g.font="600 10px Iansui,Segoe Print,Segoe UI,sans-serif";
     g.fillText(LANG?WEEKDAYS_EN[now.getDay()]
       :"週"+"日一二三四五六"[now.getDay()],W/2,76);
   }
@@ -3209,10 +3226,23 @@ function renderFuel(){
   $("fuelBig").textContent=Number(RULES.fuel_percent).toFixed(2);
   $("fuelPresets").querySelectorAll("button").forEach(b=>
     b.classList.toggle("on",Math.abs(Number(b.dataset.v)-Number(RULES.fuel_percent))<1e-9));
-  const base=toFloat($("fcBase").value,0);
-  const fee=base*RULES.fuel_percent/100;
-  $("fcFee").textContent="$"+fee.toFixed(2);
-  $("fcTotal").textContent="$"+(base+fee).toFixed(2);
+  renderFuelPeriods();
+}
+function renderFuelPeriods(){
+  const t=$("tFuelP");
+  if(!t) return;
+  t.querySelector("thead").innerHTML="<tr><th>"+L("開始日","Start date")
+    +"</th><th>"+L("結束日","End date")+"</th><th class=\"num\">"
+    +L("費率 (%)","Rate (%)")+"</th><th></th></tr>";
+  const rows=TBL.fuelp.rows;
+  t.querySelector("tbody").innerHTML=rows.length?rows.map((r,i)=>
+    "<tr>"
+    +'<td><input type="date" class="cell fp-s" data-i="'+i+'" value="'+esc(isoDate(r[0]))+'"></td>'
+    +'<td><input type="date" class="cell fp-e" data-i="'+i+'" value="'+esc(isoDate(r[1]))+'"></td>'
+    +'<td class="num"><input class="cell fp-r" data-i="'+i+'" value="'+esc(r[2]??"")+'"></td>'
+    +'<td><button class="act danger sm fp-del" data-i="'+i+'">'+L("刪除","Delete")+"</button></td>"
+    +"</tr>").join("")
+    :'<tr><td class="empty" colspan="4">'+L("(尚無區間 —— 全部用預設費率)","(no ranges — the default rate applies)")+"</td></tr>";
 }
 function wireFuel(){
   $("fuelPresets").innerHTML=FUEL_PRESETS.map(v=>
@@ -3223,7 +3253,26 @@ function wireFuel(){
     RULES.fuel_percent=Number(b.dataset.v);
     renderRules(); renderFuel(); markDirty();
   });
-  $("fcBase").addEventListener("input",renderFuel);
+  $("bFuelPAdd").addEventListener("click",()=>{
+    TBL.fuelp.rows.push(["","",String(RULES.fuel_percent)]);
+    renderFuelPeriods(); markDirty();
+  });
+  $("tFuelP").addEventListener("change",e=>{
+    const el=e.target, i=+el.dataset.i;
+    const row=TBL.fuelp.rows[i];
+    if(!row) return;
+    if(el.classList.contains("fp-s")) row[0]=el.value;
+    else if(el.classList.contains("fp-e")) row[1]=el.value;
+    else if(el.classList.contains("fp-r")) row[2]=el.value.trim();
+    else return;
+    markDirty();
+  });
+  $("tFuelP").addEventListener("click",e=>{
+    const b=e.target.closest("button.fp-del");
+    if(!b) return;
+    TBL.fuelp.rows.splice(+b.dataset.i,1);
+    renderFuelPeriods(); markDirty();
+  });
 }
 
 function renderAll(){
