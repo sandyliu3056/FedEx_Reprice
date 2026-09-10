@@ -255,6 +255,10 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
 /* ---- 自訂附加費 ---- */
 #tCsur td{vertical-align:middle}
 #tCsur .selw.yn>select{min-width:74px;font-weight:600}
+/* 計費方式那一格的字不能被截掉:「照帳單轉嫁」和「重算(用設定費率)」都要看
+   得完整,不然「照帳單」和「照帳單轉嫁」在畫面上長得一樣。 */
+#tCsur .selw>select{min-width:140px}
+#tCsur td:nth-child(3){white-space:nowrap}
 #tCsur .selw.yn.on>select{color:var(--ok)}
 #tCsur .selw.yn.off>select{color:var(--muted)}
 #tCsur tr.csoff td b{text-decoration:line-through}
@@ -536,6 +540,7 @@ table.unrec td.amt{font-weight:600;color:var(--rp)}
 #p-dash .dwrap{max-width:1360px;margin:0 auto}
 #p-dash .dhead{margin:0 0 14px;display:flex;align-items:flex-start;gap:12px}
 #p-dash .dhead>button{margin-left:auto}
+#p-dash .dhead>.dacts{margin-left:auto;display:flex;gap:8px;flex:0 0 auto}
 #p-dash .dtitle{font:700 20px var(--hand);margin:0;color:var(--accent)}
 #p-dash .dsub{font-size:12.5px;color:var(--muted);margin-top:1px}
 #p-dash .dempty{background:var(--panel);border:2px dashed var(--line);border-radius:16px;
@@ -3497,19 +3502,21 @@ function repriceCore(columns,rowsIn){
        轉嫁排除);費率 0 = 只登記,原金額照舊轉嫁。列=[表頭,別名(|分隔),費率],
        舊 2 欄 [名稱,費率] 視為表頭=別名 */
     const custom={}; let customTotal=0, customNoFuel=0;
+    const customRep=new Set();   /* 只有這些要進 repricedBuckets */
     for(const r of TBL.csur.rows){
       const {disp,aliases,fee,type,fuel,on}=csurEntry(r);
-      if(!disp||!on||type==="invoice") continue;
+      if(!disp||!on) continue;
       if(!aliases.some(a=>hasChargeDesc(row,[a],false))) continue;
-      if(type==="report"){
-        /* 只列出來,不計進總額 —— 金額用帳單上的原值,那才是要看的東西 */
+      if(type!=="reprice"){
+        /* 照帳單轉嫁 / 僅顯示:欄位放帳單上的原值 —— 那才是要看的東西。
+           轉嫁那一型的金額已經算在 otherPass 裡,這裡只補欄位。 */
         let seen=0;
         for(const[d,amt] of iterChargePairs(row))
           if(aliases.some(a=>normChargeDesc(d).includes(normChargeDesc(a)))) seen+=amt;
-        if(seen) custom[disp]=r2(seen);
+        custom[disp]=r2(seen);
         continue;
       }
-      custom[disp]=fee;
+      custom[disp]=fee; customRep.add(disp);
       /* 不吃燃油的費目不進燃油基數,但當然還是要進總額。 */
       if(fuel) customTotal+=fee; else customNoFuel+=fee;
     }
@@ -3536,7 +3543,7 @@ function repriceCore(columns,rowsIn){
     addRep("AHS Demand Fee",ahsDemandFee);
     addRep("Oversize Demand Fee",oversizeDemandFee);
     addRep("Fuel Fee",fuelFee);
-    for(const[ck,cv] of Object.entries(custom)) addRep(ck,cv);
+    for(const[ck,cv] of Object.entries(custom)) if(customRep.has(ck)) addRep(ck,cv);
     for(const[pk,pv] of Object.entries(otherPass)) addRep(billedBucketOf(pk),pv);
     /* 帳單側逐類累計。只累計「有算出結果」的那些列,兩側才蓋同一批貨件;
        Transportation Charge 在成對欄位之外,要另外加。 */
@@ -4142,9 +4149,8 @@ async function exportResultWorkbook(results,customCols){
     const row=cols.map((c,i)=>{
       let cell,disp;
       if(extraSet.has(c)){
-        const v=res._custom?res._custom[c]:null;
-        if(v==null||v===0){ cell=""; disp=""; }
-        else{ cell={v:r2(v),t:"n",s:{fmt:"$#,##0.00"}}; disp="$"+r2(v).toFixed(2); }
+        const v=r2(toFloat(res._custom?res._custom[c]:0,0));
+        cell={v,t:"n",s:{fmt:"$#,##0.00"}}; disp="$"+v.toFixed(2);
       }else if(DATE_COLS.has(c)){
         const key=c==="Transaction Date"?res._txKey:res._invKey;
         if(key){ cell={v:keyToSerial(key),t:"n",s:{fmt:"mm/dd/yyyy"}}; disp="mm/dd/yyyy"; }
@@ -7137,6 +7143,8 @@ function dashCsCard(){
       "invoice charges with no rate configured in this tool")+"</span>"
     +(unrecCount()?'<button class="act sm" id="bRegUnrec">'
          +L("登記未收錄的項目","Register unrecognised codes")+"</button>":"")
+    +'<button class="act ghost sm" id="bDashCsur2">'+L("自訂附加費","Custom Surcharges")
+    +"</button>"
     +'<button class="act ghost sm" id="bGoChg">'+L("去費目查詢","Open Charge Lookup")
     +"</button></div>"
     +'<p class="isssub">'
@@ -7395,7 +7403,10 @@ function renderResults(){
   body.innerHTML=
      '<div class="dhead"><div><div class="dtitle">'+L("儀表板","Dashboard")+"</div>"
     +'<div class="dsub">'+d.n.toLocaleString()+" "+L("筆貨件","shipments")+"</div></div>"
-    +'<button class="act ghost" id="bDashRe">'+L("重新整理","Refresh")+"</button></div>"
+    +'<div class="dacts">'
+    +'<button class="act ghost" id="bDashCsur">'+L("自訂附加費","Custom Surcharges")
+    +"</button>"
+    +'<button class="act ghost" id="bDashRe">'+L("重新整理","Refresh")+"</button></div></div>"
     +'<div class="dflow">'
     +'<div class="dcell"><div class="dk">'+L("向客戶收","Charge customer")+"</div>"
       +'<div class="dv">'+money(d.repriced)+"</div></div>"
@@ -7432,6 +7443,9 @@ function renderResults(){
   if(gc) gc.onclick=()=>{ CHG_MODE="scan"; switchPage("chg"); renderChg(); };
   const ru=$("bRegUnrec");
   if(ru) ru.onclick=openUnrec;
+  for(const id of ["bDashCsur","bDashCsur2"]){
+    const el=$(id); if(el) el.onclick=openCsurModal;
+  }
   paintStatementBtn();
 }
 async function runRepricing(){
