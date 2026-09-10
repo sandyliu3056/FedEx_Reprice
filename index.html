@@ -3337,65 +3337,10 @@ function repriceCore(columns,rowsIn){
       const borrowed=zoneByTrk.get(String(row["_Tracking Number"]??"").trim());
       if(borrowed!=null) zone=borrowed;
     }
-    if(!ZONES.includes(zone)){
-      /* 整個追蹤號都借不到 Zone:這一列就是 0 —— 帳單照收,我們不轉嫁。
-         它仍然留在結果裡(看得到 FedEx 收了多少、我們收 0),但不是錯誤,
-         所以不進警告區。 */
-      const transactionDate=coalesce(row,["Shipment Date","Transaction Date","Tendered Date"],"");
-      const invoiceDate=coalesce(row,["Invoice Date"],"");
-      let zeroBilled=toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
-      const zeroFreight=zeroBilled;
-      const zeroBy={};
-      if(zeroBilled){
-        const k=billedBucketOf("Transportation Charge");
-        billedBuckets.set(k,(billedBuckets.get(k)||0)+zeroBilled);
-        zeroBy[k]=(zeroBy[k]||0)+zeroBilled;
-      }
-      for(const[bd,bamt] of iterChargePairs(row)){
-        if(!bamt) continue;
-        const k=billedBucketOf(bd);
-        billedBuckets.set(k,(billedBuckets.get(k)||0)+bamt);
-        zeroBy[k]=(zeroBy[k]||0)+bamt;
-        zeroBilled+=bamt;
-      }
-      /* 這一列只有運費,還是運費加一堆稅費、報關費? */
-      const zeroOnly=r2(zeroFreight)===r2(zeroBilled)&&zeroFreight!==0;
-      issues.push({
-        kind:"zone", trk:String(row["_Tracking Number"]??""),
-        inv:String(coalesce(row,["Invoice Number","Invoice No","Invoice #"],"")??""),
-        invDate:String(invoiceDate??""), date:String(transactionDate??""),
-        line:excelRow, code:"",
-        billdesc:zeroOnly?"Transportation Charge":"(all charges on this shipment)",
-        item:zeroOnly?"Freight":"Shipment total",
-        note:"no zone anywhere on this tracking",
-        amt:r2(zeroBilled), repriced:0,
-        svcRaw:String(coalesce(row,["Service Type","Ground Service","Service"],"")??""),
-        chan:service, zone:"", wt:actualWeight});
-      results.push({
-        "Transaction Date":transactionDate,
-        "Invoice Date":invoiceDate,
-        "Invoice Number":coalesce(row,["Invoice Number","Invoice No","Invoice #"],""),
-        "Tracking Number":row["_Tracking Number"]??"",
-        "Service":service,
-        "Zone":"",
-        "Length":l,"Width":w,"Height":h,
-        "Actual Weight":actualWeight,"DIM Weight":0,"Billable Weight":0,
-        "Base Rate":0,"Additional Handling Surcharge":0,"DAS Fee":0,"Oversize Fee":0,
-        "Residential Fee":0,"Signature Fee":0,"Declared Value Fee":0,
-        "Address Correction Fee":0,
-        "General Demand Fee":0,"AHS Demand Fee":0,
-        "Oversize Demand Fee":0,"Fuel Fee":0,
-        "Repriced Total":0,
-        "_billed":r2(zeroBilled),
-        "_billedBy":zeroBy,
-        "_svcRaw":String(coalesce(row,["Service Type","Ground Service","Service"],"")??""),
-        "_custom":{},
-        "_txKey":parseDateKey(transactionDate),
-        "_invKey":parseDateKey(invoiceDate),
-        "_ahsType":"",
-      });
-      return;
-    }
+    /* 借不到 Zone:查不到的只有「要看 Zone 的那幾項」—— 運費、AHS、DAS、
+       超大件。住宅、簽收、保險、地址更正、轉嫁那些和 Zone 無關,照樣要算,
+       所以這一列繼續走正常流程,不整列歸零。 */
+    const noZone=!ZONES.includes(zone);
     const effKey=getEffectiveDateKey(row);
     const dimWeight=calcDimWeight(l,w,h,service);
     const ratedWeight=toFloat(
@@ -3442,7 +3387,8 @@ function repriceCore(columns,rowsIn){
         lineCount[k]=(lineCount[k]||0)+1;
       }
     }
-    const baseGap=lookupBaseRate(baseLookup,service,billableWeight,zone);
+    const baseGap=noZone?{fee:0,gap:"zone",note:"no zone anywhere on this tracking"}
+      :lookupBaseRate(baseLookup,service,billableWeight,zone);
     const baseRate=baseGap.fee;
     /* 只有 FedEx 真的收了運費才算漏 —— 純附加費的更正列本來就沒有運費要查。 */
     if(baseGap.gap&&Math.abs(toFloat(lineBilled["Base Rate"],0))>=0.005)
@@ -3515,67 +3461,93 @@ function repriceCore(columns,rowsIn){
     /* 自訂附加費:任一「帳單名稱」別名出現即符合 → 收自訂費率(原費目已從
        轉嫁排除);費率 0 = 只登記,原金額照舊轉嫁。列=[表頭,別名(|分隔),費率],
        舊 2 欄 [名稱,費率] 視為表頭=別名 */
-    const custom={}; let customTotal=0, customNoFuel=0;
-    const customRep=new Set();   /* 只有這些要進 repricedBuckets */
+    const custom={}; let customTotal=0;
+    const customRep=new Set();     /* 只有這些要進 repricedBuckets */
+    const customReport=new Set();  /* 僅顯示:有欄位但不計費,總額不算它 */
     for(const r of TBL.csur.rows){
       const {disp,aliases,fee,type,fuel,on}=csurEntry(r);
       if(!disp||!on) continue;
       if(!aliases.some(a=>hasChargeDesc(row,[a],false))) continue;
-      if(type!=="reprice"){
-        /* 照帳單轉嫁 / 僅顯示:欄位放帳單上的原值 —— 那才是要看的東西。
-           轉嫁那一型的金額已經算在 otherPass 裡,這裡只補欄位。 */
+      if(type==="invoice"){
+        /* 照帳單轉嫁:欄位的數字整份來自 passByCol(下面那一段),
+           這裡只把欄位開出來,金額不在這裡填 —— 兩邊各填一次就是算兩次。 */
+        if(custom[disp]==null) custom[disp]=0;
+        continue;
+      }
+      if(type==="report"){
+        /* 僅顯示:欄位放帳單上的原值當資訊,不計費。 */
         let seen=0;
         for(const[d,amt] of iterChargePairs(row))
           if(aliases.some(a=>normChargeDesc(d).includes(normChargeDesc(a)))) seen+=amt;
-        custom[disp]=r2(seen);
+        custom[disp]=r2(seen); customReport.add(disp);
         continue;
       }
       custom[disp]=fee; customRep.add(disp);
-      /* 不吃燃油的費目不進燃油基數,但當然還是要進總額。 */
-      if(fuel) customTotal+=fee; else customNoFuel+=fee;
+      /* 不吃燃油的費目不進燃油基數 —— 但它照樣是一個欄位,所以還是進總額
+         (總額是那些欄位相加來的)。 */
+      if(fuel) customTotal+=fee;
     }
 
     const totalDemandFee=generalDemandFee+ahsDemandFee+oversizeDemandFee;
     const fuelBase=baseRate+ahsFee+dasFee+oversizeFee+residentialFee
       +signatureFee+declaredValueFee+addrFee+totalDemandFee+otherPassTotal+customTotal;
     const fuelFee=fuelBase*fuelRateForDate(effKey)/100.0;
-    const total=fuelBase+fuelFee+customNoFuel;
 
     const transactionDate=coalesce(row,["Shipment Date","Transaction Date","Tendered Date"],"");
     const invoiceDate=coalesce(row,["Invoice Date"],"");
     const invoiceNumber=coalesce(row,["Invoice Number","Invoice No","Invoice #"],"");
 
-    /* 轉嫁的錢歸到哪一個內建類別。這一筆已經算在 otherPassTotal 裡了,
-       所以只補欄位,不再進總額 —— 補進總額會變成收兩次。 */
+    /* 每一筆轉嫁的錢只能落在一個欄位:先看對不對得到已登記的費目(照帳單
+       轉嫁那一型),再看歸不歸得到內建類別,都不是就用帳單上的名字自成一欄。 */
     const passByCol={};
     for(const[pk,pv] of Object.entries(otherPass)){
-      const k=billedBucketOf(pk);
-      if(PR_LABEL[k]) passByCol[k]=(passByCol[k]||0)+pv;
+      const d=normChargeDesc(pk);
+      let target="";
+      for(const r of TBL.csur.rows){
+        const e=csurEntry(r);
+        if(e.on&&e.disp&&e.type==="invoice"
+           &&e.aliases.some(a=>d.includes(normChargeDesc(a)))){ target=e.disp; break; }
+      }
+      if(!target){
+        const k=billedBucketOf(pk);
+        target=PR_LABEL[k]?k:pk;
+      }
+      passByCol[target]=(passByCol[target]||0)+pv;
     }
+    /* 內建那幾欄:自己算的 + 併進來的轉嫁。四捨五入在這裡做一次,
+       總額再由這些欄位相加而來。 */
     const colOf=(k,v)=>r2(toFloat(v,0)+toFloat(passByCol[k],0));
-    /* 歸不到內建類別的轉嫁費目:用帳單上的名字當欄名。金額同樣已經在
-       otherPassTotal 裡,這裡只補欄位。已登記的費目由上面那一段處理過,
-       不要再加一次。 */
-    for(const[pk,pv] of Object.entries(otherPass)){
-      const k=billedBucketOf(pk);
-      if(PR_LABEL[k]||custom[k]!=null) continue;
-      custom[k]=r2(pv);
-    }
+    const colVals={
+      "Base Rate":colOf("Base Rate",baseRate),
+      "Additional Handling Surcharge":colOf("Additional Handling Surcharge",ahsFee),
+      "DAS Fee":colOf("DAS Fee",dasFee),
+      "Oversize Fee":colOf("Oversize Fee",oversizeFee),
+      "Residential Fee":colOf("Residential Fee",residentialFee),
+      "Signature Fee":colOf("Signature Fee",signatureFee),
+      "Declared Value Fee":colOf("Declared Value Fee",declaredValueFee),
+      "Address Correction Fee":colOf("Address Correction Fee",addrFee),
+      "General Demand Fee":colOf("General Demand Fee",generalDemandFee),
+      "AHS Demand Fee":colOf("AHS Demand Fee",ahsDemandFee),
+      "Oversize Demand Fee":colOf("Oversize Demand Fee",oversizeDemandFee),
+      "Fuel Fee":colOf("Fuel Fee",fuelFee),
+    };
+    /* 自訂／沒登記的欄位。照帳單轉嫁那一型的金額整份來自 passByCol;
+       「僅顯示」那一型有欄位但不計費,所以不進 customSum。 */
+    for(const k of Object.keys(passByCol))
+      if(!PR_LABEL[k]) custom[k]=r2(toFloat(custom[k],0)+passByCol[k]);
+    for(const k of Object.keys(custom)) custom[k]=r2(custom[k]);
+    let customSum=0;
+    for(const[ck,cv] of Object.entries(custom))
+      if(!customReport.has(ck)) customSum=r2(customSum+toFloat(cv,0));
+    /* 總額 = 報表上看得到的那些欄位相加。 */
+    let total=0;
+    for(const v of Object.values(colVals)) total=r2(total+v);
+    total=r2(total+customSum);
 
-    addRep("Base Rate",baseRate);
-    addRep("Additional Handling Surcharge",ahsFee);
-    addRep("DAS Fee",dasFee);
-    addRep("Oversize Fee",oversizeFee);
-    addRep("Residential Fee",residentialFee);
-    addRep("Signature Fee",signatureFee);
-    addRep("Declared Value Fee",declaredValueFee);
-    addRep("Address Correction Fee",addrFee);
-    addRep("General Demand Fee",generalDemandFee);
-    addRep("AHS Demand Fee",ahsDemandFee);
-    addRep("Oversize Demand Fee",oversizeDemandFee);
-    addRep("Fuel Fee",fuelFee);
-    for(const[ck,cv] of Object.entries(custom)) if(customRep.has(ck)) addRep(ck,cv);
-    for(const[pk,pv] of Object.entries(otherPass)) addRep(billedBucketOf(pk),pv);
+    /* 逐類累計用的就是報表上那些欄位的值 —— 兩邊同一組數字,才對得起來。 */
+    for(const[k,v] of Object.entries(colVals)) addRep(k,v);
+    for(const[ck,cv] of Object.entries(custom))
+      if(!PR_LABEL[ck]&&!customReport.has(ck)) addRep(ck,cv);
     /* 帳單側逐類累計。只累計「有算出結果」的那些列,兩側才蓋同一批貨件;
        Transportation Charge 在成對欄位之外,要另外加。 */
     let rowBilled=0;
@@ -3604,19 +3576,8 @@ function repriceCore(columns,rowsIn){
       "Actual Weight":actualWeight,
       "DIM Weight":dimWeight,
       "Billable Weight":billableWeight,
-      "Base Rate":colOf("Base Rate",baseRate),
-      "Additional Handling Surcharge":colOf("Additional Handling Surcharge",ahsFee),
-      "DAS Fee":colOf("DAS Fee",dasFee),
-      "Oversize Fee":colOf("Oversize Fee",oversizeFee),
-      "Residential Fee":colOf("Residential Fee",residentialFee),
-      "Signature Fee":colOf("Signature Fee",signatureFee),
-      "Declared Value Fee":colOf("Declared Value Fee",declaredValueFee),
-      "Address Correction Fee":colOf("Address Correction Fee",addrFee),
-      "General Demand Fee":colOf("General Demand Fee",generalDemandFee),
-      "AHS Demand Fee":colOf("AHS Demand Fee",ahsDemandFee),
-      "Oversize Demand Fee":colOf("Oversize Demand Fee",oversizeDemandFee),
-      "Fuel Fee":colOf("Fuel Fee",fuelFee),
-      "Repriced Total":r2(total),
+      ...colVals,
+      "Repriced Total":total,
       "_billed":r2(rowBilled),
       /* 這一列每一類 FedEx 收多少。異常明細的「FedEx」欄靠它,少了就只能
          從異常本身反推,而異常只指到出問題的那一類。 */
@@ -4236,27 +4197,11 @@ async function exportResultWorkbook(results,customCols){
     });
     rows.push(row);
   }
-  /* 合計列。金額欄逐欄相加,其餘留白 —— 自己拉一次公式才知道對不對帳,
-     那件事應該由報表自己做完。篩選範圍不含這一列,不然一按篩選它就跑掉。 */
-  const dataRows=rows.length;
-  {
-    const B={bold:true,fill:"EFE7D8"}, BM={bold:true,fill:"EFE7D8",fmt:"$#,##0.00"};
-    const money1=c=>CURRENCY_COLS.has(c)||extraSet.has(c);
-    const tot=cols.map((c,i)=>{
-      if(i===0) return {v:"TOTAL",t:"s",s:B};
-      if(!money1(c)) return {v:"",t:"s",s:B};
-      let sum=0;
-      for(const res of results)
-        sum+=extraSet.has(c)?toFloat(res._custom?res._custom[c]:0,0):toFloat(res[c],0);
-      return {v:r2(sum),t:"n",s:BM};
-    });
-    rows.push(tot);
-  }
   await xlWrite([{
     name:"Repriced",rows,
     cols:widths.map(w=>({w:Math.min(Math.max(w+2,10),35)})),
     freeze:{r:1},
-    filter:"A1:"+xlCol(cols.length-1)+dataRows,
+    filter:"A1:"+xlCol(cols.length-1)+rows.length,
   }],"repriced_result.xlsx");
 }
 
