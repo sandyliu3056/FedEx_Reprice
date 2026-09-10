@@ -410,7 +410,9 @@ td.neg{color:var(--neg)}
   border:1px dashed var(--line);border-radius:9px;margin-bottom:6px;background:var(--card)}
 .csseen .fl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   color:var(--text)}
-.csseen input.csnew{width:15px;height:15px;flex:0 0 auto;accent-color:var(--accent)}
+table.unrec td.dimtd{color:var(--muted)}
+table.unrec td.amt{font-weight:600;color:var(--rp)}
+#unrecModal .subhd{margin:14px 0 6px}
 .csseen s{text-decoration:none;color:var(--muted);font-size:11.5px;white-space:nowrap}
 .csseen b{color:var(--rp);white-space:nowrap}
 .csseen.known{border-style:solid;border-color:var(--line);background:var(--bill-bg)}
@@ -1700,6 +1702,24 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
   </div>
 </div>
 
+<div id="unrecBg" class="modalbg">
+  <div class="modal sketch" id="unrecModal" style="width:min(900px,100%)">
+    <div class="modalhd">
+      <span data-i18n="hd.unrec">登記未收錄的項目</span>
+      <button class="mx" id="bUnrecX">✕</button>
+    </div>
+    <div class="modalbody">
+      <p class="hint" data-i18n="hint.unrec">這些出現在這張帳單上,但你的設定裡沒有。加進來只是讓系統認得它 —— 不會替它定價。計費方式選「重算」而沒填費率的費目會算成 0,所以新加的項目一律先照帳單金額收。</p>
+      <div id="unrecBody"></div>
+    </div>
+    <div class="modalft">
+      <span id="unrecNote" class="savenote"></span>
+      <button class="act ghost" id="bUnrecClose" data-i18n="btn.close">關閉</button>
+      <button class="act" id="bUnrecAdd" data-i18n="btn.addticked">新增勾選</button>
+    </div>
+  </div>
+</div>
+
 <div id="csAddBg" class="modalbg">
   <div class="modal sketch" id="csAddModal" style="width:min(620px,100%)">
     <div class="modalhd">
@@ -1894,6 +1914,19 @@ const I18N={
  "hint.channels":["✕ 可移除用不到的渠道(標「預設」的 FedEx 官方渠道也能移除,費率表列會保留,按「還原預設渠道」可補回)。新增渠道會依所選 Zone 長出 0 費率列,在下方基本費率表與附加費頁填數字;帳單服務名稱包含渠道名即歸入該渠道。",
    "Use ✕ to drop channels you do not ship (FedEx presets included — their rate rows stay, and Restore presets brings them back). Adding a channel seeds zero-rate rows for the zones you pick; fill them in the base rate table below and on the Surcharge pages. Invoice service names containing a channel name map to it."],
  "hd.csur":["自訂附加費","Custom Surcharges"],
+ "hd.unrec":["登記未收錄的項目","Register unrecognised codes"],
+ "hint.unrec":["這些出現在這張帳單上,但你的設定裡沒有。加進來只是讓系統認得它 —— 不會替它定價。計費方式選「重算」而沒填費率的費目會算成 0,所以新加的項目一律先照帳單金額收。",
+   "These appear in this invoice but not in your settings. Adding one makes the tool recognise it — it does not price it. A charge set to Reprice with no rate entered is priced as zero, so new entries default to billing what FedEx billed."],
+ "hd.unrecsvc":["渠道清單裡沒有的服務","Services not in your channels"],
+ "hd.unrecfee":["費目清單裡沒有的費目","Charges not in your settings"],
+ "th.unrecsvc":["帳單上的服務","Service on the invoice"],
+ "th.unrecfee":["帳單上的費目","Charge on the invoice"],
+ "th.unrecnow":["目前如何計價","Currently priced as"],
+ "th.unrecship":["件數","Shipments"],
+ "th.unreclines":["筆數","Lines"],
+ "th.unrecrisk":["涉及金額","At risk"],
+ "btn.addticked":["新增勾選","Add ticked"],
+ "btn.regunrec":["登記未收錄的項目","Register unrecognised codes"],
  "hd.csuradd":["新增自訂附加費","Add Custom Surcharge"],
  "btn.csadd":["+ 新增附加費","+ Add Surcharge"],
  "lb.csname":["表頭名稱","Display name"],
@@ -3449,6 +3482,9 @@ function repriceCore(columns,rowsIn){
     for(const[pd,pv] of Object.entries(otherPass)){
       if(Math.abs(pv)<0.005) continue;
       if(isKnownPassFee(pd)) continue;
+      /* 有自己類別的費目只是還沒填費率,不是沒登記 —— 建議清單的
+         「系統已經有對應功能」那一段會指去該填的表。 */
+      if(PR_LABEL[billedBucketOf(pd)]) continue;
       issues.push(at("unknown",pd,"not in the charge catalogue",pv,pv,pd,""));
     }
     const otherPassTotal=Object.values(otherPass).reduce((a,b)=>a+b,0);
@@ -6451,21 +6487,20 @@ function csSeenHtml(g){
   let h="";
   if(g.fresh.length){
     h+=g.fresh.map((f,i)=>'<div class="csseen">'
-      +'<input type="checkbox" class="csnew" data-i="'+i+'">'
       +'<span class="fl" title="'+esc(f.name)+'">'+esc(f.name)+"</span>"
       +"<s>"+L(f.rows+" 筆",f.rows+(f.rows>1?" rows":" row"))+"</s>"
       +"<b>"+money(f.total)+"</b>"
       +'<span class="pill no tagx">'+L("未收錄","not registered")+"</span>"
       +"</div>").join("")
       +'<p class="note">'+L(
-        "目前照原價轉嫁,報表上沒有自己的欄位。勾起來按「新增勾選的費目」就會各給一欄,"
-        +"金額仍照帳單;要用自己的費率算,再把計費方式換成「重算」。",
-        "These pass through at cost with no column of their own. Tick them and press Add selected "
-        +"to give each one a column, still priced from the invoice; switch one to Reprice "
-        +"to price it yourself.")
+        "上列費目目前按帳單金額轉嫁,報表無專屬欄位。以「登記未收錄的項目」登記後即可各自成欄;"
+        +"若要改以自訂費率計價,請於自訂附加費將計費方式設為「重算」並填入費率。",
+        "The charges above are passed through at the billed amount and have no column of their own. "
+        +"Register them to give each one a column; to price one with your own rate, set its "
+        +"How to charge to Reprice in the custom surcharge list and enter the rate.")
       +"</p>";
   }else{
-    h+='<div class="note">'+L("帳單上沒有還沒歸類的費目。",
+    h+='<div class="note">'+L("本期帳單無未歸類費目。",
       "No unclassified charges on this invoice.")+"</div>";
   }
   if(g.known.length){
@@ -6481,10 +6516,11 @@ function csSeenHtml(g){
         +'<button class="act ghost sm cs-go" data-i="'+i+'">'+L("去填費率","Go to the rate table")+"</button>"
         +"</div>").join("")
       +'<p class="note">'+L(
-        "這幾項有專屬的費率表,照原價轉嫁只是因為那張表還沒填。再登記成自訂附加費,"
-        +"同一筆錢就有兩個算法 —— 所以這裡改成「去填費率」。",
-        "These have rate tables of their own and pass through only because the table is empty. "
-        +"Registering them again would give the same money two prices — hence Go to the rate table, not Register.")
+        "上列費目已有專屬費率表,目前按帳單金額轉嫁係因該表尚未填列。重複登記為自訂附加費"
+        +"會使同一筆費用出現兩套算法,故此處僅提供「去填費率」。",
+        "The charges above have rate tables of their own and are passed through only because those "
+        +"tables are empty. Registering them again as custom surcharges would give one charge two "
+        +"prices, so only Go to the rate table is offered here.")
       +"</p>";
   }
   return h;
@@ -6647,29 +6683,6 @@ function wireCsur(){
   });
   document.addEventListener("click",async e=>{
     if(!e.target.closest("#dashCs")) return;
-    if(e.target.closest("#bCsSelAll")){
-      const boxes=[...document.querySelectorAll("#dashCs .csnew")];
-      const all=boxes.every(c=>c.checked);
-      boxes.forEach(c=>c.checked=!all);
-      return;
-    }
-    if(e.target.closest("#bCsAddSel")){
-      const fresh=csSeenList().fresh;
-      const pick=[...document.querySelectorAll("#dashCs .csnew:checked")]
-        .map(c=>fresh[+c.dataset.i]).filter(Boolean);
-      if(!pick.length){ toast(L("請先勾選要新增的費目","Tick the charges to add first"),true); return; }
-      /* 計費方式先給「照帳單轉嫁」—— 那是它現在實際的行為,只是多了自己的欄位。
-         隨手塞一個費率進去就變成我們自己在定價,而那個數字沒人核過。 */
-      let n=0;
-      for(const f of pick) if(csurAdd(f.name,f.name,"0","invoice")) n++;
-      if(!n) return;
-      renderResults();
-      toast(L("已新增 "+n+" 條自訂費目 —— 報表各多一欄,金額照帳單轉嫁。"
-              +"按 Reprice 重跑,數字才會跟上。",
-              n+" custom surcharge(s) added — each gets its own column, priced from the invoice. "
-              +"Press Reprice to bring the figures up to date."));
-      return;
-    }
     const go=e.target.closest("button.cs-go");
     if(go){
       const k=(csSeenList().known[+go.dataset.i]||{}).key;
@@ -6704,6 +6717,22 @@ async function pickBilling(file){
       "Selected: "+file.name+" · "+rows.length+" rows — ready to reprice.");
     setStatus(L("帳單已載入。","Billing file loaded."));
     refreshReady();
+    /* 存進瀏覽器的歷史庫。存不下(容量滿、私密視窗)不該擋住計價,
+       所以失敗只講一聲,不丟例外。 */
+    try{
+      const flat=histFlatten(columns,rows,file.name);
+      await histPut({name:file.name,at:Date.now(),
+                     cols:columns.map(c=>String(c).trim()),ships:rows,rows:flat});
+      await refreshHist();
+      $("invNote").textContent=L("已選擇:"+file.name+" · "+rows.length+" 列,可執行重新計價。"
+          +"(已存進「已存帳單」)",
+        "Selected: "+file.name+" · "+rows.length+" rows — ready to reprice. (Kept under Stored Invoices)");
+    }catch(e){
+      toast(L("這份帳單存不進瀏覽器的歷史庫("+(e&&e.message||"容量不足")
+              +"),計價不受影響。",
+              "Could not keep this invoice in the browser history ("
+              +(e&&e.message||"out of space")+"); repricing is unaffected."),true);
+    }
   }catch(err){
     BILLING=null; refreshReady();
     setStatus(L("讀取失敗","Read failed"));
@@ -6999,6 +7028,100 @@ function wireChg(){
   if($("chgFilter")) $("chgFilter").onchange=renderChg;
 }
 
+/* =====================================================================
+   登記未收錄的項目 —— 帳單上出現、設定裡沒有的兩種東西:
+     ① 渠道清單裡沒有的服務。整列照原價轉嫁,所以看起來很正常,只是那一件
+        的運費完全沒有經過我們的費率表。
+     ② 費目清單裡沒有的費目。同樣照原價轉嫁,報表上沒有自己的欄位。
+   勾一勾按「新增勾選」就登記進去。登記只是讓系統認得它 —— 不替它定價:
+   新渠道長出一整張 0 費率表等你填,新費目先照帳單金額收。
+   ===================================================================== */
+function unrecSvcList(){
+  const known=new Set(SERVICES.concat(CUSTOM_SERVICES).map(x=>x.toLowerCase()));
+  return ((LAST&&LAST.infos)||[])
+    .filter(x=>x.label&&x.label!=="Account Level"
+      &&!known.has(String(x.label).toLowerCase()))
+    .map(x=>({name:x.label,rows:x.rows,total:r2(x.total)}));
+}
+function unrecCount(){
+  if(!LAST) return 0;
+  return unrecSvcList().length+csSeenList().fresh.length;
+}
+function renderUnrec(){
+  const host=$("unrecBody"); if(!host) return;
+  const svc=unrecSvcList(), fee=LAST?csSeenList().fresh:[];
+  const head=(a,b,c,d)=>"<thead><tr><th style=\"width:30px\"></th><th>"+a+"</th><th>"+b
+    +'</th><th class="num">'+c+'</th><th class="num">'+d+"</th></tr></thead>";
+  let h="";
+  if(svc.length){
+    h+='<div class="subhd" style="margin-top:0">'+L("渠道清單裡沒有的服務",
+      "Services not in your channels")+"</div>"
+      +'<div class="tablewrap" style="max-height:26vh"><table class="unrec">'
+      +head(L("帳單上的服務","Service on the invoice"),L("目前如何計價","Currently priced as"),
+            L("件數","Shipments"),L("涉及金額","At risk"))
+      +"<tbody>"+svc.map((x,i)=>"<tr>"
+        +'<td><input type="checkbox" class="unrsvc" data-i="'+i+'" checked></td>'
+        +"<td><b>"+esc(x.name)+"</b></td>"
+        +'<td class="dimtd">'+L("照原價轉嫁","passed through at cost")+"</td>"
+        +'<td class="num">'+x.rows.toLocaleString()+"</td>"
+        +'<td class="num amt">'+money(x.total)+"</td></tr>").join("")
+      +"</tbody></table></div>";
+  }
+  if(fee.length){
+    h+='<div class="subhd">'+L("費目清單裡沒有的費目","Charges not in your settings")+"</div>"
+      +'<div class="tablewrap" style="max-height:26vh"><table class="unrec">'
+      +head(L("帳單上的費目","Charge on the invoice"),L("目前如何計價","Currently priced as"),
+            L("筆數","Lines"),L("金額","Amount"))
+      +"<tbody>"+fee.map((x,i)=>"<tr>"
+        +'<td><input type="checkbox" class="unrfee" data-i="'+i+'" checked></td>'
+        +"<td><b>"+esc(x.name)+"</b></td>"
+        +'<td class="dimtd">'+L("照原價轉嫁","passed through at cost")+"</td>"
+        +'<td class="num">'+x.rows.toLocaleString()+"</td>"
+        +'<td class="num amt">'+money(x.total)+"</td></tr>").join("")
+      +"</tbody></table></div>";
+  }
+  host.innerHTML=h||'<div class="note">'+L("這張帳單上的服務與費目都登記過了。",
+    "Every service and charge on this invoice is already registered.")+"</div>";
+}
+function openUnrec(){
+  if(!LAST){ toast(L("請先匯入帳單按 Reprice","Import an invoice and press Reprice first"),true); return; }
+  renderUnrec();
+  $("unrecNote").textContent="";
+  $("unrecBg").style.display="flex";
+}
+const closeUnrec=()=>{ $("unrecBg").style.display="none"; };
+function wireUnrec(){
+  if($("bUnrecX")) $("bUnrecX").onclick=closeUnrec;
+  if($("bUnrecClose")) $("bUnrecClose").onclick=closeUnrec;
+  if($("unrecBg")) $("unrecBg").onclick=e=>{ if(e.target===$("unrecBg")) closeUnrec(); };
+  if($("bUnrecAdd")) $("bUnrecAdd").onclick=()=>{
+    const svc=unrecSvcList(), fee=csSeenList().fresh;
+    const ps=[...document.querySelectorAll(".unrsvc:checked")].map(c=>svc[+c.dataset.i]).filter(Boolean);
+    const pf=[...document.querySelectorAll(".unrfee:checked")].map(c=>fee[+c.dataset.i]).filter(Boolean);
+    if(!ps.length&&!pf.length){
+      $("unrecNote").textContent=L("請先勾選要新增的項目。","Tick something to add first.");
+      return;
+    }
+    let ns=0,nf=0;
+    /* 新渠道的 Zone 取內建那組 —— 帳單上看不出這條線跑哪些 Zone,
+       之後在「Channels」改或按「從帳單掃描 Zone」都可以。 */
+    for(const x of ps){
+      if(SERVICES.concat(CUSTOM_SERVICES).some(y=>y.toLowerCase()===x.name.toLowerCase())) continue;
+      addChannel(x.name,BASE_ZONES.slice(),true); ns++;
+    }
+    for(const x of pf) if(csurAdd(x.name,x.name,"0","invoice")) nf++;
+    if(!ns&&!nf) return;
+    markDirty(); renderAll(); renderResults();
+    closeUnrec();
+    toast(L("已登記 "+(ns?ns+" 條渠道":"")+(ns&&nf?"、":"")+(nf?nf+" 個費目":"")
+            +" —— 登記只是讓系統認得它。渠道的費率表還是空的,費目先照帳單金額收;"
+            +"按 Reprice 重跑,數字才會跟上。",
+            "Registered "+(ns?ns+" channel(s)":"")+(ns&&nf?" and ":"")+(nf?nf+" charge(s)":"")
+            +" — registering only makes the tool recognise them. The channel rate tables are "
+            +"still empty and the charges bill what FedEx billed; press Reprice to update the figures."));
+  };
+}
+
 /* 帳單上有、我們沒登記的費目 —— 直接擺在異常卡旁邊。
    把它藏在「Custom Surcharges…」視窗裡,就得先知道要去開那個視窗才看得到,
    而會去開的人本來就知道自己少了什麼。 */
@@ -7009,20 +7132,19 @@ function dashCsCard(){
   const n=g.fresh.length, k=g.known.length;
   const amt=g.fresh.concat(g.known).reduce((a,f)=>a+toFloat(f.total,0),0);
   return '<div class="dcard csbox" id="dashCs" style="margin-top:12px">'
-    +'<div class="ch"><h3>'+L("建議新增的費目","Charges worth registering")+"</h3>"
-    +'<span class="cnote">'+L("帳單上有,而我們這邊沒有對應費率",
-      "on the invoice, with no rate of ours behind them")+"</span>"
-    +(n?'<button class="act ghost sm" id="bCsSelAll">'+L("全選","Select all")
-         +'</button><button class="act sm" id="bCsAddSel">'
-         +L("新增勾選的費目","Add selected")+"</button>":"")
+    +'<div class="ch"><h3>'+L("待設定的費目","Charges pending setup")+"</h3>"
+    +'<span class="cnote">'+L("帳單費目未對應系統費率設定",
+      "invoice charges with no rate configured in this tool")+"</span>"
+    +(unrecCount()?'<button class="act sm" id="bRegUnrec">'
+         +L("登記未收錄的項目","Register unrecognised codes")+"</button>":"")
     +'<button class="act ghost sm" id="bGoChg">'+L("去費目查詢","Open Charge Lookup")
     +"</button></div>"
     +'<p class="isssub">'
-    +L((n?"<b>"+n+"</b> 個費目還沒歸類":"")+(n&&k?"、":"")
-       +(k?"<b>"+k+"</b> 個等著填費率":"")+",這一期 FedEx 為此收了 <b>"+money(amt)+"</b>",
-       (n?"<b>"+n+"</b> charge"+(n>1?"s":"")+" unclassified":"")+(n&&k?", ":"")
-       +(k?"<b>"+k+"</b> awaiting a rate":"")+"; FedEx billed <b>"+money(amt)
-       +"</b> for them this period")
+    +L("本期 "+(n?"<b>"+n+"</b> 個費目未歸類":"")+(n&&k?"、":"")
+       +(k?"<b>"+k+"</b> 個尚未設定費率":"")+",FedEx 就此收取 <b>"+money(amt)+"</b>",
+       "This period: "+(n?"<b>"+n+"</b> charge"+(n>1?"s":"")+" unclassified":"")+(n&&k?", ":"")
+       +(k?"<b>"+k+"</b> with no rate configured":"")+". FedEx billed <b>"+money(amt)
+       +"</b> for them")
     +"</p>"+csSeenHtml(g)+"</div>";
 }
 function dashIssueCard(){
@@ -7308,6 +7430,8 @@ function renderResults(){
   if(ix) ix.onclick=()=>withBusy(ix,exportIssues);
   const gc=$("bGoChg");
   if(gc) gc.onclick=()=>{ CHG_MODE="scan"; switchPage("chg"); renderChg(); };
+  const ru=$("bRegUnrec");
+  if(ru) ru.onclick=openUnrec;
   paintStatementBtn();
 }
 async function runRepricing(){
@@ -7966,7 +8090,7 @@ function init(){
   const restored=loadLocalConfig();
   /* UI */
   wireRules(); wireFuel(); wireBaseTable(); wireAcc(); wireDv();
-  wireDemand(); wireFiles(); wireChannels(); wireCsur(); wireChg(); wireHist();
+  wireDemand(); wireFiles(); wireChannels(); wireCsur(); wireChg(); wireUnrec(); wireHist();
   $("bRunTop").addEventListener("click",runRepricing);
   $("bStatement").addEventListener("click",exportProfitReport);
   document.querySelectorAll("#tabs button").forEach(b=>
