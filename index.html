@@ -2272,6 +2272,7 @@ const TBL={
   das:        {cols:["Service","DAS Type","Zone","Fee"], rows:[]},
   oversize:   {cols:["Service","Zone","Fee"], rows:[]},
   residential:{cols:["Service","Fee"], rows:[]},
+  addrcorr:   {cols:["Service","Fee"], rows:[]},
   signature:  {cols:["Signature Type","Fee"], rows:[]},
   gdemand:    {cols:["Service","Start Date","End Date","Fee"], rows:[]},
   ademand:    {cols:["Service","Start Date","End Date","Fee"], rows:[]},
@@ -2310,6 +2311,10 @@ function loadDefaultTables(){
   TBL.oversize.rows=os;
   TBL.residential.rows=[["Ground","2.58"],["Home Delivery","1.94"]]
     .concat(CUSTOM_SERVICES.map(sv=>[sv,"0"]));
+  /* 地址更正費一件一個價,和渠道無關的合約也有 —— 但表照 Residential 那樣
+     一條渠道一列,要分開訂的人才有地方訂。程式裡不寫金額:寫死一個今年的
+     公告價,明年就是錯的,而且錯得很安靜。 */
+  TBL.addrcorr.rows=SERVICES.map(sv=>[sv,"0"]);
   TBL.signature.rows=[["Adult Signature","10.00"],["Direct Signature","5.70"],["Indirect Signature","5.70"]];
   TBL.gdemand.rows=[]; TBL.ademand.rows=[]; TBL.odemand.rows=[]; TBL.fuelp.rows=[];
   TBL.csur.rows=[];
@@ -2358,12 +2363,15 @@ function seedServiceRows(svc,zones){
     for(const z of zs) TBL.oversize.rows.push([svc,String(z),"0"]);
   if(!TBL.residential.rows.some(r=>String(r[0])===svc))
     TBL.residential.rows.push([svc,"0"]);
+  if(!TBL.addrcorr.rows.some(r=>String(r[0])===svc))
+    TBL.addrcorr.rows.push([svc,"0"]);
 }
 
 /* ---- 設定檔:與桌面版 billing_tool_config.json 同一格式 ---- */
 const CFG_TABLE_KEYS={
   base_rate_rows:"base", ahs_rate_rows:"ahs", das_rate_rows:"das",
   oversize_rate_rows:"oversize", residential_rate_rows:"residential",
+  address_correction_rate_rows:"addrcorr",
   signature_rate_rows:"signature", general_demand_rows:"gdemand",
   ahs_demand_rows:"ademand", oversize_demand_rows:"odemand",
   fuel_period_rows:"fuelp", custom_surcharge_rows:"csur",
@@ -2876,6 +2884,21 @@ function buildResiLookup(){
   }
   return m;
 }
+/* 這條渠道的地址更正費率。沒設(或設 0)就不重算,帳單那筆照原價轉嫁 ——
+   和保險附加費同一條規則:不拿別的數字頂上,也不靜靜算成 0。 */
+function addrRateFor(service){
+  for(const row of TBL.addrcorr.rows)
+    if(String(row[0]??"").trim()===service) return toFloat(row[1],0);
+  return 0;
+}
+function buildAddrLookup(){
+  const m=new Map();
+  for(const row of TBL.addrcorr.rows){
+    const s=String(row[0]??"").trim();
+    if(s) m.set(s,toFloat(row[1],0));
+  }
+  return m;
+}
 function buildSigLookup(){
   const m=new Map();
   for(const row of TBL.signature.rows){
@@ -2971,6 +2994,7 @@ function billedBucketOf(desc){
   if(has("delivery area surcharge")||has("das resi")||has("das comm")
      ||has("das remote")||has("das extended")
      ||has("hawaii - ")||has("alaska - ")) return "DAS Fee";
+  if(has("address correction")||has("addr corr")) return "Address Correction Fee";
   if(has("residential")) return "Residential Fee";
   if(has("oversize")) return "Oversize Fee";
   if(has("add'l handling")||has("additional handling")||has("ahs")) return "Additional Handling Surcharge";
@@ -3005,6 +3029,9 @@ function collectPassThrough(row,service){
   /* 這條渠道設過保險附加費級距,保險附加費才由我們自己算 —— 沒設過就讓它照原價轉嫁,
      不然畫面上會出現一個算成 0 的保險附加費,看不出是「沒設定」還是「真的 0」。 */
   if(dvBandsFor(service)) excludedKeywords.push("declared value");
+  if(addrRateFor(service)>0){
+    excludedKeywords.push("address correction"); excludedKeywords.push("addr corr");
+  }
   const isExcludedName=name=>{
     const d=normChargeDesc(name);
     if(activeCustom.some(k=>d.includes(k))) return true;
@@ -3127,7 +3154,7 @@ const SEV_NOTE={
    帳單出現目錄外的新費目時自動附加在後面。
    (重算類各有專欄;折扣類捨棄;Pickup 類走 Statement,不在此列。) */
 const KNOWN_PASS_FEES=[
-  "Address Correction","Declared Value Charge","Declared Value",
+  "Declared Value Charge","Declared Value",
   "Clearance Entry Fee","Disbursement Fee","Other Government Agency Fee",
   "Rebill Duty","Canada HST","Canada GST","British Columbia PST","Manitoba PST",
   "HST on Disb/Ancillary Service Fees","GST on Disb/Ancillary Service Fees",
@@ -3140,7 +3167,7 @@ const FINAL_COLS=[
   "Service","Zone","Length","Width","Height","Actual Weight",
   "DIM Weight","Billable Weight",
   "Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
-  "Residential Fee","Signature Fee","Declared Value Fee",
+  "Residential Fee","Signature Fee","Declared Value Fee","Address Correction Fee",
   "General Demand Fee","AHS Demand Fee",
   "Oversize Demand Fee","Fuel Fee","Repriced Total",
 ];
@@ -3154,6 +3181,7 @@ function repriceCore(columns,rowsIn){
   const dasLookup=buildDasLookup();
   const osLookup=buildOversizeLookup();
   const resiLookup=buildResiLookup();
+  const addrLookup=buildAddrLookup();
   const sigLookup=buildSigLookup();
 
   const results=[], warnings=[];
@@ -3241,6 +3269,7 @@ function repriceCore(columns,rowsIn){
         "Actual Weight":actualWeight,"DIM Weight":0,"Billable Weight":0,
         "Base Rate":0,"Additional Handling Surcharge":0,"DAS Fee":0,"Oversize Fee":0,
         "Residential Fee":0,"Signature Fee":0,"Declared Value Fee":0,
+        "Address Correction Fee":0,
         "General Demand Fee":0,"AHS Demand Fee":0,
         "Oversize Demand Fee":0,"Fuel Fee":0,
         "Repriced Total":r2(passTotal),
@@ -3301,6 +3330,7 @@ function repriceCore(columns,rowsIn){
         "Actual Weight":actualWeight,"DIM Weight":0,"Billable Weight":0,
         "Base Rate":0,"Additional Handling Surcharge":0,"DAS Fee":0,"Oversize Fee":0,
         "Residential Fee":0,"Signature Fee":0,"Declared Value Fee":0,
+        "Address Correction Fee":0,
         "General Demand Fee":0,"AHS Demand Fee":0,
         "Oversize Demand Fee":0,"Fuel Fee":0,
         "Repriced Total":0,
@@ -3349,7 +3379,7 @@ function repriceCore(columns,rowsIn){
       svcRaw:String(coalesce(row,["Service Type","Ground Service","Service"],"")??""),
       chan:service, zone, wt:billableWeight});
     /* 這一列帳單各類收了多少 —— 判斷「FedEx 收了但我們算 0」要用它 */
-    const lineBilled={};
+    const lineBilled={}, lineCount={};
     {
       const tc0=toFloat(coalesce(row,["Transportation Charge Amount"],0),0);
       if(tc0) lineBilled["Base Rate"]=(lineBilled["Base Rate"]||0)+tc0;
@@ -3357,6 +3387,7 @@ function repriceCore(columns,rowsIn){
         if(!bamt) continue;
         const k=billedBucketOf(bd);
         lineBilled[k]=(lineBilled[k]||0)+bamt;
+        lineCount[k]=(lineCount[k]||0)+1;
       }
     }
     const baseGap=lookupBaseRate(baseLookup,service,billableWeight,zone);
@@ -3377,6 +3408,14 @@ function repriceCore(columns,rowsIn){
     let residentialFee=0.0;
     if(flagVal(row["_Normalized Residential"]??""))
       residentialFee=resiLookup.get(service)||0.0;
+
+    /* 地址更正:帳單上有幾行就收幾次 —— 它不看 Zone、不看重量,一次更正
+       一個價。同一件貨被更正兩次,FedEx 收兩次,我們也收兩次。
+       這條渠道沒設費率就不進來:那筆錢留在轉嫁那一側照原價帶走。 */
+    const addrRate=addrLookup.get(service)||0.0;
+    const addrUnits=toFloat(lineCount["Address Correction Fee"],0)
+      ||(Math.abs(toFloat(coalesce(row,["Address Correction"],0),0))>=0.005?1:0);
+    const addrFee=addrRate>0?addrUnits*addrRate:0.0;
 
     const signatureType=String(row["_Normalized Signature Type"]??"").trim();
     if(signatureType&&!SIGNATURE_TYPES.includes(signatureType))
@@ -3441,7 +3480,7 @@ function repriceCore(columns,rowsIn){
 
     const totalDemandFee=generalDemandFee+ahsDemandFee+oversizeDemandFee;
     const fuelBase=baseRate+ahsFee+dasFee+oversizeFee+residentialFee
-      +signatureFee+declaredValueFee+totalDemandFee+otherPassTotal+customTotal;
+      +signatureFee+declaredValueFee+addrFee+totalDemandFee+otherPassTotal+customTotal;
     const fuelFee=fuelBase*fuelRateForDate(effKey)/100.0;
     const total=fuelBase+fuelFee+customNoFuel;
 
@@ -3456,6 +3495,7 @@ function repriceCore(columns,rowsIn){
     addRep("Residential Fee",residentialFee);
     addRep("Signature Fee",signatureFee);
     addRep("Declared Value Fee",declaredValueFee);
+    addRep("Address Correction Fee",addrFee);
     addRep("General Demand Fee",generalDemandFee);
     addRep("AHS Demand Fee",ahsDemandFee);
     addRep("Oversize Demand Fee",oversizeDemandFee);
@@ -3497,6 +3537,7 @@ function repriceCore(columns,rowsIn){
       "Residential Fee":r2(residentialFee),
       "Signature Fee":r2(signatureFee),
       "Declared Value Fee":r2(declaredValueFee),
+      "Address Correction Fee":r2(addrFee),
       "General Demand Fee":r2(generalDemandFee),
       "AHS Demand Fee":r2(ahsDemandFee),
       "Oversize Demand Fee":r2(oversizeDemandFee),
@@ -4883,6 +4924,7 @@ function flatFeeSpec(name){
   const t=String(name??"").trim().toLowerCase();
   for(const x of DAS_TYPES) if(x.toLowerCase()===t) return {tbl:"das",key:x};
   if(t==="residential") return {tbl:"residential",key:""};
+  if(t==="address correction") return {tbl:"addrcorr",key:""};
   for(const x of SIGNATURE_TYPES) if(x.toLowerCase()===t) return {tbl:"signature",key:x};
   for(const r of TBL.csur.rows){
     const d=String(r[0]??"").trim();
@@ -4893,8 +4935,8 @@ function flatFeeSpec(name){
 function flatFeeGet(spec,svc){
   if(!spec) return "0";
   if(spec.tbl==="das") return dasFlat(svc,spec.key);
-  if(spec.tbl==="residential"){
-    const r=TBL.residential.rows.find(x=>String(x[0]??"").trim()===svc);
+  if(spec.tbl==="residential"||spec.tbl==="addrcorr"){
+    const r=TBL[spec.tbl].rows.find(x=>String(x[0]??"").trim()===svc);
     return r?String(r[1]??"0"):"0";
   }
   if(spec.tbl==="signature"){
@@ -4907,9 +4949,9 @@ function flatFeeGet(spec,svc){
 function flatFeeSet(spec,svc,val){
   if(!spec) return false;
   if(spec.tbl==="das"){ setDasFlat(svc,spec.key,val); return true; }
-  if(spec.tbl==="residential"){
-    const r=TBL.residential.rows.find(x=>String(x[0]??"").trim()===svc);
-    if(r) r[1]=val; else TBL.residential.rows.push([svc,val]);
+  if(spec.tbl==="residential"||spec.tbl==="addrcorr"){
+    const r=TBL[spec.tbl].rows.find(x=>String(x[0]??"").trim()===svc);
+    if(r) r[1]=val; else TBL[spec.tbl].rows.push([svc,val]);
     return true;
   }
   if(spec.tbl==="signature"){
@@ -5010,6 +5052,9 @@ function renderFlat(){
     items.push({name:flatName("DAS",t),tbl:"das",key:t,val:dasFlat(svc,t)});
   const resi=TBL.residential.rows.find(r=>String(r[0])===svc);
   items.push({name:"Residential",tbl:"residential",key:svc,val:resi?String(resi[1]??"0"):"0"});
+  const addr=TBL.addrcorr.rows.find(r=>String(r[0])===svc);
+  items.push({name:"Address Correction",tbl:"addrcorr",key:svc,
+              val:addr?String(addr[1]??"0"):"0"});
   for(const t of SIGNATURE_TYPES){
     const row=TBL.signature.rows.find(r=>String(r[0])===t);
     items.push({name:flatName("Signature",t),tbl:"signature",key:t,val:row?String(row[1]??"0"):"0"});
@@ -5273,6 +5318,8 @@ function wireAcc(){
     for(const t of DAS_TYPES) fRows.push([t,r2(toFloat(dasFlat(svc,t),0))]);
     fRows.push(["Residential",
       r2(toFloat(flatFeeGet({tbl:"residential",key:""},svc),0))]);
+    fRows.push(["Address Correction",
+      r2(toFloat(flatFeeGet({tbl:"addrcorr",key:""},svc),0))]);
     for(const t of SIGNATURE_TYPES)
       fRows.push([t,r2(toFloat(flatFeeGet({tbl:"signature",key:t},svc),0))]);
     /* 自訂附加費只倒「重算」那一種 —— 另外兩種(照帳單、僅顯示)不看費率,
@@ -6357,6 +6404,7 @@ const BUILTIN_HOME={
   "Oversize Fee":            ["sur",["Surcharge Rates 的 Oversize 卡","the Oversize card under Surcharge Rates"]],
   "DAS Fee":                 ["sur",["Flat amounts 的 DAS","the DAS rows under Flat amounts"]],
   "Residential Fee":         ["sur",["Flat amounts 的 Residential","the Residential row under Flat amounts"]],
+  "Address Correction Fee":  ["sur",["Flat amounts 的 Address Correction","the Address Correction row under Flat amounts"]],
   "Signature Fee":           ["sur",["Flat amounts 的 Signature","the Signature rows under Flat amounts"]],
   "Declared Value Fee":      ["sur",["保險附加費級距","the declared value tiers"]],
   "General Demand Fee":      ["demand",["Demand Surcharge","Demand Surcharge"]],
@@ -6719,7 +6767,7 @@ function wireFiles(){
 /* 費用類別的排列順序與名字。順序照計價結果的欄位:先運費,再各項附加費,
    最後燃油;認不出來的就用它自己的名字(那是原價轉嫁的費目)。 */
 const PR_ORDER=["Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
-  "Residential Fee","Signature Fee","Declared Value Fee",
+  "Residential Fee","Signature Fee","Declared Value Fee","Address Correction Fee",
   "General Demand Fee","AHS Demand Fee","Oversize Demand Fee","Fuel Fee"];
 const PR_LABEL={
   "Base Rate":["基本運費","Base Rate"],
@@ -6729,6 +6777,7 @@ const PR_LABEL={
   "Residential Fee":["住宅地址附加費","Residential"],
   "Signature Fee":["簽收服務費","Signature"],
   "Declared Value Fee":["保險附加費","Declared Value"],
+  "Address Correction Fee":["地址更正費","Address Correction"],
   "General Demand Fee":["旺季附加費","General Demand"],
   "AHS Demand Fee":["旺季 AHS 附加費","AHS Demand"],
   "Oversize Demand Fee":["旺季超大件附加費","Oversize Demand"],
@@ -6857,7 +6906,8 @@ const CHARGE_REF=()=>["Transportation Charge","Performance Pricing","Earned Disc
     "Fuel Surcharge","Variable Handling Charge","Delivery Area Surcharge"]
   .concat(DAS_TYPES)
   .concat(["Residential Delivery","Oversize Charge","Additional Handling",
-           "Add'l Handling Charge","Declared Value","Peak Surcharge","Demand Surcharge"])
+           "Add'l Handling Charge","Declared Value","Address Correction",
+           "Peak Surcharge","Demand Surcharge"])
   .concat(SIGNATURE_TYPES)
   .concat(TBL.csur.rows.map(r=>csurEntry(r).disp).filter(Boolean));
 const csurTypeText=t=>{
@@ -7151,7 +7201,7 @@ async function exportIssues(){
      Custom surcharge(自己加的)、Unregistered(帳單上有而目錄裡沒有的,照原價
      轉嫁)。 ---- */
   const SURCH=new Set(["Additional Handling Surcharge","DAS Fee","Oversize Fee",
-    "Residential Fee","Signature Fee","Declared Value Fee",
+    "Residential Fee","Signature Fee","Declared Value Fee","Address Correction Fee",
     "General Demand Fee","AHS Demand Fee","Oversize Demand Fee"]);
   const custom=new Set((LAST.customCols)||[]);
   /* 內建的十一種費用有自己的費率表,兩邊差多少看數字就好。掛一句「billed but
