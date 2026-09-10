@@ -367,11 +367,10 @@ label.chk input[type="checkbox"]:focus-visible{outline:none;box-shadow:var(--rin
 .tablewrap::-webkit-scrollbar-thumb:hover,main::-webkit-scrollbar-thumb:hover{
   background:color-mix(in srgb,var(--accent) 40%,var(--line))}
 table{border-collapse:collapse;width:100%;font-size:13px;background:var(--panel)}
-th{background:color-mix(in srgb,var(--accent) 4%,var(--panel));
-  color:var(--head);text-align:left;padding:9px 10px;
+th{background:var(--thead);color:var(--thfg);text-align:left;padding:9px 10px;
   font:700 11px var(--round);text-transform:uppercase;
   letter-spacing:.07em;white-space:nowrap;position:sticky;top:0;z-index:1;
-  box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--accent) 45%,transparent)}
+  box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--accent) 25%,transparent)}
 td{padding:7px 10px;white-space:nowrap;
   border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent)}
 tbody tr:nth-child(even){background:var(--stripe)}
@@ -837,7 +836,7 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
 #tBase td:first-child,#tBase th:first-child{position:sticky;left:0;z-index:2;
   background:var(--stripe);color:var(--head);box-shadow:1px 0 0 var(--line);
   text-align:center;width:64px;font-weight:700}
-#tBase th:first-child{z-index:3;background:var(--panel);color:var(--head)}
+#tBase th:first-child{z-index:3;background:var(--thead);color:var(--thfg)}
 #tBase tbody tr:hover td:first-child{
   background:color-mix(in srgb,var(--select) 60%,var(--stripe))}
 #tBase tbody tr:focus-within td:first-child{
@@ -4094,7 +4093,7 @@ async function exportProfitReport(){
   }
   const res=LAST.results;
   const MONEY="$#,##0.00", PCT="0.00%", DATE="mm/dd/yyyy";
-  const HEAD={bold:true,fill:"D9EAF7"};
+  const HEAD={bold:true};
   const dateCell=k=>k?{v:keyToSerial(k),t:"n",s:{fmt:DATE}}:"";
   const m=v=>({v:r2(v),t:"n",s:{fmt:MONEY}});
   /* 毛利率是真正的比例值再套百分比格式,不是先算成 "20.1%" 這種字串貼上去
@@ -4191,7 +4190,7 @@ async function exportResultWorkbook(results,customCols){
   const cut=base.indexOf("Fuel Fee");
   const cols=base.slice(0,cut).concat(customCols,base.slice(cut));
   const extraSet=new Set(customCols);
-  const HEAD={bold:true,fill:"D9EAF7"};
+  const HEAD={bold:true};
   const rows=[cols.map(c=>({v:RESULT_HEAD[c]||c,t:"s",s:HEAD}))];
   const widths=cols.map(c=>(RESULT_HEAD[c]||c).length);
   for(const res of results){
@@ -4230,7 +4229,7 @@ async function exportResultWorkbook(results,customCols){
     const B={bold:true,fill:"EFE7D8"}, BM={bold:true,fill:"EFE7D8",fmt:"$#,##0.00"};
     const money1=c=>CURRENCY_COLS.has(c)||extraSet.has(c);
     const tot=cols.map((c,i)=>{
-      if(i===0) return {v:L("合計","TOTAL"),t:"s",s:B};
+      if(i===0) return {v:"TOTAL",t:"s",s:B};
       if(!money1(c)) return {v:"",t:"s",s:B};
       let sum=0;
       for(const res of results)
@@ -4249,7 +4248,7 @@ async function exportResultWorkbook(results,customCols){
 
 /* ---- 範本匯出(標頭同樣上色,桌面版讀進去只看值,樣式不影響) ---- */
 async function exportTemplate(cols,dataRows,fname){
-  const HEAD={bold:true,fill:"D9EAF7"};
+  const HEAD={bold:true};
   const rows=[cols.map(c=>({v:c,t:"s",s:HEAD}))];
   const widths=cols.map(c=>c.length);
   for(const r of dataRows){
@@ -4267,7 +4266,7 @@ async function exportTemplate(cols,dataRows,fname){
 
 /* ---- 一張範本分頁:第一列是標頭(上色粗體),其餘照值寫 ---- */
 function tplSheet(name,aoa,opts){
-  const HEAD={bold:true,fill:"D9EAF7"};
+  const HEAD={bold:true};
   const widths=[];
   const rows=(aoa||[]).map((r,ri)=>(r||[]).map((v,i)=>{
     const str=v==null?"":String(v);
@@ -4289,7 +4288,7 @@ async function exportBillingSample(){
     "Address Correction","Shipment Date","Direct Signature"];
   const r1=["TEST001","Ground",2,20,14,10,12,"Y","DAS Comm",10.00,6.38,"2026-03-26",""];
   const r2=["TEST002","Home Delivery",5,32,20,18,22,"Y","DAS Extended Resi","","","2026-03-27",5.70];
-  const HEAD={bold:true,fill:"D9EAF7"};
+  const HEAD={bold:true};
   const rows=[cols.map(c=>({v:c,t:"s",s:HEAD}))]
     .concat([r1,r2].map(r=>r.map(v=>{
       if(v===""||v==null) return "";
@@ -7301,7 +7300,7 @@ async function exportIssues(){
       L("這次計價沒有需要注意的項目。","Nothing needed attention in this run."));
     return;
   }
-  const HEAD={bold:true,fill:"D9EAF7"};
+  const HEAD={bold:true};
   const MONEY={fmt:"$#,##0.00"};
   const head=cols=>cols.map(c=>({v:c,t:"s",s:HEAD}));
 
