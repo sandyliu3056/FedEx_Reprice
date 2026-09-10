@@ -423,6 +423,13 @@ table.unrec td.amt{font-weight:600;color:var(--rp)}
 .csseen.known .arrow{color:var(--muted)}
 .csseen.known b{color:var(--bill)}
 .csseen .tagx{font-size:11px;white-space:nowrap;flex:0 0 auto}
+.csseen input.csnew{width:15px;height:15px;flex:0 0 auto;accent-color:var(--accent)}
+.csrow>.selw{flex:0 0 auto}
+.csrow>.selw>select{min-width:140px;font-size:12px;padding:4px 26px 4px 9px}
+.csrow input.csrate{width:78px;height:26px;flex:0 0 auto}
+.csrow input.csrate:disabled{border-style:dashed;opacity:.45;background:transparent}
+.csrow>button.csadd{flex:0 0 auto}
+.csfoot{display:flex;justify-content:flex-end;gap:8px;margin:2px 0 8px}
 .csseen{transition:border-color .12s,background .12s}
 .csseen:hover{border-color:var(--accent)}
 #tCsur tr.csoff td{opacity:.5}
@@ -1286,9 +1293,6 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
     <div class="row" style="margin-bottom:9px;flex-wrap:wrap;gap:8px">
       <button class="act ghost sm" id="bDvHelp">? <span data-i18n="btn.dvhelp">欄位說明</span></button>
       <span style="flex:1 1 auto"></span>
-      <label class="inlab" style="margin-left:0" data-i18n="lb.dvsrc">複製來源</label>
-      <span class="selw"><select id="dvSrc"></select></span>
-      <button class="act ghost sm" id="bDvFill" data-i18n="btn.dvfill">填入勾選的渠道</button>
       <button class="act ghost sm" id="bDvClear" data-i18n="btn.dvclear">清除勾選的</button>
     </div>
     <div class="tablewrap" style="max-height:46vh">
@@ -2092,9 +2096,7 @@ const I18N={
  "hd.dv":["保險附加費(Declared Value)","Declared Value"],
  "hd.dvhelp":["保險附加費級距設定說明","Declared value tiers — field guide"],
  "btn.dvhelp":["欄位說明","Field guide"],
- "btn.dvfill":["填入勾選的渠道","Fill ticked channels"],
  "btn.dvclear":["清除勾選的","Clear ticked"],
- "lb.dvsrc":["複製來源","Copy from"],
  "hint.dv":["申報金額讀帳單自己的 Declared Value 欄。一條渠道一組費率,沒有共用的預設值 —— 沒設過的渠道不重算,帳單上那筆保險附加費照原價轉嫁。",
    "The declared amount comes from the invoice's own Declared Value column. Each channel has its own bands and there is no shared default — a channel left blank is not repriced, and its billed declared-value charge passes through at cost."],
  "hd.flat":["Flat amounts","Flat amounts"],
@@ -3531,6 +3533,23 @@ function repriceCore(columns,rowsIn){
     const invoiceDate=coalesce(row,["Invoice Date"],"");
     const invoiceNumber=coalesce(row,["Invoice Number","Invoice No","Invoice #"],"");
 
+    /* 轉嫁的錢歸到哪一個內建類別。這一筆已經算在 otherPassTotal 裡了,
+       所以只補欄位,不再進總額 —— 補進總額會變成收兩次。 */
+    const passByCol={};
+    for(const[pk,pv] of Object.entries(otherPass)){
+      const k=billedBucketOf(pk);
+      if(PR_LABEL[k]) passByCol[k]=(passByCol[k]||0)+pv;
+    }
+    const colOf=(k,v)=>r2(toFloat(v,0)+toFloat(passByCol[k],0));
+    /* 歸不到內建類別的轉嫁費目:用帳單上的名字當欄名。金額同樣已經在
+       otherPassTotal 裡,這裡只補欄位。已登記的費目由上面那一段處理過,
+       不要再加一次。 */
+    for(const[pk,pv] of Object.entries(otherPass)){
+      const k=billedBucketOf(pk);
+      if(PR_LABEL[k]||custom[k]!=null) continue;
+      custom[k]=r2(pv);
+    }
+
     addRep("Base Rate",baseRate);
     addRep("Additional Handling Surcharge",ahsFee);
     addRep("DAS Fee",dasFee);
@@ -3573,18 +3592,18 @@ function repriceCore(columns,rowsIn){
       "Actual Weight":actualWeight,
       "DIM Weight":dimWeight,
       "Billable Weight":billableWeight,
-      "Base Rate":r2(baseRate),
-      "Additional Handling Surcharge":r2(ahsFee),
-      "DAS Fee":r2(dasFee),
-      "Oversize Fee":r2(oversizeFee),
-      "Residential Fee":r2(residentialFee),
-      "Signature Fee":r2(signatureFee),
-      "Declared Value Fee":r2(declaredValueFee),
-      "Address Correction Fee":r2(addrFee),
-      "General Demand Fee":r2(generalDemandFee),
-      "AHS Demand Fee":r2(ahsDemandFee),
-      "Oversize Demand Fee":r2(oversizeDemandFee),
-      "Fuel Fee":r2(fuelFee),
+      "Base Rate":colOf("Base Rate",baseRate),
+      "Additional Handling Surcharge":colOf("Additional Handling Surcharge",ahsFee),
+      "DAS Fee":colOf("DAS Fee",dasFee),
+      "Oversize Fee":colOf("Oversize Fee",oversizeFee),
+      "Residential Fee":colOf("Residential Fee",residentialFee),
+      "Signature Fee":colOf("Signature Fee",signatureFee),
+      "Declared Value Fee":colOf("Declared Value Fee",declaredValueFee),
+      "Address Correction Fee":colOf("Address Correction Fee",addrFee),
+      "General Demand Fee":colOf("General Demand Fee",generalDemandFee),
+      "AHS Demand Fee":colOf("AHS Demand Fee",ahsDemandFee),
+      "Oversize Demand Fee":colOf("Oversize Demand Fee",oversizeDemandFee),
+      "Fuel Fee":colOf("Fuel Fee",fuelFee),
       "Repriced Total":r2(total),
       "_billed":r2(rowBilled),
       /* 這一列每一類 FedEx 收多少。異常明細的「FedEx」欄靠它,少了就只能
@@ -3608,8 +3627,20 @@ function repriceCore(columns,rowsIn){
     seenFees:[...passTotals.entries()]
       .map(([name,st])=>({name,rows:st.count,total:r2(st.total)}))
       .sort((a,b)=>Math.abs(b.total)-Math.abs(a.total)),
-    customCols:TBL.csur.rows.map(r=>csurEntry(r))
-      .filter(e=>e.disp&&e.on).map(e=>e.disp)};
+    /* 報表欄位:已登記的自訂費目,再加上這一期出現過而沒登記的轉嫁費目 ——
+       後者的錢也在 Repriced Total 裡,沒有欄位就對不起帳。 */
+    customCols:(()=>{
+      const reg=TBL.csur.rows.map(r=>csurEntry(r))
+        .filter(e=>e.disp&&e.on).map(e=>e.disp);
+      const seen=new Set(reg);
+      for(const k of passTotals.keys()){
+        /* 歸得到內建類別的(沒設費率的保險附加費、地址更正費)已經併進那一欄,
+           再開一欄就是一整排 0。 */
+        if(PR_LABEL[billedBucketOf(k)]) continue;
+        if(!seen.has(k)){ reg.push(k); seen.add(k); }
+      }
+      return reg;
+    })()};
 }
 </script>
 <script>
@@ -5159,29 +5190,6 @@ function renderDv(){
         +'" data-k="'+k+'" value="'+esc(o[k]==null?"":String(o[k]))+'"></td>').join("")
       +'<td class="derived">'+esc(derived)+"</td></tr>";
   }).join("");
-  /* 來源只列已經填好的渠道 */
-  const done=SERVICES.filter(dvIsSet);
-  fillSelect("dvSrc",done.length?done.map(x=>[x,x])
-    :[["",L("(還沒有填好的渠道)","(no channel filled in yet)")]],done[0]||"");
-}
-function dvFill(){
-  const list=dvTicked();
-  if(!list.length){ dvNote(L("請先勾選要套用的渠道。","Tick the channels to write to first.")); return; }
-  const src=$("dvSrc")?$("dvSrc").value:"";
-  const o=dvSet(src);
-  if(!src||!o){
-    dvNote(L("還沒有任何渠道填好費率 —— 先手動填一條,其餘才複製得過去。",
-      "No channel has rates yet — fill one in by hand first, then copy it to the rest."));
-    return;
-  }
-  let n=0;
-  for(const svc of list){
-    if(svc===src) continue;
-    DV_BY_CHAN[svc]={...o}; n++;
-  }
-  renderDv(); markDirty(); saveSettings();
-  dvNote(L("已把「"+src+"」的費率填進 "+n+" 條渠道。",
-    "Copied "+src+"'s rates into "+n+" channel"+(n===1?"":"s")+"."));
 }
 function dvClear(){
   const list=dvTicked();
@@ -5278,7 +5286,6 @@ function wireDv(){
     }
     markDirty(); renderDv();
   });
-  $("bDvFill").addEventListener("click",dvFill);
   $("bDvClear").addEventListener("click",dvClear);
   $("bDvHelp").addEventListener("click",()=>{ paintDvHelp(); $("dvBg").style.display="flex"; });
   $("dvX").addEventListener("click",()=>{ $("dvBg").style.display="none"; });
@@ -6492,18 +6499,29 @@ function renderCsSeen(){
 function csSeenHtml(g){
   let h="";
   if(g.fresh.length){
-    h+=g.fresh.map((f,i)=>'<div class="csseen">'
+    h+=g.fresh.map((f,i)=>'<div class="csseen csrow">'
+      +'<input type="checkbox" class="csnew" data-i="'+i+'">'
       +'<span class="fl" title="'+esc(f.name)+'">'+esc(f.name)+"</span>"
       +"<s>"+L(f.rows+" 筆",f.rows+(f.rows>1?" rows":" row"))+"</s>"
       +"<b>"+money(f.total)+"</b>"
-      +'<span class="pill no tagx">'+L("未收錄","not registered")+"</span>"
+      +'<span class="selw"><select class="csmode" data-i="'+i+'">'
+        +CSUR_TYPES.map(([v,lab])=>'<option value="'+v+'"'
+          +(v==="invoice"?" selected":"")+">"+esc(lab[LANG])+"</option>").join("")
+        +"</select></span>"
+      +'<input class="cell num csrate" data-i="'+i+'" value="0" disabled'
+        +' title="'+esc(L("計費方式選「重算」才需要填","only needed when How to charge is Reprice"))+'">'
+      +'<button class="act sm csadd" data-i="'+i+'">'+L("新增","Add")+"</button>"
       +"</div>").join("")
+      +'<div class="csfoot">'
+      +'<button class="act ghost sm" id="bCsSelAll">'+L("全選","Select all")+"</button>"
+      +'<button class="act sm" id="bCsAddSel">'+L("新增勾選的費目","Add ticked")+"</button>"
+      +"</div>"
       +'<p class="note">'+L(
-        "上列費目目前按帳單金額轉嫁,報表無專屬欄位。以「登記未收錄的項目」登記後即可各自成欄;"
-        +"若要改以自訂費率計價,請於自訂附加費將計費方式設為「重算」並填入費率。",
+        "上列費目目前按帳單金額轉嫁,報表無專屬欄位。就在這裡選好計費方式(要用自己的費率就選"
+        +"「重算」並填入費率)再按「新增」,即可各自成欄。新增後按 Reprice 重跑,數字才會跟上。",
         "The charges above are passed through at the billed amount and have no column of their own. "
-        +"Register them to give each one a column; to price one with your own rate, set its "
-        +"How to charge to Reprice in the custom surcharge list and enter the rate.")
+        +"Set How to charge right here — pick Reprice and enter a rate to price it yourself — then "
+        +"press Add and each one gets its own column. Press Reprice afterwards to update the figures.")
       +"</p>";
   }else{
     h+='<div class="note">'+L("本期帳單無未歸類費目。",
@@ -6689,6 +6707,47 @@ function wireCsur(){
   });
   document.addEventListener("click",async e=>{
     if(!e.target.closest("#dashCs")) return;
+    if(e.target.closest("#bCsSelAll")){
+      const bx=[...document.querySelectorAll("#dashCs .csnew")];
+      const all=bx.length&&bx.every(c=>c.checked);
+      bx.forEach(c=>c.checked=!all);
+      return;
+    }
+    const one=e.target.closest("button.csadd");
+    const bulk=e.target.closest("#bCsAddSel");
+    if(one||bulk){
+      const fresh=csSeenList().fresh;
+      const idx=one?[+one.dataset.i]
+        :[...document.querySelectorAll("#dashCs .csnew:checked")].map(c=>+c.dataset.i);
+      if(!idx.length){
+        toast(L("請先勾選要新增的費目","Tick the charges to add first"),true); return;
+      }
+      const rowOf=i=>{
+        const m=document.querySelector('#dashCs .csmode[data-i="'+i+'"]');
+        const rr=document.querySelector('#dashCs .csrate[data-i="'+i+'"]');
+        const mode=(m&&m.value)||"invoice";
+        let fee="0";
+        if(mode==="reprice"){
+          try{ fee=String(r2(normNum(rr?rr.value:"0",0))); }
+          catch(err){ return null; }
+        }
+        return {mode,fee};
+      };
+      let n=0, bad=0;
+      for(const i of idx){
+        const f=fresh[i]; if(!f) continue;
+        const v=rowOf(i);
+        if(!v){ bad++; continue; }
+        if(csurAdd(f.name,f.name,v.fee,v.mode)) n++;
+      }
+      if(bad) toast(L("有 "+bad+" 列的費率不是數字,那幾列沒有新增。",
+        bad+" row(s) had a non-numeric rate and were not added."),true);
+      if(!n) return;
+      renderResults();
+      toast(L("已新增 "+n+" 個費目 —— 報表各多一欄。按 Reprice 重跑,數字才會跟上。",
+              n+" charge(s) added — each gets its own column. Press Reprice to update the figures."));
+      return;
+    }
     const go=e.target.closest("button.cs-go");
     if(go){
       const k=(csSeenList().known[+go.dataset.i]||{}).key;
@@ -6702,6 +6761,15 @@ function wireCsur(){
   });
   for(const id of ["csName","csAlias"])
     if($(id)) $(id).addEventListener("input",csMatchNote);
+  /* 計費方式選「重算」才需要費率 —— 其他兩種那一格填了也不會被讀到。
+     select 改值發的是 change,不是 click。 */
+  document.addEventListener("change",e=>{
+    const md=e.target.closest("#dashCs select.csmode"); if(!md) return;
+    const inp=document.querySelector('#dashCs .csrate[data-i="'+md.dataset.i+'"]');
+    if(!inp) return;
+    inp.disabled=(md.value!=="reprice");
+    if(inp.disabled) inp.value="0";
+  });
 }
 
 /* =====================================================================
@@ -6983,6 +7051,9 @@ function chargeScan(){
 }
 function renderChg(){
   const t=$("tChg"); if(!t) return;
+  /* 選項的字是算出來的,不吃 data-i18n —— 每次重畫都重建,切語言才跟著換。 */
+  const keep=($("chgFilter")&&$("chgFilter").value)||"all";
+  fillSelect("chgFilter",CHG_FILTERS.map(([v,lab])=>[v,lab[LANG]]),keep);
   const inInv=chargeScan();
   /* 名稱來源:參考表 + 這張帳單裡出現的 */
   const all={};
@@ -7022,7 +7093,6 @@ function renderChg(){
     names.length+" shown, "+Object.keys(inInv).length+" in invoice, "+unkTxt+" unregistered");
 }
 function wireChg(){
-  fillSelect("chgFilter",CHG_FILTERS.map(([v,lab])=>[v,lab[LANG]]),"all");
   if($("bChgScan")) $("bChgScan").onclick=()=>{
     if(!BILLING){ toast(L("請先匯入帳單","Import an invoice first"),true); return; }
     CHG_MODE="scan"; renderChg();
@@ -8075,6 +8145,7 @@ function renderAll(){
   renderChannels();
   renderCsur();
   renderCsSeen();
+  renderChg();
   refreshServiceSelects();
   renderBaseTable();
   renderAcc();
