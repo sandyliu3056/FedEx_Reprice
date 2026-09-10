@@ -367,10 +367,11 @@ label.chk input[type="checkbox"]:focus-visible{outline:none;box-shadow:var(--rin
 .tablewrap::-webkit-scrollbar-thumb:hover,main::-webkit-scrollbar-thumb:hover{
   background:color-mix(in srgb,var(--accent) 40%,var(--line))}
 table{border-collapse:collapse;width:100%;font-size:13px;background:var(--panel)}
-th{background:var(--thead);color:var(--thfg);text-align:left;padding:9px 10px;
+th{background:color-mix(in srgb,var(--accent) 4%,var(--panel));
+  color:var(--head);text-align:left;padding:9px 10px;
   font:700 11px var(--round);text-transform:uppercase;
   letter-spacing:.07em;white-space:nowrap;position:sticky;top:0;z-index:1;
-  box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--accent) 25%,transparent)}
+  box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--accent) 45%,transparent)}
 td{padding:7px 10px;white-space:nowrap;
   border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent)}
 tbody tr:nth-child(even){background:var(--stripe)}
@@ -547,7 +548,6 @@ table.unrec td.amt{font-weight:600;color:var(--rp)}
 #p-dash .dwrap{max-width:1360px;margin:0 auto}
 #p-dash .dhead{margin:0 0 14px;display:flex;align-items:flex-start;gap:12px}
 #p-dash .dhead>button{margin-left:auto}
-#p-dash .dhead>.dacts{margin-left:auto;display:flex;gap:8px;flex:0 0 auto}
 #p-dash .dtitle{font:700 20px var(--hand);margin:0;color:var(--accent)}
 #p-dash .dsub{font-size:12.5px;color:var(--muted);margin-top:1px}
 #p-dash .dempty{background:var(--panel);border:2px dashed var(--line);border-radius:16px;
@@ -837,7 +837,7 @@ details.dettbl td.z0{color:var(--muted);opacity:.6}
 #tBase td:first-child,#tBase th:first-child{position:sticky;left:0;z-index:2;
   background:var(--stripe);color:var(--head);box-shadow:1px 0 0 var(--line);
   text-align:center;width:64px;font-weight:700}
-#tBase th:first-child{z-index:3;background:var(--thead);color:var(--thfg)}
+#tBase th:first-child{z-index:3;background:var(--panel);color:var(--head)}
 #tBase tbody tr:hover td:first-child{
   background:color-mix(in srgb,var(--select) 60%,var(--stripe))}
 #tBase tbody tr:focus-within td:first-child{
@@ -1714,11 +1714,11 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
 <div id="unrecBg" class="modalbg">
   <div class="modal sketch" id="unrecModal" style="width:min(900px,100%)">
     <div class="modalhd">
-      <span data-i18n="hd.unrec">登記未收錄的項目</span>
+      <span data-i18n="hd.unrec">登記未收錄的服務</span>
       <button class="mx" id="bUnrecX">✕</button>
     </div>
     <div class="modalbody">
-      <p class="hint" data-i18n="hint.unrec">這些出現在這張帳單上,但你的設定裡沒有。加進來只是讓系統認得它 —— 不會替它定價。計費方式選「重算」而沒填費率的費目會算成 0,所以新加的項目一律先照帳單金額收。</p>
+      <p class="hint" data-i18n="hint.unrec">這些服務出現在這張帳單上,但不在渠道清單裡。整列因此照原價轉嫁 —— 看起來很正常,其實那幾件的運費完全沒有經過我們的費率表。加進來只是讓系統認得它:新渠道會長出一整張 0 費率表等你填,不會替它定價。</p>
       <div id="unrecBody"></div>
     </div>
     <div class="modalft">
@@ -1923,9 +1923,9 @@ const I18N={
  "hint.channels":["✕ 可移除用不到的渠道(標「預設」的 FedEx 官方渠道也能移除,費率表列會保留,按「還原預設渠道」可補回)。新增渠道會依所選 Zone 長出 0 費率列,在下方基本費率表與附加費頁填數字;帳單服務名稱包含渠道名即歸入該渠道。",
    "Use ✕ to drop channels you do not ship (FedEx presets included — their rate rows stay, and Restore presets brings them back). Adding a channel seeds zero-rate rows for the zones you pick; fill them in the base rate table below and on the Surcharge pages. Invoice service names containing a channel name map to it."],
  "hd.csur":["自訂附加費","Custom Surcharges"],
- "hd.unrec":["登記未收錄的項目","Register unrecognised codes"],
- "hint.unrec":["這些出現在這張帳單上,但你的設定裡沒有。加進來只是讓系統認得它 —— 不會替它定價。計費方式選「重算」而沒填費率的費目會算成 0,所以新加的項目一律先照帳單金額收。",
-   "These appear in this invoice but not in your settings. Adding one makes the tool recognise it — it does not price it. A charge set to Reprice with no rate entered is priced as zero, so new entries default to billing what FedEx billed."],
+ "hd.unrec":["登記未收錄的服務","Register unrecognised services"],
+ "hint.unrec":["這些服務出現在這張帳單上,但不在渠道清單裡。整列因此照原價轉嫁 —— 看起來很正常,其實那幾件的運費完全沒有經過我們的費率表。加進來只是讓系統認得它:新渠道會長出一整張 0 費率表等你填,不會替它定價。",
+   "These services appear on this invoice but are not in your channel list, so those rows pass through at cost — they look normal, but their freight never went through your rate tables. Adding one only makes the tool recognise it: a new channel gets an empty rate table for you to fill in, and nothing is priced for you."],
  "hd.unrecsvc":["渠道清單裡沒有的服務","Services not in your channels"],
  "hd.unrecfee":["費目清單裡沒有的費目","Charges not in your settings"],
  "th.unrecsvc":["帳單上的服務","Service on the invoice"],
@@ -1935,7 +1935,7 @@ const I18N={
  "th.unreclines":["筆數","Lines"],
  "th.unrecrisk":["涉及金額","At risk"],
  "btn.addticked":["新增勾選","Add ticked"],
- "btn.regunrec":["登記未收錄的項目","Register unrecognised codes"],
+ "btn.regunrec":["登記未收錄的服務","Register unrecognised services"],
  "hd.csuradd":["新增自訂附加費","Add Custom Surcharge"],
  "btn.csadd":["+ 新增附加費","+ Add Surcharge"],
  "lb.csname":["表頭名稱","Display name"],
@@ -4031,7 +4031,7 @@ async function dlBlob(blob,name){
    ===================================================================== */
 const CURRENCY_COLS=new Set([
   "Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
-  "Residential Fee","Signature Fee","Declared Value Fee",
+  "Residential Fee","Signature Fee","Declared Value Fee","Address Correction Fee",
   "General Demand Fee","AHS Demand Fee",
   "Oversize Demand Fee","Fuel Fee","Repriced Total"]);
 const DATE_COLS=new Set(["Transaction Date","Invoice Date"]);
@@ -4168,14 +4168,32 @@ async function exportProfitReport(){
   ],name);
   toast(L(name+" 已下載",name+" downloaded"));
 }
+/* 這兩欄不進逐筆報表:一張帳單一個號、一個日期,5,765 列重複同一個值。
+   要按期別看就用 Statement 那份。結果列裡照樣留著,那份報表要用。 */
+const RESULT_DROP=new Set(["Invoice Date","Invoice Number"]);
+/* 報表上的欄名。鍵是程式用的,標頭是給人看的 —— 帳單上那一行叫
+   Fuel Surcharge,報表就寫 Fuel Surcharge。 */
+const RESULT_HEAD={
+  "DAS Fee":              "Delivery Area Surcharge",
+  "Oversize Fee":         "Oversize Surcharge",
+  "Residential Fee":      "Residential Surcharge",
+  "Signature Fee":        "Signature Surcharge",
+  "Declared Value Fee":   "Declared Value Surcharge",
+  "Address Correction Fee":"Address Correction Surcharge",
+  "General Demand Fee":   "General Demand Surcharge",
+  "AHS Demand Fee":       "AHS Demand Surcharge",
+  "Oversize Demand Fee":  "Oversize Demand Surcharge",
+  "Fuel Fee":             "Fuel Surcharge",
+};
 async function exportResultWorkbook(results,customCols){
   customCols=customCols||[];
-  const cut=FINAL_COLS.indexOf("Fuel Fee");
-  const cols=FINAL_COLS.slice(0,cut).concat(customCols,FINAL_COLS.slice(cut));
+  const base=FINAL_COLS.filter(c=>!RESULT_DROP.has(c));
+  const cut=base.indexOf("Fuel Fee");
+  const cols=base.slice(0,cut).concat(customCols,base.slice(cut));
   const extraSet=new Set(customCols);
   const HEAD={bold:true,fill:"D9EAF7"};
-  const rows=[cols.map(c=>({v:c,t:"s",s:HEAD}))];
-  const widths=cols.map(c=>c.length);
+  const rows=[cols.map(c=>({v:RESULT_HEAD[c]||c,t:"s",s:HEAD}))];
+  const widths=cols.map(c=>(RESULT_HEAD[c]||c).length);
   for(const res of results){
     const row=cols.map((c,i)=>{
       let cell,disp;
@@ -4205,11 +4223,27 @@ async function exportResultWorkbook(results,customCols){
     });
     rows.push(row);
   }
+  /* 合計列。金額欄逐欄相加,其餘留白 —— 自己拉一次公式才知道對不對帳,
+     那件事應該由報表自己做完。篩選範圍不含這一列,不然一按篩選它就跑掉。 */
+  const dataRows=rows.length;
+  {
+    const B={bold:true,fill:"EFE7D8"}, BM={bold:true,fill:"EFE7D8",fmt:"$#,##0.00"};
+    const money1=c=>CURRENCY_COLS.has(c)||extraSet.has(c);
+    const tot=cols.map((c,i)=>{
+      if(i===0) return {v:L("合計","TOTAL"),t:"s",s:B};
+      if(!money1(c)) return {v:"",t:"s",s:B};
+      let sum=0;
+      for(const res of results)
+        sum+=extraSet.has(c)?toFloat(res._custom?res._custom[c]:0,0):toFloat(res[c],0);
+      return {v:r2(sum),t:"n",s:BM};
+    });
+    rows.push(tot);
+  }
   await xlWrite([{
     name:"Repriced",rows,
     cols:widths.map(w=>({w:Math.min(Math.max(w+2,10),35)})),
     freeze:{r:1},
-    filter:"A1:"+xlCol(cols.length-1)+rows.length,
+    filter:"A1:"+xlCol(cols.length-1)+dataRows,
   }],"repriced_result.xlsx");
 }
 
@@ -6884,7 +6918,7 @@ const PR_LABEL={
   "General Demand Fee":["旺季附加費","General Demand"],
   "AHS Demand Fee":["旺季 AHS 附加費","AHS Demand"],
   "Oversize Demand Fee":["旺季超大件附加費","Oversize Demand"],
-  "Fuel Fee":["燃油附加費","Fuel"],
+  "Fuel Fee":["燃油附加費","Fuel Surcharge"],
 };
 function prLabel(k){ const t=PR_LABEL[k]; return t?t[LANG]:k; }
 /* 匯出用的名字固定英文,不跟介面語言走 */
@@ -7119,13 +7153,10 @@ function unrecSvcList(){
       &&!known.has(String(x.label).toLowerCase()))
     .map(x=>({name:x.label,rows:x.rows,total:r2(x.total)}));
 }
-function unrecCount(){
-  if(!LAST) return 0;
-  return unrecSvcList().length+csSeenList().fresh.length;
-}
+function unrecCount(){ return LAST?unrecSvcList().length:0; }
 function renderUnrec(){
   const host=$("unrecBody"); if(!host) return;
-  const svc=unrecSvcList(), fee=LAST?csSeenList().fresh:[];
+  const svc=unrecSvcList();
   const head=(a,b,c,d)=>"<thead><tr><th style=\"width:30px\"></th><th>"+a+"</th><th>"+b
     +'</th><th class="num">'+c+'</th><th class="num">'+d+"</th></tr></thead>";
   let h="";
@@ -7143,21 +7174,8 @@ function renderUnrec(){
         +'<td class="num amt">'+money(x.total)+"</td></tr>").join("")
       +"</tbody></table></div>";
   }
-  if(fee.length){
-    h+='<div class="subhd">'+L("費目清單裡沒有的費目","Charges not in your settings")+"</div>"
-      +'<div class="tablewrap" style="max-height:26vh"><table class="unrec">'
-      +head(L("帳單上的費目","Charge on the invoice"),L("目前如何計價","Currently priced as"),
-            L("筆數","Lines"),L("金額","Amount"))
-      +"<tbody>"+fee.map((x,i)=>"<tr>"
-        +'<td><input type="checkbox" class="unrfee" data-i="'+i+'" checked></td>'
-        +"<td><b>"+esc(x.name)+"</b></td>"
-        +'<td class="dimtd">'+L("照原價轉嫁","passed through at cost")+"</td>"
-        +'<td class="num">'+x.rows.toLocaleString()+"</td>"
-        +'<td class="num amt">'+money(x.total)+"</td></tr>").join("")
-      +"</tbody></table></div>";
-  }
-  host.innerHTML=h||'<div class="note">'+L("這張帳單上的服務與費目都登記過了。",
-    "Every service and charge on this invoice is already registered.")+"</div>";
+  host.innerHTML=h||'<div class="note">'+L("這張帳單上的服務都在渠道清單裡。",
+    "Every service on this invoice is in your channel list.")+"</div>";
 }
 function openUnrec(){
   if(!LAST){ toast(L("請先匯入帳單按 Reprice","Import an invoice and press Reprice first"),true); return; }
@@ -7171,30 +7189,27 @@ function wireUnrec(){
   if($("bUnrecClose")) $("bUnrecClose").onclick=closeUnrec;
   if($("unrecBg")) $("unrecBg").onclick=e=>{ if(e.target===$("unrecBg")) closeUnrec(); };
   if($("bUnrecAdd")) $("bUnrecAdd").onclick=()=>{
-    const svc=unrecSvcList(), fee=csSeenList().fresh;
-    const ps=[...document.querySelectorAll(".unrsvc:checked")].map(c=>svc[+c.dataset.i]).filter(Boolean);
-    const pf=[...document.querySelectorAll(".unrfee:checked")].map(c=>fee[+c.dataset.i]).filter(Boolean);
-    if(!ps.length&&!pf.length){
-      $("unrecNote").textContent=L("請先勾選要新增的項目。","Tick something to add first.");
+    const svc=unrecSvcList();
+    const ps=[...document.querySelectorAll(".unrsvc:checked")]
+      .map(c=>svc[+c.dataset.i]).filter(Boolean);
+    if(!ps.length){
+      $("unrecNote").textContent=L("請先勾選要新增的渠道。","Tick the channels to add first.");
       return;
     }
-    let ns=0,nf=0;
+    let ns=0;
     /* 新渠道的 Zone 取內建那組 —— 帳單上看不出這條線跑哪些 Zone,
        之後在「Channels」改或按「從帳單掃描 Zone」都可以。 */
     for(const x of ps){
       if(SERVICES.concat(CUSTOM_SERVICES).some(y=>y.toLowerCase()===x.name.toLowerCase())) continue;
       addChannel(x.name,BASE_ZONES.slice(),true); ns++;
     }
-    for(const x of pf) if(csurAdd(x.name,x.name,"0","invoice")) nf++;
-    if(!ns&&!nf) return;
+    if(!ns) return;
     markDirty(); renderAll(); renderResults();
     closeUnrec();
-    toast(L("已登記 "+(ns?ns+" 條渠道":"")+(ns&&nf?"、":"")+(nf?nf+" 個費目":"")
-            +" —— 登記只是讓系統認得它。渠道的費率表還是空的,費目先照帳單金額收;"
-            +"按 Reprice 重跑,數字才會跟上。",
-            "Registered "+(ns?ns+" channel(s)":"")+(ns&&nf?" and ":"")+(nf?nf+" charge(s)":"")
-            +" — registering only makes the tool recognise them. The channel rate tables are "
-            +"still empty and the charges bill what FedEx billed; press Reprice to update the figures."));
+    toast(L("已登記 "+ns+" 條渠道 —— 登記只是讓系統認得它,費率表還是空的。"
+            +"到「Channels」填基本費率,再按 Reprice 重跑。",
+            ns+" channel(s) registered — that only makes the tool recognise them; the rate "
+            +"tables are still empty. Fill in the base rates under Channels, then press Reprice."));
   };
 }
 
@@ -7212,9 +7227,8 @@ function dashCsCard(){
     +'<span class="cnote">'+L("帳單費目未對應系統費率設定",
       "invoice charges with no rate configured in this tool")+"</span>"
     +(unrecCount()?'<button class="act sm" id="bRegUnrec">'
-         +L("登記未收錄的項目","Register unrecognised codes")+"</button>":"")
-    +'<button class="act ghost sm" id="bDashCsur2">'+L("自訂附加費","Custom Surcharges")
-    +"</button>"
+         +L("登記未收錄的服務("+unrecCount()+")",
+            "Register unrecognised services ("+unrecCount()+")")+"</button>":"")
     +'<button class="act ghost sm" id="bGoChg">'+L("去費目查詢","Open Charge Lookup")
     +"</button></div>"
     +'<p class="isssub">'
@@ -7473,10 +7487,7 @@ function renderResults(){
   body.innerHTML=
      '<div class="dhead"><div><div class="dtitle">'+L("儀表板","Dashboard")+"</div>"
     +'<div class="dsub">'+d.n.toLocaleString()+" "+L("筆貨件","shipments")+"</div></div>"
-    +'<div class="dacts">'
-    +'<button class="act ghost" id="bDashCsur">'+L("自訂附加費","Custom Surcharges")
-    +"</button>"
-    +'<button class="act ghost" id="bDashRe">'+L("重新整理","Refresh")+"</button></div></div>"
+    +'<button class="act ghost" id="bDashRe">'+L("重新整理","Refresh")+"</button></div>"
     +'<div class="dflow">'
     +'<div class="dcell"><div class="dk">'+L("向客戶收","Charge customer")+"</div>"
       +'<div class="dv">'+money(d.repriced)+"</div></div>"
@@ -7513,9 +7524,6 @@ function renderResults(){
   if(gc) gc.onclick=()=>{ CHG_MODE="scan"; switchPage("chg"); renderChg(); };
   const ru=$("bRegUnrec");
   if(ru) ru.onclick=openUnrec;
-  for(const id of ["bDashCsur","bDashCsur2"]){
-    const el=$(id); if(el) el.onclick=openCsurModal;
-  }
   paintStatementBtn();
 }
 async function runRepricing(){
