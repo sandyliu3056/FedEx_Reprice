@@ -1361,9 +1361,9 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <span id="chgCount" style="color:var(--muted);font-size:12.5px"></span>
     </div>
     <div class="tablewrap"><table id="tChg"><thead><tr>
-      <th data-i18n="th.chgname">費目</th>
-      <th data-i18n="th.chghow">算進哪一項 / 處理方式</th>
-      <th data-i18n="th.ininv">在帳單中</th>
+      <th data-i18n="th.chgname">帳單費目</th>
+      <th data-i18n="th.chghow">對應費用類別</th>
+      <th data-i18n="th.ininv">本期出現</th>
       <th class="num" data-i18n="th.count">筆數</th>
       <th class="num" data-i18n="th.amt2">金額</th>
     </tr></thead><tbody></tbody></table></div>
@@ -1913,9 +1913,9 @@ const I18N={
  "btn.chgref":["顯示完整參考表","Show Full Reference"],
  "btn.clearsearch":["清除","Clear"],
  "lb.show":["顯示","Show"],
- "th.chgname":["費目","Charge"],
- "th.chghow":["算進哪一項 / 處理方式","Counts towards / how it is handled"],
- "th.ininv":["在帳單中","In Invoice"],
+ "th.chgname":["帳單費目","Invoice charge"],
+ "th.chghow":["對應費用類別","Charge category"],
+ "th.ininv":["本期出現","On this invoice"],
  "th.count":["筆數","Count"],
  "th.amt2":["金額","Amount"],
  "btn.gochg":["去費目查詢","Open Charge Lookup"],
@@ -7356,10 +7356,10 @@ const SKY={
 /* 天氣蓋過時段:暖色要壓掉,但天空本身還是藍的 —— 灰的是雲,不是天。
    純中性灰會變成黑白照片。 */
 const WX_SKY={
-  cloud:{top:"#8fa2b4",mid:"#b8c4d0",bot:"#cdd6de"},
-  rain: {top:"#5e7288",mid:"#8695a4",bot:"#a3aeb9"},
-  storm:{top:"#3b4859",mid:"#5b6a7c",bot:"#78848f"},
-  snow: {top:"#7e8fa2",mid:"#b2bdc8",bot:"#d3dae1"},
+  cloud:{top:"#a6bccf",mid:"#cfdae4",bot:"#e2e8ed"},
+  rain: {top:"#6d8298",mid:"#96a5b3",bot:"#b2bcc6"},
+  storm:{top:"#43515f",mid:"#64707f",bot:"#828d97"},
+  snow: {top:"#93a5b6",mid:"#c2ccd6",bot:"#dfe4ea"},
 };
 function mixHex(a,b,t){
   const p=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
@@ -7375,12 +7375,17 @@ function skyNow(){
   /* 有天氣時用天氣的灰,但夜裡仍然要更暗 —— 陰天的半夜不是灰白的。 */
   /* 天氣壓過時段,但不是把時段整個蓋掉:夜裡仍然要更暗(陰天的半夜不是
      灰白的),晨昏仍然要留住地平線那道暖光(陰天的日出不是平灰的)。 */
+  /* 下大的才把天色整個換掉。多雲和下雪只是把藍壓淡,白天的藍還在 ——
+     不然一個多雲的上午看起來會像傍晚。 */
+  const heavy=(WX.mode==="rain"||WX.mode==="storm");
   const k=(ph==="night"||ph==="evening")?.55
-         :(ph==="dawn"||ph==="dusk")?.42:0;
+         :(ph==="dawn"||ph==="dusk")?.42
+         :(heavy?0:.38);
+  /* 暗罩是給真的暗下來的天氣用的。多雲不暗,只是沒有直射光。 */
+  const add=WX.mode==="storm"?.2:WX.mode==="rain"?.12:WX.mode==="snow"?.02:0;
   return {top:mixHex(wx.top,base.top,k),mid:mixHex(wx.mid,base.mid,k),
           bot:mixHex(wx.bot,base.bot,k),
-          dim:+Math.min(.62,base.dim
-            +(WX.mode==="storm"?.2:WX.mode==="rain"?.12:.04)).toFixed(3)};
+          dim:+Math.min(.62,base.dim+add).toFixed(3)};
 }
 const SVGNS="http://www.w3.org/2000/svg";
 function mk(tag,attrs){
