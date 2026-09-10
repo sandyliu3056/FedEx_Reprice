@@ -2718,14 +2718,20 @@ function hasChargeDesc(row,keywords,requireNonzero=true){
 }
 
 /* ---- 原始帳單的判定 ---- */
+/* 同一種 DAS,帳單上兩種寫法都會出現 —— 同一份 640 檔裡就同時有
+   「DAS Remote Residential」和「DAS Remote Comm」、「DAS Residential」和
+   「DAS Resi」。只認全稱的話,縮寫那幾行查不到類型,DAS 就整筆收不到。
+   所以關鍵字取縮寫(縮寫是全稱的前綴,一併認得),並且從長的往短的比:
+   remote / extended 先比完,最後才比裸的 comm / resi,否則「DAS Comm」會
+   先把「DAS Commercial」以外的東西吃掉。 */
 function detectDasType(row){
   const paired=[
-    [["DAS Remote Residential"],"DAS Remote Residential"],
-    [["DAS Extended Residential"],"DAS Extended Resi"],
-    [["DAS Residential"],"DAS Resi"],
-    [["DAS Remote Commercial"],"DAS Remote Commercial"],
-    [["DAS Extended Commercial"],"DAS Extended Comm"],
-    [["DAS Commercial"],"DAS Comm"],
+    [["DAS Remote Resi"],"DAS Remote Residential"],
+    [["DAS Extended Resi"],"DAS Extended Resi"],
+    [["DAS Remote Comm"],"DAS Remote Commercial"],
+    [["DAS Extended Comm"],"DAS Extended Comm"],
+    [["DAS Resi"],"DAS Resi"],
+    [["DAS Comm"],"DAS Comm"],
     [["Hawaii - Residential","Hawaii Residential"],"Hawaii - Residential"],
     [["Hawaii - Commercial","Hawaii Commercial"],"Hawaii - Commercial"],
     [["Alaska - Residential","Alaska Residential"],"Alaska - Residential"],
@@ -2734,11 +2740,17 @@ function detectDasType(row){
   for(const[kw,t] of paired) if(hasChargeDesc(row,kw)) return t;
   const standalone=[
     ["DAS Remote Residential","DAS Remote Residential"],
+    ["DAS Remote Resi","DAS Remote Residential"],
     ["DAS Extended Residential","DAS Extended Resi"],
+    ["DAS Extended Resi","DAS Extended Resi"],
     ["DAS Residential","DAS Resi"],
+    ["DAS Resi","DAS Resi"],
     ["DAS Remote Commercial","DAS Remote Commercial"],
+    ["DAS Remote Comm","DAS Remote Commercial"],
     ["DAS Extended Commercial","DAS Extended Comm"],
+    ["DAS Extended Comm","DAS Extended Comm"],
     ["DAS Commercial","DAS Comm"],
+    ["DAS Comm","DAS Comm"],
     ["Hawaii - Commercial","Hawaii - Commercial"],
     ["Hawaii - Residential","Hawaii - Residential"],
     ["Alaska - Commercial","Alaska - Commercial"],
@@ -2751,14 +2763,16 @@ function detectDasType(row){
 }
 function detectResidentialFlag(row){
   if(flagVal(coalesce(row,["Residential"],""))) return true;
+  /* 住宅 DAS 的縮寫也算住宅(帳單上寫 DAS Resi 的那幾行) */
   if(hasChargeDesc(row,[
     "Residential Delivery","Residential Surcharge","Residential",
-    "DAS Residential","DAS Extended Residential","DAS Remote Residential",
+    "DAS Resi","DAS Extended Resi","DAS Remote Resi",
     "Hawaii - Residential","Alaska - Residential",
   ])) return true;
   for(const col of [
     "Residential Delivery","Residential Surcharge",
     "DAS Residential","DAS Extended Residential","DAS Remote Residential",
+    "DAS Resi","DAS Extended Resi","DAS Remote Resi",
     "Hawaii - Residential","Alaska - Residential",
   ]) if(hasNonzero(row,col)) return true;
   return false;
@@ -3260,6 +3274,34 @@ function repriceCore(columns,rowsIn){
     if(t&&!zoneByTrk.has(t)) zoneByTrk.set(t,z);
   }
 
+  /* 同一個追蹤號在帳單上出現不只一次:一張是原始帳單,後面那張是重新計費
+     —— Transportation Charge 再開一次,另外補一行 Performance Pricing 沖掉原
+     價。尺寸欄位每一列都照抄,所以「一件收一次」的超大件和 AHS 會在每一列都
+     成立,一件收成兩次;FedEx 自己只收一次(重計那一列沒有 Oversize Charge
+     那行)。所以一個追蹤號只認一列:帳單上真的收了那一列優先,都沒收就算在
+     第一列,其餘列不再判尺寸。 */
+  const OS_LINES=["Oversize Charge","Unauthorized Outsize"];
+  const AHS_LINES=["Add'l Handling","Additional Handling","AHS -"];
+  const AHS_COLS=["Add'l Handling-Dimension","Add'l Handling-Weight",
+    "Add'l Handling-Packaging","Additional Handling-Dimension",
+    "Additional Handling-Weight","Additional Handling-Packaging"];
+  const sizeCharged=row=>hasChargeDesc(row,OS_LINES)||hasChargeDesc(row,AHS_LINES)
+    ||hasNonzero(row,"Oversize Charge")||AHS_COLS.some(c=>hasNonzero(row,c));
+  const rowsByTrk=new Map();
+  billing.forEach((r,i)=>{
+    const t=String(r["_Tracking Number"]??"").trim();
+    if(!t) return;
+    if(!rowsByTrk.has(t)) rowsByTrk.set(t,[]);
+    rowsByTrk.get(t).push(i);
+  });
+  const sizeSkip=new Set();
+  for(const idx of rowsByTrk.values()){
+    if(idx.length<2) continue;
+    let own=idx.find(i=>sizeCharged(billing[i]));
+    if(own==null) own=idx[0];
+    for(const i of idx) if(i!==own) sizeSkip.add(i);
+  }
+
   billing.forEach((row,index)=>{
     const excelRow=index+2;
     const service=normalizeService(row["_Normalized Service"]);
@@ -3347,11 +3389,14 @@ function repriceCore(columns,rowsIn){
       coalesce(row,["Rated Weight Amount","Billed Weight","Billable Weight"],0),0);
     let billableWeight=ratedWeight>0?Math.ceil(ratedWeight):Math.max(actualWeight,dimWeight);
 
-    let oversizeHit=oversizeHitFn(l,w,h,actualWeight,service);
+    /* 同一件貨的重計列:尺寸不再判第二次 */
+    const dupSize=sizeSkip.has(index);
+    let oversizeHit=dupSize?false:oversizeHitFn(l,w,h,actualWeight,service);
     if(billingCols.includes("Oversize Charge")
        &&toFloat(row["Oversize Charge"]??0.0,0.0)>0) oversizeHit=true;
 
-    const ahsResult=detectAhsResult(row,l,w,h,actualWeight,oversizeHit,service,zone,ahsLookup);
+    const ahsResult=dupSize?{ahs_type:"",ahs_fee:0.0,dimension_triggered:false}
+      :detectAhsResult(row,l,w,h,actualWeight,oversizeHit,service,zone,ahsLookup);
     const ahsType=String(ahsResult.ahs_type);
     const ahsFee=Number(ahsResult.ahs_fee);
     const dimensionTriggered=!!ahsResult.dimension_triggered;
@@ -4144,21 +4189,19 @@ async function exportProfitReport(){
 /* 這兩欄不進逐筆報表:一張帳單一個號、一個日期,5,765 列重複同一個值。
    要按期別看就用 Statement 那份。結果列裡照樣留著,那份報表要用。 */
 const RESULT_DROP=new Set(["Invoice Date","Invoice Number"]);
-/* 報表上的欄名。鍵是程式用的,標頭是給人看的 —— 帳單上那一行叫
-   Fuel Surcharge,報表就寫 Fuel Surcharge。 */
-const RESULT_HEAD={
-  "DAS Fee":              "Delivery Area Surcharge",
-  "Oversize Fee":         "Oversize Surcharge",
-  "Residential Fee":      "Residential Surcharge",
-  "Signature Fee":        "Signature Surcharge",
-  "Declared Value Fee":   "Declared Value Surcharge",
-  "Address Correction Fee":"Address Correction Surcharge",
-  "General Demand Fee":   "General Demand Surcharge",
-  "AHS Demand Fee":       "AHS Demand Surcharge",
-  "Oversize Demand Fee":  "Oversize Demand Surcharge",
-  "Fuel Fee":             "Fuel Surcharge",
-  "Repriced Total":       "Total",
-};
+/* 報表上的欄名。鍵是程式用的,標頭是給人看的。內建費用的名字不在這裡重抄一份,
+   直接讀 PR_LABEL 的英文名 —— 兩份清單各改一半,報表和畫面就會叫不同的名字。 */
+const RESULT_HEAD={"Repriced Total":"Total"};
+function resultHead(c){ return RESULT_HEAD[c]||prLabelEn(c); }
+/* 匯出檔名跟著來源帳單走。一天跑五張帳單就會拿到 repriced_result (1)(2)(3)…
+   —— 檔名一樣,誰是誰只能一個個開來看。原檔名後面接 -Repriced,下載匣裡
+   直接對得上是哪一張帳單重算出來的。 */
+function repricedFileName(){
+  const raw=String((BILLING&&BILLING.name)||"").trim();
+  /* 去掉副檔名,再拿掉檔名不能用的字元(瀏覽器會自己換成底線,那就我們自己來) */
+  const stem=raw.replace(/\.[A-Za-z0-9]{1,6}$/,"").replace(/[\\/:*?"<>|]+/g,"_").trim();
+  return (stem?stem+"-Repriced":"repriced_result")+".xlsx";
+}
 async function exportResultWorkbook(results,customCols){
   customCols=customCols||[];
   const base=FINAL_COLS.filter(c=>!RESULT_DROP.has(c));
@@ -4166,8 +4209,8 @@ async function exportResultWorkbook(results,customCols){
   const cols=base.slice(0,cut).concat(customCols,base.slice(cut));
   const extraSet=new Set(customCols);
   const HEAD={bold:true};
-  const rows=[cols.map(c=>({v:RESULT_HEAD[c]||c,t:"s",s:HEAD}))];
-  const widths=cols.map(c=>(RESULT_HEAD[c]||c).length);
+  const rows=[cols.map(c=>({v:resultHead(c),t:"s",s:HEAD}))];
+  const widths=cols.map(c=>resultHead(c).length);
   for(const res of results){
     const row=cols.map((c,i)=>{
       let cell,disp;
@@ -4202,7 +4245,7 @@ async function exportResultWorkbook(results,customCols){
     cols:widths.map(w=>({w:Math.min(Math.max(w+2,10),35)})),
     freeze:{r:1},
     filter:"A1:"+xlCol(cols.length-1)+rows.length,
-  }],"repriced_result.xlsx");
+  }],repricedFileName());
 }
 
 /* ---- 範本匯出(標頭同樣上色,桌面版讀進去只看值,樣式不影響) ---- */
@@ -5943,11 +5986,10 @@ function wireHist(){
   $("trkSearch").addEventListener("keydown",e=>{ if(e.key==="Enter") findTrk(); });
   /* Rating Breakdown —— 照 UPS:各期比對表 + 每期逐項明細 + 匯出 Excel */
   const money2=v=>"$"+(Math.round((v||0)*100)/100).toFixed(2);
-  const FEE_COLS=[["Base Rate","Base"],["Additional Handling Surcharge","AHS"],
-    ["DAS Fee","DAS"],["Oversize Fee","Oversize"],["Residential Fee","Residential"],
-    ["Signature Fee","Signature"],["General Demand Fee","Demand"],
-    ["AHS Demand Fee","AHS Demand"],["Oversize Demand Fee","Oversize Demand"],
-    ["Fuel Fee","Fuel"]];
+  /* 明細右邊那一側要列的費用。直接從 PR_ORDER 長出來 —— 手抄第二份清單就是
+     這個 bug 的來源:保險附加費和地址更正費加進引擎之後,這裡沒跟上,金額有
+     算進小計卻沒有那一行,看起來就像小計加錯。 */
+  const FEE_COLS=()=>PR_ORDER.map(k=>[k,prLabel(k)]);
   /* 一期的兩側對照(照抄 UPS):左邊 FedEx 實收、右邊重新計價,並排在同一張
      卡上。上下疊兩張表要人自己記住左邊的數字再去比右邊 —— 並排就不用記。 */
   function bkdSection(o){
@@ -5974,7 +6016,7 @@ function wireHist(){
     U.push('<tr class="bkdsub"><td>'+L("小計","Subtotal")+'</td><td class="m">'+neg(usub)+"</td></tr>");
     /* 右:重算出來的逐項,順序同匯出的欄位 */
     const P=[]; let psub=0;
-    for(const[k,lab] of FEE_COLS){
+    for(const[k,lab] of FEE_COLS()){
       const v=toFloat(res[k],0);
       if(v===0) continue;
       psub+=v;
@@ -6109,8 +6151,10 @@ function wireHist(){
       for(const r of o.rows) rows.push([BKD_LAST.trk,o.inv,o.invDate,"Billed · "+r.desc,r.amt]);
       rows.push([BKD_LAST.trk,o.inv,o.invDate,"Billed · TOTAL",r2(o.billed)]);
       if(o.res){
-        for(const[k,lab] of FEE_COLS)
-          if(toFloat(o.res[k],0)!==0) rows.push([BKD_LAST.trk,o.inv,o.invDate,"Repriced · "+lab,toFloat(o.res[k],0)]);
+        for(const k of PR_ORDER)
+          if(toFloat(o.res[k],0)!==0)
+            rows.push([BKD_LAST.trk,o.inv,o.invDate,"Repriced · "+prLabelEn(k),
+                       toFloat(o.res[k],0)]);
         for(const[k,v] of Object.entries(o.res["_custom"]||{}))
           if(toFloat(v,0)!==0) rows.push([BKD_LAST.trk,o.inv,o.invDate,"Repriced · "+k,toFloat(v,0)]);
         rows.push([BKD_LAST.trk,o.inv,o.invDate,"Repriced · TOTAL",toFloat(o.res["Repriced Total"],0)]);
@@ -6874,18 +6918,22 @@ function wireFiles(){
 const PR_ORDER=["Base Rate","Additional Handling Surcharge","DAS Fee","Oversize Fee",
   "Residential Fee","Signature Fee","Declared Value Fee","Address Correction Fee",
   "General Demand Fee","AHS Demand Fee","Oversize Demand Fee","Fuel Fee"];
+/* 內建費用的顯示名稱,全系統只有這一份 —— 畫面、明細、匯出的活頁簿都讀它。
+   英文寫全名而不是縮寫:帳單左邊那一側印的是 FedEx 自己的字(Residential
+   Delivery、Fuel Surcharge),右邊如果只寫 Residential、Fuel,兩邊對不起來,
+   看的人得自己猜哪個對哪個。 */
 const PR_LABEL={
   "Base Rate":["基本運費","Base Rate"],
-  "Additional Handling Surcharge":["額外處理費 (AHS)","Additional Handling (AHS)"],
-  "DAS Fee":["偏遠地區附加費 (DAS)","Delivery Area (DAS)"],
-  "Oversize Fee":["超大件附加費","Oversize"],
-  "Residential Fee":["住宅地址附加費","Residential"],
-  "Signature Fee":["簽收服務費","Signature"],
-  "Declared Value Fee":["保險附加費","Declared Value"],
-  "Address Correction Fee":["地址更正費","Address Correction"],
-  "General Demand Fee":["旺季附加費","General Demand"],
-  "AHS Demand Fee":["旺季 AHS 附加費","AHS Demand"],
-  "Oversize Demand Fee":["旺季超大件附加費","Oversize Demand"],
+  "Additional Handling Surcharge":["額外處理費 (AHS)","Additional Handling Surcharge"],
+  "DAS Fee":["偏遠地區附加費 (DAS)","Delivery Area Surcharge"],
+  "Oversize Fee":["超大件附加費","Oversize Surcharge"],
+  "Residential Fee":["住宅地址附加費","Residential Surcharge"],
+  "Signature Fee":["簽收服務費","Signature Surcharge"],
+  "Declared Value Fee":["保險附加費","Declared Value Surcharge"],
+  "Address Correction Fee":["地址更正費","Address Correction Surcharge"],
+  "General Demand Fee":["旺季附加費","General Demand Surcharge"],
+  "AHS Demand Fee":["旺季 AHS 附加費","AHS Demand Surcharge"],
+  "Oversize Demand Fee":["旺季超大件附加費","Oversize Demand Surcharge"],
   "Fuel Fee":["燃油附加費","Fuel Surcharge"],
 };
 function prLabel(k){ const t=PR_LABEL[k]; return t?t[LANG]:k; }
@@ -7524,8 +7572,9 @@ async function runRepricing(){
     /* 這一期哪些費目還沒登記,跑完就知道了 —— 自訂附加費那顆鈕旁邊直接寫著。 */
     renderCsSeen();
     await exportResultWorkbook(results,customCols);
-    const done=L("完成:已處理 "+results.length+" 筆,repriced_result.xlsx 已下載。",
-      "Done — "+results.length+" shipment(s) processed; repriced_result.xlsx downloaded.");
+    const outName=repricedFileName();
+    const done=L("完成:已處理 "+results.length+" 筆,"+outName+" 已下載。",
+      "Done — "+results.length+" shipment(s) processed; "+outName+" downloaded.");
     setStatus(done);
     /* 狀態句已經在上面那行 LED 顯示,這裡只放補充資訊,不重複同一句話 */
     $("runSummary").style.display="block";
