@@ -238,6 +238,28 @@ input[type=file]{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
 .pill::before{content:"";width:7px;height:7px;border-radius:99px;background:currentColor}
 .pill.ok{color:color-mix(in srgb,var(--ok) 85%,black);background:color-mix(in srgb,var(--ok) 12%,transparent)}
 .pill.no{color:var(--neg);background:color-mix(in srgb,var(--neg) 10%,transparent)}
+/* 對到內建費用的、對到自訂費目的,兩種來源顏色分開 —— 一眼看得出這筆錢
+   是走我們自己的費率表,還是走使用者加的規則。 */
+.pill.map{color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.pill.cus{color:var(--rp);background:color-mix(in srgb,var(--rp) 12%,transparent)}
+
+/* ---- 費目查詢 ---- */
+#tChg td{vertical-align:top}
+#tChg .why{display:block;font-size:11px;color:var(--muted);margin-top:3px;line-height:1.45}
+#tChg .tick{color:var(--ok);font-weight:700}
+#tChg td.amt{font-weight:600;color:var(--bill)}
+#tChg tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,var(--panel))}
+#chgCount b{color:var(--neg)}
+#chgCount .oknum{color:var(--ok)}
+
+/* ---- 自訂附加費 ---- */
+#tCsur td{vertical-align:middle}
+#tCsur .selw.yn>select{min-width:74px;font-weight:600}
+#tCsur .selw.yn.on>select{color:var(--ok)}
+#tCsur .selw.yn.off>select{color:var(--muted)}
+#tCsur tr.csoff td b{text-decoration:line-through}
+#tCsur input.cs-fee:disabled{border-style:dashed;opacity:.45;background:transparent}
+#csurModal .modalft{flex-wrap:wrap;gap:8px}
 .savenote{font-size:12.5px;color:var(--ok)}
 .savenote.bad{color:var(--neg)}
 
@@ -394,8 +416,9 @@ td.neg{color:var(--neg)}
 .csseen.known{border-style:solid;border-color:var(--line);background:var(--bill-bg)}
 .csseen.known .arrow{color:var(--muted)}
 .csseen.known b{color:var(--bill)}
-.csseen .tagx{color:var(--neg);font-size:11.5px;white-space:nowrap;
-  border:1px solid var(--neg);border-radius:6px;padding:1px 6px}
+.csseen .tagx{font-size:11px;white-space:nowrap;flex:0 0 auto}
+.csseen{transition:border-color .12s,background .12s}
+.csseen:hover{border-color:var(--accent)}
 #tCsur tr.csoff td{opacity:.5}
 #tCsur td.wrap{white-space:normal;word-break:break-word;max-width:280px}
 #p-dash .csbox{border-color:var(--rp);background:var(--rp-bg)}
@@ -1658,20 +1681,20 @@ input.cell,#runStatus,#baseCount,.grid3 input[readonly]{
       <button class="mx" id="bCsX">✕</button>
     </div>
     <div class="modalbody">
-      <p class="hint" data-i18n="hint.csur">帳單上有、系統沒有內建費率的費目,登記在這裡就會有自己的報表欄位。勾選可以整批刪除。</p>
+      <p class="hint" data-i18n="hint.csur">帳單上有、系統沒有內建費率的費目登記在這裡,報表就會多一欄。表頭名稱就是那個欄名;帳單費目名稱可填多個別名(,分隔),任一出現即符合。</p>
       <div class="tablewrap" style="max-height:320px">
         <table id="tCsur"><thead></thead><tbody></tbody></table>
       </div>
       <div id="csNote"></div>
     </div>
     <div class="modalft">
-      <button class="act" id="bCsAdd" data-i18n="btn.csadd">+ 新增附加費</button>
       <button class="act ghost" id="bCsDel" data-i18n="btn.csdel">刪除勾選</button>
       <button class="act" id="bCsSaveCfg" data-i18n="btn.cssave">儲存設定</button>
       <button class="act ghost" id="bCsExp" data-i18n="btn.csexp">匯出清單</button>
       <button class="act ghost" id="bCsImp" data-i18n="btn.csimp">匯入清單</button>
       <input type="file" id="fCsImp" accept=".xlsx,.xls,.csv">
       <span class="savenote"></span>
+      <button class="act" id="bCsAdd" data-i18n="btn.csadd">+ 新增附加費</button>
       <button class="act ghost" id="bCsClose" data-i18n="btn.close">關閉</button>
     </div>
   </div>
@@ -1903,8 +1926,8 @@ const I18N={
  "hint.csmodal":["帳單費目名稱可填多個(用,分隔),任一出現即符合;表頭名稱是報表欄位名。計費方式:重算 = 用你設的費率(填 0 就真的是 0);照帳單轉嫁 = 原價帶過去;僅顯示 = 報表上列出金額但不計進總額。",
    "List one or more invoice charge names (comma-separated) — any match counts; the display name becomes the report column. How to charge: Reprice uses your rate (0 really means 0); Copy invoice passes the billed amount through; Report only lists the amount without charging it."],
  "btn.csuradd":["Custom Surcharges…","Custom Surcharges…"],
- "hint.csur":["帳單上有、系統沒有內建費率的費目,登記在這裡就會有自己的報表欄位。勾選可以整批刪除。帳單費目名稱可填多個別名(,分隔),任一出現即符合;表頭名稱是結果 Excel 的欄位名。計費方式決定怎麼算:重算用你設的費率、照帳單轉嫁帶原價、僅顯示只列不計費。停用的費目不重算,那筆金額回去照原價轉嫁。",
-   "Charges that appear on the invoice but have no built-in rate here; register one and it gets its own report column. Tick rows to delete them together. Invoice charge names accept multiple aliases (comma-separated) — any match counts; the display name is the workbook column. How to charge: Reprice uses your rate, Copy invoice passes the billed amount through, Report only lists it without charging. A disabled charge is not repriced — its amount goes back to passing through at cost."],
+ "hint.csur":["帳單上有、系統沒有內建費率的費目登記在這裡,報表就會多一欄。表頭名稱就是那個欄名;帳單費目名稱可填多個別名(,分隔),任一出現即符合。",
+   "Charges on the invoice with no built-in rate here. Register one and the report gains a column named after the display name; invoice charge names accept several aliases (comma-separated) and any match counts."],
  "hd.cfg":["費率設定檔","Rate Configuration"],
  "hd.setting":["Settings","Settings"],
  "hd.cfgfile":["📄 Rate Configuration File","📄 Rate Configuration File"],
@@ -6290,7 +6313,8 @@ function renderCsur(){
     +"</th><th>"+L("吃燃油","Fuel Eligible")
     +"</th><th>"+L("啟用","Enabled")+"</th></tr>";
   const rows=TBL.csur.rows;
-  const yn=(cls,i,v)=>'<span class="selw"><select class="'+cls+'" data-i="'+i+'">'
+  const yn=(cls,i,v)=>'<span class="selw yn '+(v?"on":"off")+'">'
+    +'<select class="'+cls+'" data-i="'+i+'">'
     +'<option value="YES"'+(v?" selected":"")+">YES</option>"
     +'<option value="NO"'+(v?"":" selected")+">NO</option></select></span>";
   t.querySelector("tbody").innerHTML=rows.length?rows.map((r,i)=>{
@@ -6383,16 +6407,14 @@ function csSeenHtml(g){
       +'<span class="fl" title="'+esc(f.name)+'">'+esc(f.name)+"</span>"
       +"<s>"+L(f.rows+" 筆",f.rows+(f.rows>1?" rows":" row"))+"</s>"
       +"<b>"+money(f.total)+"</b>"
-      +'<span class="tagx">'+L("未收錄","not registered")+"</span>"
+      +'<span class="pill no tagx">'+L("未收錄","not registered")+"</span>"
       +"</div>").join("")
       +'<p class="note">'+L(
-        "這些費目目前照原價轉嫁(帳單金額 + 燃油),報表上沒有自己的欄位。勾起來按「新增勾選的費目」"
-        +"就會登記進自訂附加費(計費方式先給「照帳單轉嫁」),報表跟著多一欄;"
-        +"要改成用自己的費率算,在自訂附加費那張表把計費方式換成「重算」再填費率。",
-        "These pass through at cost (invoice amount + fuel) with no column of their own in the report. "
-        +"Tick them and press Add selected to register them as custom surcharges (set to copy the invoice), "
-        +"and the report gains a column for each. To price one yourself, switch it to Reprice "
-        +"in the custom surcharge list and fill in the rate.")
+        "目前照原價轉嫁,報表上沒有自己的欄位。勾起來按「新增勾選的費目」就會各給一欄,"
+        +"金額仍照帳單;要用自己的費率算,再把計費方式換成「重算」。",
+        "These pass through at cost with no column of their own. Tick them and press Add selected "
+        +"to give each one a column, still priced from the invoice; switch one to Reprice "
+        +"to price it yourself.")
       +"</p>";
   }else{
     h+='<div class="note">'+L("帳單上沒有還沒歸類的費目。",
@@ -6411,12 +6433,10 @@ function csSeenHtml(g){
         +'<button class="act ghost sm cs-go" data-i="'+i+'">'+L("去填費率","Go to the rate table")+"</button>"
         +"</div>").join("")
       +'<p class="note">'+L(
-        "這幾項系統本來就會自己算,有專屬的費率表;現在照原價轉嫁只是因為那張表還沒填。"
-        +"把它們再登記成自訂附加費,同一筆錢就會有兩個算法,而先中的是自訂的那個 —— 所以這裡不給「登記」。"
-        +"按「去填費率」會跳到該填的那一頁。",
-        "The tool prices these itself and each has its own rate table; they pass through at cost only because the table is still empty. "
-        +"Registering them as custom surcharges would give the same money two prices, and the custom one would win — so there is no Register button here. "
-        +"Go to the rate table jumps to the page where the rate belongs.")
+        "這幾項有專屬的費率表,照原價轉嫁只是因為那張表還沒填。再登記成自訂附加費,"
+        +"同一筆錢就有兩個算法 —— 所以這裡改成「去填費率」。",
+        "These have rate tables of their own and pass through only because the table is empty. "
+        +"Registering them again would give the same money two prices — hence Go to the rate table, not Register.")
       +"</p>";
   }
   return h;
@@ -6896,22 +6916,25 @@ function renderChg(){
     const hit=inInv[c], how=chargeHandling(c);
     return "<tr>"
       +"<td>"+esc(c)+"</td>"
-      +"<td>"+(how?esc(how.how)
-        :'<span style="color:var(--neg)">'+L("未收錄","not registered")
-         +'</span><span style="font-size:11px;color:var(--muted)"><br>'
+      +"<td>"+(how
+        ?'<span class="pill '+(how.kind==="custom"?"cus":"map")+'">'+esc(how.how)+"</span>"
+        :'<span class="pill no">'+L("未收錄","not registered")+"</span>"
+         +'<span class="why">'
          +L("照原價轉嫁(帳單金額 + 燃油),報表上沒有自己的欄位",
             "passed through at cost (invoice amount + fuel), with no column of its own")
          +"</span>")+"</td>"
-      +'<td style="text-align:center">'+(hit?"✓":"")+"</td>"
+      +'<td style="text-align:center">'+(hit?'<span class="tick">✓</span>':"")+"</td>"
       +'<td class="num">'+(hit?hit.n.toLocaleString():"")+"</td>"
-      +'<td class="num">'+(hit?money(hit.amt):"")+"</td>"
+      +'<td class="num amt">'+(hit?money(hit.amt):"")+"</td>"
       +"</tr>";
   }).join(""):'<tr><td class="empty" colspan="5">'
     +L("沒有符合的費目。","Nothing matches.")+"</td></tr>";
   const unk=names.filter(c=>!chargeHandling(c)).length;
-  if($("chgCount")) $("chgCount").textContent=L(
-    "顯示 "+names.length+" 個,帳單裡 "+Object.keys(inInv).length+" 個,未收錄 "+unk+" 個",
-    names.length+" shown, "+Object.keys(inInv).length+" in invoice, "+unk+" unregistered");
+  /* 「未收錄 0 個」是好消息,和「未收錄 11 個」不該長得一樣。 */
+  const unkTxt=unk?"<b>"+unk+"</b>":'<span class="oknum">0</span>';
+  if($("chgCount")) $("chgCount").innerHTML=L(
+    "顯示 "+names.length+" 個,帳單裡 "+Object.keys(inInv).length+" 個,未收錄 "+unkTxt+" 個",
+    names.length+" shown, "+Object.keys(inInv).length+" in invoice, "+unkTxt+" unregistered");
 }
 function wireChg(){
   fillSelect("chgFilter",CHG_FILTERS.map(([v,lab])=>[v,lab[LANG]]),"all");
